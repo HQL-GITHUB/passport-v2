@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="全国数字旅行护照：护照、文化目的地与现场纪念章的交互设计原型。">
+  <title>旅行护照 · 第二版设计原型</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-passport" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="10" r="3.2"/><path d="M8 17h8M9 10h6M12 7c-2 2-2 4 0 6 2-2 2-4 0-6Z"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m16 8-2.5 5.5L8 16l2.5-5.5L16 8Z"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3M3 12h18"/><path d="M8 8h2v2H8zm6 6h2v2h-2z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m14 5-7 7 7 7"/></symbol>
+    <symbol id="i-up-right" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 5h13M8 12h13M8 19h13M3 5h.1M3 12h.1M3 19h.1"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20 5c-2-2-5-1.5-8 1-3-2.5-6-3-8-1-3 3-1 6 1 8l7 7 7-7c2-2 4-5 1-8Z"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3m-4 4 4-4 4 4M6 11H4v9h16v-9h-2"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 4 5 5M4 20l5-1L21 7l-5-5L4 14v6ZM13 21h8"/></symbol>
+    <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m3 16 5-4 4 3 4-5 5 6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-nfc" viewBox="0 0 24 24"><path d="M9 5a10 10 0 0 1 0 14m4-17a14 14 0 0 1 0 20M6 8a6 6 0 0 1 0 8"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-7-2-10-1v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v15"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M4 5h16v5a2 2 0 0 0 0 4v5H4v-5a2 2 0 0 0 0-4V5Z"/><path d="M15 5v2m0 3v1m0 3v1m0 3v1M7 9h4m-4 6h4"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="m8 5 1-2h6l1 2h4a1 1 0 0 1 1 1v14H3V6a1 1 0 0 1 1-1h4Z"/><circle cx="12" cy="12.5" r="4"/></symbol>
+  </svg>
+  <div class="design-layout">
+    <aside class="design-rail" aria-label="设计说明与预览入口">
+      <div class="rail-masthead"><span class="rail-mark">旅</span><span>文化旅行护照</span><span class="edition">DESIGN / 02</span></div>
+      <p class="rail-eyebrow">A JOURNEY TO COLLECT</p>
+      <h1 class="rail-title">把世界，<br>收进你的<br><span>旅行护照。</span></h1>
+      <p class="rail-description">为每次真实到访，<br>留下一枚值得珍藏的印记。</p>
+      <div class="preview-links" aria-label="跳转预览">
+        <button data-action="preview-home"><span>01</span>护照首页<svg><use href="#i-arrow"/></svg></button>
+        <button data-action="preview-stamp"><span>02</span>印章详情<svg><use href="#i-arrow"/></svg></button>
+        <button data-action="preview-scan"><span>03</span>体验盖章<svg><use href="#i-arrow"/></svg></button>
+        <button data-action="preview-ticket"><span>04</span>票根补领<svg><use href="#i-arrow"/></svg></button>
+      </div>
+      <details class="design-reason"><summary>这一版的视觉依据<span>＋</span></summary><p>白色承托内容，炭黑建立阅读层级。蓝色用于主要操作与选中状态；纪念章保留自己的色彩与图案。</p><div class="palette"><span><i class="swatch white"></i>留白</span><span><i class="swatch ink"></i>阅读</span><span><i class="swatch blue"></i>行动</span></div></details>
+      <button class="first-use-button" data-action="toggle-first-use">体验首次使用<svg><use href="#i-up-right"/></svg></button>
+      <p class="rail-footnote">概念场馆 · 模拟现场领取<br>记录仅保存在当前浏览器</p>
+    </aside>
+    <section class="device-wrap" aria-label="移动端交互原型">
+      <div class="device">
+        <div class="device-status" aria-hidden="true"><span>9:41</span><span class="status-island"></span><span class="status-right"><b>▴▴▴</b><span class="battery"></span></span></div>
+        <div class="app" id="app">
+          <header id="app-header" class="app-header"></header>
+          <main id="app-main" class="app-main" tabindex="-1"></main>
+          <footer id="app-footer" class="app-footer"></footer>
+          <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+        </div>
+        <div class="home-indicator" aria-hidden="true"></div>
+      </div>
+      <div class="device-caption"><span class="live-dot"></span>可点击交互 · 手机尺寸自适应</div>
+    </section>
+  </div>
+  <div id="modal-root"></div>
+  <noscript>请启用 JavaScript 以体验旅行护照原型。</noscript>
+</body>
+</html>
