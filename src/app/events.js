@@ -13,6 +13,7 @@ export function bindEvents(appContext) {
     }
     const button = event.target.closest('button[data-action]');
     if (!button || button.disabled) return;
+    appContext.navigation.rememberPage();
     const action = button.dataset.action,
       id = button.dataset.id || appContext.ui.selected;
     if (['passport', 'discover', 'venue', 'stamp', 'scan'].includes(action)) {
@@ -436,18 +437,6 @@ export function bindEvents(appContext) {
       first?.focus();
     }
   });
-  listen(window, 'popstate', () => {
-    appContext.runtime.claimToken++;
-    appContext.runtime.ticketToken++;
-    appContext.ui.claimBusy = false;
-    appContext.ui.ticketBusy = false;
-    appContext.dialogs.closeModal(false);
-    appContext.navigation.routeFromLocation();
-    if (!['ticket', 'ticket-confirm', 'ticket-success', 'scan'].includes(appContext.ui.screen))
-      appContext.claims.clearTicketDraft();
-    appContext.render();
-    appContext.dom.main.scrollTop =
-      appContext.runtime.scrollPositions[`${appContext.ui.screen}/${appContext.ui.selected}`] || 0;
-  });
+  listen(window, 'popstate', appContext.navigation.restorePage);
   return () => disposers.reverse().forEach((dispose) => dispose());
 }

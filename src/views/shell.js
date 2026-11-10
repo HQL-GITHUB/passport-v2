@@ -59,7 +59,9 @@ export function createShellViews(appContext) {
       return;
     }
     if (appContext.ui.screen === 'visit') {
-      appContext.dom.footer.innerHTML = `<div class="page-actions two-column"><button class="heart-button" data-action="edit-memory" aria-label="补充这次到访的记忆">${appContext.format.icon('edit')}</button><button class="button" data-action="visit-share">${appContext.format.icon('share')}分享这次到访</button></div>`;
+      const visit = appContext.data.visits[appContext.ui.visitKey];
+      const hasMemory = !!(visit.note?.trim() || visit.photo);
+      appContext.dom.footer.innerHTML = `<div class="page-actions two-column"><button class="heart-button" data-action="${hasMemory ? 'edit-memory' : 'visit-share'}" aria-label="${hasMemory ? '补充这次到访的记忆' : '分享这次到访'}">${appContext.format.icon(hasMemory ? 'edit' : 'share')}</button><button class="button" data-action="${hasMemory ? 'visit-share' : 'edit-memory'}">${appContext.format.icon(hasMemory ? 'share' : 'edit')}${hasMemory ? '分享这次到访' : '留下一笔'}</button></div>`;
       return;
     }
     if (appContext.ui.screen === 'ticket') {

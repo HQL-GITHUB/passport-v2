@@ -1,8 +1,9 @@
 :root {
   color-scheme: light;
   --paper: #fff;
+  --safe-top: env(safe-area-inset-top, 0px);
   --ink: #20242c;
-  --muted: #737983;
+  --muted: #626c7b;
   --line: #e9ebef;
   --soft: #f5f6f9;
   --blue: #2455e8;

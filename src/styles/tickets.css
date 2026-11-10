@@ -28,7 +28,7 @@
   height: 16px;
 }
 .ticket-intro {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   line-height: 1.8;
   margin-top: 17px;
@@ -186,7 +186,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
   color: #687387;
   margin-top: 16px;
@@ -196,7 +196,7 @@
   height: 12px;
 }
 .ticket-demo-copy {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.9;
   color: #6d788d;
   margin-top: 12px;
@@ -215,7 +215,7 @@
   gap: 6px;
   align-items: center;
   color: #6a7791;
-  font-size: 11px;
+  font-size: 12px;
   margin: 18px 0 16px;
 }
 .ticket-result-label svg {
@@ -229,7 +229,7 @@
   background: var(--blue-soft);
   color: #4560a2;
   padding: 11px 12px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
   border-radius: 9px;
   margin-bottom: 16px;
@@ -243,19 +243,21 @@
   display: flex;
   flex-direction: column;
   gap: 13px;
+  min-width: 0;
+  max-width: 100%;
 }
 .ticket-fields > label {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 12px;
+  font-size: 13px;
   color: #667186;
   min-width: 0;
 }
 .ticket-fields select,
 .ticket-fields input {
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 16px;
   min-height: 46px;
   width: 100%;
   min-width: 0;
@@ -265,6 +267,22 @@
   border-radius: 9px;
   background: #fbfcff;
   color: var(--ink);
+}
+/* Keep the native date picker without Safari's intrinsic inline field width. */
+.ticket-fields input[type='date'] {
+  display: block;
+  -webkit-appearance: none;
+  appearance: none;
+  min-inline-size: 0;
+}
+.ticket-fields input[type='date']::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
+}
+.ticket-confirm-page {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .ticket-fields input:invalid {
   border-color: #dc9a9a;
@@ -276,7 +294,7 @@
   opacity: 1;
 }
 .ticket-fields > p {
-  font-size: 11px;
+  font-size: 12px;
   color: #6c7890;
   line-height: 1.8;
 }
@@ -292,7 +310,7 @@
   font-weight: 600;
 }
 .ticket-reward-heading > span {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 .ticket-rewards {
@@ -340,12 +358,12 @@
   overflow-wrap: anywhere;
 }
 .ticket-reward-copy small {
-  font-size: 10px;
-  color: #778298;
+  font-size: 12px;
+  color: var(--muted);
   line-height: 1.7;
 }
 .ticket-reward-copy > span {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.8;
   color: #516ca8;
 }
@@ -597,7 +615,7 @@
     font-size: 12px;
   }
   .ticket-reward-copy > span {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ticket-date-pair strong {
     font-size: 18px;
@@ -609,15 +627,9 @@
     font-size: 11px;
   }
   .ticket-result-label {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ticket-success-page .page-title {
     font-size: 26px;
-  }
-}
-@media (pointer: coarse) {
-  .ticket-fields input,
-  .ticket-fields select {
-    font-size: 16px;
   }
 }

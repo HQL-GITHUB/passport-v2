@@ -21,7 +21,7 @@ test('saved originals restore after reload and can be removed without deleting t
   await expect(page.locator('.saved-ticket-image')).toBeVisible();
   await page.waitForFunction(() => document.querySelector('.saved-ticket-image')?.naturalWidth > 0);
   await expect(page.locator('.visit-stamp-grid > button')).toHaveCount(2);
-  await page.getByRole('button', { name: '留下一笔', exact: true }).click();
+  await page.locator('#app-footer').getByRole('button', { name: '留下一笔', exact: true }).click();
   await page.locator('#memory-input').fill('留住当时的心情');
   await page.getByRole('button', { name: '保存这一刻', exact: true }).click();
   await page.getByRole('button', { name: '移除票根', exact: true }).click();

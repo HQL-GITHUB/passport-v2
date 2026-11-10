@@ -292,6 +292,7 @@ img {
 .app {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -305,6 +306,7 @@ img {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  background: var(--paper);
 }
 .app-brand {
   display: flex;
@@ -346,8 +348,12 @@ img {
 .app-main {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
+  overscroll-behavior-x: none;
+  touch-action: pan-y pinch-zoom;
   scrollbar-width: none;
   outline: none;
 }
@@ -1016,10 +1022,10 @@ img {
   padding: 15px;
   font-size: 11px;
   line-height: 1.8;
-  color: #858c99;
+  color: var(--muted);
 }
 .memory-note {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.9;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -1033,7 +1039,7 @@ img {
 }
 .privacy {
   font-size: 9px;
-  color: #9299a6;
+  color: var(--muted);
   display: flex;
   gap: 4px;
   align-items: center;
@@ -1455,7 +1461,7 @@ img {
 }
 .venue-status.owned {
   background: #f2f4f7;
-  color: #7f8794;
+  color: var(--muted);
 }
 .venue-status svg {
   width: 9px;
@@ -1535,7 +1541,7 @@ img {
   flex-shrink: 0;
 }
 .venue-chapter small {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
 }
 .venue-chapter h3 {
@@ -1544,8 +1550,8 @@ img {
   margin-top: 5px;
 }
 .venue-chapter p {
-  font-size: 9px;
-  color: #8f98a5;
+  font-size: 12px;
+  color: var(--muted);
   margin-top: 3px;
 }
 .venue-chapter > svg {
@@ -1685,7 +1691,7 @@ img {
 .share-privacy {
   font-size: 9px;
   line-height: 1.8;
-  color: #929aa7;
+  color: var(--muted);
   margin-top: 5px;
 }
 .toast {
@@ -1752,7 +1758,7 @@ img {
   border: 1px solid #e1e5ee;
   border-radius: 10px;
   padding: 13px;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink);
   line-height: 1.8;
   background: #fafbfe;
@@ -1939,7 +1945,7 @@ img {
   font-size: 10px;
 }
 .passport-stats span {
-  font-size: 11px;
+  font-size: 12px;
 }
 .collection-switch button {
   font-size: 14px;
@@ -1951,7 +1957,7 @@ img {
   font-size: 14px;
 }
 .badge-card .badge-meta {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
 }
 .next-stop small {
@@ -1986,10 +1992,10 @@ img {
   font-size: 12px;
 }
 .memory-empty {
-  font-size: 12px;
+  font-size: 13px;
 }
 .privacy {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
 }
 .success-sub {
@@ -2002,19 +2008,19 @@ img {
   font-size: 13px;
 }
 .search-box input {
-  font-size: 14px;
+  font-size: 16px;
 }
 .section-count {
-  font-size: 11px;
+  font-size: 12px;
 }
 .venue-copy h3 {
   font-size: 14px;
 }
 .venue-copy p {
-  font-size: 11px;
+  font-size: 12px;
 }
 .venue-status {
-  font-size: 10px;
+  font-size: 12px;
 }
 .city-button {
   font-size: 12px;
@@ -2033,22 +2039,22 @@ img {
   line-height: 1.8;
 }
 .demo-notice {
-  font-size: 10px;
+  font-size: 12px;
 }
 .share-options label {
   font-size: 12px;
 }
 .share-privacy {
-  font-size: 11px;
-}
-.venue-intro {
-  font-size: 13px;
-}
-.info-row {
   font-size: 12px;
 }
+.venue-intro {
+  font-size: 14px;
+}
+.info-row {
+  font-size: 13px;
+}
 .info-row small {
-  font-size: 11px;
+  font-size: 12px;
 }
 .modal-sub {
   font-size: 12px;
@@ -2135,8 +2141,8 @@ img {
     display: none;
   }
   .app-header {
-    height: 59px;
-    padding-top: env(safe-area-inset-top);
+    height: calc(59px + var(--safe-top));
+    padding-top: var(--safe-top);
   }
   .app-footer {
     padding-bottom: env(safe-area-inset-bottom);
