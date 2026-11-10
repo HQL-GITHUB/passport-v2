@@ -1,0 +1,12 @@
+:root {
+  color-scheme: light;
+  --paper: #fff;
+  --ink: #20242c;
+  --muted: #737983;
+  --line: #e9ebef;
+  --soft: #f5f6f9;
+  --blue: #2455e8;
+  --blue-soft: #eef2ff;
+  --serif: Georgia, 'Songti SC', SimSun, serif;
+  --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
