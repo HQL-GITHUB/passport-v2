@@ -1,6 +1,9 @@
-/** Turns the flat stamp illustration like a medal: drag to tilt, release to settle on a face. */
+/** Turns the flat stamp illustration like a medal: it shows itself off until touched, then drag to tilt, release to settle on a face. */
 export class MedalViewer {
-  constructor(stage, { canFlip = true, animate = true, intro = true, locked = () => false } = {}) {
+  constructor(
+    stage,
+    { canFlip = true, animate = true, intro = true, tapFlips = true, locked = () => false } = {},
+  ) {
     this.stage = stage;
     this.canFlip = canFlip;
     this.animate = animate;
@@ -12,12 +15,26 @@ export class MedalViewer {
     this.drag = null;
     this.frame = 0;
     this.side = '';
-    this.tick = () => {
+    // Left alone, the medal turns slowly on its own; the first turn by hand ends that for good.
+    this.auto = animate;
+    // Milliseconds spent turning unattended, and the time of the previous frame.
+    this.turned = this.last = 0;
+    // How far the last press travelled, in pixels.
+    this.moved = 0;
+    this.tick = (now) => {
+      if (this.auto && !locked()) {
+        // A frame after a pause, such as a hidden tab, counts as one ordinary frame.
+        this.turned += Math.min(now - this.last, 32);
+        // One lap every twelve seconds; a stamp with no back to show sways instead.
+        this.ty = this.canFlip ? this.turned * 0.03 : Math.sin(this.turned / 900) * 20;
+      }
+      this.last = now;
       this.vx = (this.vx + (this.tx - this.rx) * 0.09) * 0.8;
       this.vy = (this.vy + (this.ty - this.ry) * 0.09) * 0.8;
       this.rx += this.vx;
       this.ry += this.vy;
       const resting =
+        !this.auto &&
         Math.abs(this.tx - this.rx) + Math.abs(this.ty - this.ry) < 0.05 &&
         Math.abs(this.vx) + Math.abs(this.vy) < 0.05;
       if (resting) {
@@ -33,7 +50,8 @@ export class MedalViewer {
       stage.setPointerCapture(e.pointerId);
       cancelAnimationFrame(this.frame);
       this.frame = 0;
-      this.drag = { x: e.clientX, y: e.clientY, rx: this.rx, ry: this.ry, moved: 0 };
+      this.drag = { x: e.clientX, y: e.clientY, rx: this.rx, ry: this.ry };
+      this.moved = 0;
       stage.classList.add('dragging');
     };
     this.move = (e) => {
@@ -42,18 +60,22 @@ export class MedalViewer {
         dy = e.clientY - this.drag.y,
         // The further the pull, the stronger the resistance.
         soft = (value, limit) => limit * Math.tanh(value / limit);
-      this.drag.moved = Math.max(this.drag.moved, Math.hypot(dx, dy));
+      this.moved = Math.max(this.moved, Math.hypot(dx, dy));
       this.rx = soft(this.drag.rx - dy * 0.4, 26);
       this.ry = this.canFlip ? this.drag.ry + dx * 0.6 : soft(this.drag.ry + dx * 0.5, 24);
       this.paint();
     };
     this.up = () => {
       if (!this.drag) return;
-      const tapped = this.drag.moved < 6;
+      const tapped = this.moved < 6;
       this.drag = null;
       stage.classList.remove('dragging');
-      if (tapped && this.canFlip) this.flip();
-      else this.settle();
+      if (tapped && this.canFlip && tapFlips) this.flip();
+      else {
+        // A tap that turns nothing leaves the medal turning.
+        this.auto &&= tapped;
+        this.settle();
+      }
     };
     // The browser took the gesture over, for example to scroll the page: let go without flipping.
     this.cancel = () => {
@@ -62,8 +84,15 @@ export class MedalViewer {
       stage.classList.remove('dragging');
       this.settle();
     };
+    // Inside a button, a drag turns the medal without also pressing the button.
+    this.click = (e) => {
+      if (this.moved < 6) return;
+      e.preventDefault();
+      e.stopPropagation();
+    };
     this.flip = () => {
       if (!this.canFlip) return;
+      this.auto = false;
       this.tx = 0;
       this.ty = Math.round(this.ry / 180) * 180 + 180;
       this.start();
@@ -73,6 +102,7 @@ export class MedalViewer {
       stage.addEventListener('pointermove', this.move);
       stage.addEventListener('pointerup', this.up);
       stage.addEventListener('pointercancel', this.cancel);
+      stage.addEventListener('click', this.click);
       // A small swing on arrival shows that the stamp can be turned.
       if (intro) {
         this.rx = 9;
@@ -83,8 +113,11 @@ export class MedalViewer {
     this.start();
   }
   settle() {
-    this.tx = 0;
-    this.ty = this.canFlip ? Math.round(this.ry / 180) * 180 : 0;
+    // Still unattended, the turn simply carries on from here.
+    if (!this.auto) {
+      this.tx = 0;
+      this.ty = this.canFlip ? Math.round(this.ry / 180) * 180 : 0;
+    }
     this.start();
   }
   start() {
@@ -125,6 +158,7 @@ export class MedalViewer {
     this.stage.removeEventListener('pointermove', this.move);
     this.stage.removeEventListener('pointerup', this.up);
     this.stage.removeEventListener('pointercancel', this.cancel);
+    this.stage.removeEventListener('click', this.click);
     this.flipButton?.removeEventListener('click', this.flip);
   }
 }

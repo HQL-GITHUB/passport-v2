@@ -27,6 +27,8 @@ export function createRenderer(appContext) {
           canFlip: stage.dataset.flip === 'true',
           animate: !matchMedia('(prefers-reduced-motion: reduce)').matches,
           intro: false,
+          // On the stamp page the medal is a button: a tap opens the viewer instead of turning it over.
+          tapFlips: !stage.closest('button'),
           // The claim ceremony owns the stamp until it settles.
           locked: () => !!stage.closest('.ceremony:not(.settled)'),
         })

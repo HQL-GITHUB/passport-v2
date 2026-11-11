@@ -893,16 +893,19 @@ img {
   border-radius: 50%;
 }
 .stamp-zoom {
-  width: 263px;
+  width: 232px;
   position: relative;
   padding: 0;
   transition: transform 0.25s;
 }
 .stamp-zoom:hover {
-  transform: rotate(-4deg) scale(1.025);
+  transform: scale(1.025);
 }
-.stamp-zoom .badge-art {
-  filter: drop-shadow(0 14px 10px #3c456522);
+.stamp-zoom .medal-shadow {
+  position: absolute;
+  inset: calc(100% + 6px) 20% auto;
+  width: auto;
+  margin: 0;
 }
 .zoom-hint {
   position: absolute;
@@ -1243,7 +1246,8 @@ img {
   position: relative;
 }
 /* On the page a sideways drag turns the stamp and a vertical one still scrolls. */
-.success-art .medal-stage {
+.success-art .medal-stage,
+.stamp-zoom .medal-stage {
   width: 100%;
   margin: 0;
   touch-action: pan-y;
@@ -1886,14 +1890,43 @@ img {
 .medal-edition {
   --rim: #b08d5c;
 }
+.medal-edge {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
 .medal-face,
-.medal-edge i {
+.medal-edge b {
   position: absolute;
   inset: 0;
   border-radius: 50%;
 }
-.medal-edge i {
+/* A solid disc just behind each face, so no angle looks through the medal. */
+.medal-edge b {
   background: color-mix(in srgb, var(--rim) 74%, #20242c);
+  transform: translateZ(3px);
+}
+.medal-edge b + b {
+  transform: translateZ(-3px);
+}
+/* The rim wall: each <i> is turned to its place around the circle and stands one strip on the top and one on the bottom. */
+.medal-edge i {
+  position: absolute;
+  inset: 0 47.2%;
+  transform-style: preserve-3d;
+}
+.medal-edge i:before,
+.medal-edge i:after {
+  content: '';
+  position: absolute;
+  inset: -3.5px 0 auto;
+  height: 8px;
+  transform: rotateX(90deg);
+  background: color-mix(in srgb, var(--rim) calc(72% + var(--lit) * 18%), #20242c);
+}
+.medal-edge i:after {
+  inset: auto 0 -3.5px;
+  background: color-mix(in srgb, var(--rim) calc(72% - var(--lit) * 18%), #20242c);
 }
 .medal-face {
   overflow: hidden;
@@ -2547,7 +2580,7 @@ img {
     min-height: 255px;
   }
   .stamp-zoom {
-    width: 235px;
+    width: 208px;
   }
   .stamp-showcase:before {
     width: 210px;
@@ -2609,8 +2642,8 @@ img {
   color: var(--muted);
   margin-left: 6px;
 }
-.stamp-page.unowned .stamp-zoom .badge-art {
-  filter: drop-shadow(0 14px 10px #3c456522) grayscale(0.85) opacity(0.62);
+.stamp-page.unowned .stamp-zoom .medal-stage {
+  filter: grayscale(0.85) opacity(0.62);
 }
 /* Limited stamps: how much of the edition is already out. */
 .edition-meter {

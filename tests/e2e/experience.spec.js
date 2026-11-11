@@ -84,14 +84,16 @@ test('a collected stamp turns over to its visit record, an uncollected one stays
 }) => {
   await page.goto('/#/stamp/artmuseum');
   await page.getByRole('button', { name: '放大欣赏光的形状纪念章', exact: true }).click();
-  const stage = page.locator('.medal-stage');
+  // The page shows the stamp as a medal of its own; the viewer opens a second, larger one.
+  const viewer = page.locator('#modal-root'),
+    stage = viewer.locator('.medal-stage');
   await expect(stage).toHaveAttribute('data-side', 'front');
   await page.getByRole('button', { name: '翻到背面', exact: true }).click();
   await expect(stage).toHaveAttribute('data-side', 'back');
-  await expect(page.locator('.medal-back b')).toHaveText('2026.10.24');
-  const issue = (await page.locator('.medal-back em').textContent()).trim();
+  await expect(viewer.locator('.medal-back b')).toHaveText('2026.10.24');
+  const issue = (await viewer.locator('.medal-back em').textContent()).trim();
   expect(issue).toMatch(/^No\. \d{6}$/);
-  await expect(page.locator('.medal-rim')).toContainText('LJ-A-0002');
+  await expect(viewer.locator('.medal-rim')).toContainText('LJ-A-0002');
   await page.getByRole('button', { name: '翻回正面', exact: true }).click();
   await expect(stage).toHaveAttribute('data-side', 'front');
   await page.getByRole('button', { name: '关闭', exact: true }).click();
@@ -109,6 +111,48 @@ test('a collected stamp turns over to its visit record, an uncollected one stays
   await expect(stage).toHaveAttribute('data-side', 'front');
   await expect(page.locator('.medal-back')).toHaveCount(0);
   await expect(page.locator('[data-medal-flip]')).toHaveCount(0);
+});
+
+test('a stamp turns slowly by itself until a drag takes over, on the stamp page and after a claim', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const angle = (stage) =>
+      stage.evaluate((el) => parseFloat(el.style.getPropertyValue('--ry')) || 0),
+    offFace = async (stage) => Math.abs((await angle(stage)) % 180);
+  // Drags the stamp sideways, then checks that it came to rest on a face and stays there.
+  async function takeOver(stage) {
+    const box = await stage.boundingBox(),
+      y = box.y + box.height / 2;
+    await page.mouse.move(box.x + box.width / 2, y);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 40, y, { steps: 4 });
+    await page.mouse.up();
+    await expect.poll(() => offFace(stage)).toBe(0);
+    // Still turning by itself, it would have left the face again by now.
+    await page.waitForTimeout(600);
+    await expect.poll(() => offFace(stage)).toBe(0);
+  }
+  await page.goto('/#/stamp/artmuseum');
+  const shown = page.locator('.stamp-zoom .medal-stage');
+  await expect.poll(() => angle(shown)).toBeGreaterThan(8);
+  await takeOver(shown);
+  // The drag turned the stamp; it did not open the viewer.
+  await expect(page.locator('#modal-root > *')).toHaveCount(0);
+  // An uncollected stamp has no back to show, so it only sways.
+  await page.goto('/#/stamp/museum');
+  await expect.poll(() => angle(shown)).toBeGreaterThan(8);
+  await expect(shown).toHaveAttribute('data-side', 'front');
+  await page.goto('/#/scan/museum');
+  await page.getByRole('button', { name: '模拟现场领取', exact: true }).click();
+  const claimed = page.locator('.success-art .medal-stage');
+  // The ceremony holds the stamp still; once it is over the stamp starts to turn.
+  await expect(page.locator('.success-page')).toHaveClass(/ceremony/);
+  expect(await angle(claimed)).toBe(0);
+  await page.locator('.success-page .page-title').click();
+  await expect(page.locator('.success-page')).toHaveClass(/settled/);
+  await expect.poll(() => angle(claimed)).toBeGreaterThan(8);
+  await takeOver(claimed);
 });
 
 test('a limited stamp shows its edition and carries its number onto the share card', async ({

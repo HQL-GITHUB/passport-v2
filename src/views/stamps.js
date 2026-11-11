@@ -36,7 +36,7 @@ export function createStampViews(appContext) {
       </div>
       <div class="stamp-showcase">
         <button class="stamp-zoom" data-action="zoom" aria-label="放大欣赏${v.stamp}纪念章">
-          ${appContext.format.art(v)}</button
+          ${renderMedal(v, r)}</button
         ><span class="zoom-hint"
           >${appContext.format.icon('search')}${r ? '点击翻看章面' : '点击预览章面'}</span
         >
@@ -63,11 +63,13 @@ export function createStampViews(appContext) {
     </div>`;
   }
   // The stamp as a disc that MedalViewer can turn; the back is engraved once the stamp is collected.
+  // Its rim is a wall of sixty flat strips, two per <i>, lit from above; the <b> discs fill the inside.
   function renderMedal(v, r) {
     return /* HTML */ `<div class="medal-stage" data-flip="${!!r}">
       <div class="medal medal-${v.art} ${v.edition ? 'medal-edition' : ''}">
         <div class="medal-edge" aria-hidden="true">
-          ${[-3, -2, -1, 0, 1, 2, 3].map((z) => `<i style="transform:translateZ(${z}px)"></i>`).join('')}
+          <b></b><b></b>
+          ${Array.from({ length: 30 }, (_, n) => `<i style="transform:rotate(${n * 6}deg);--lit:${Math.cos((n * Math.PI) / 30).toFixed(2)}"></i>`).join('')}
         </div>
         <div class="medal-face medal-front">
           ${appContext.format.art(v)}<span class="medal-sheen"></span
