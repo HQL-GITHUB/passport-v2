@@ -26,7 +26,6 @@ export function createDiscoveryViews(appContext) {
   }
   function renderDiscover() {
     return /* HTML */ `<section class="page discover-page screen-enter">
-      <p class="eyebrow">THE NEXT CHAPTER</p>
       <h1 class="page-title">下一站，去看什么？</h1>
       <div class="search-box">
         ${appContext.format.icon('search')}<label class="sr-only" for="venue-search"
@@ -52,7 +51,6 @@ export function createDiscoveryViews(appContext) {
       >
         <img src="${appContext.assets.hero}" alt="虚构博物馆的弧形建筑与雕塑庭院" />
         <div class="hero-copy">
-          <small>THIS MONTH / 本月灵感</small>
           <h2>从一件器物，<br />读一座城。</h2>
           <p>临江博物馆 · 器物与时间</p>
           <button
@@ -103,7 +101,9 @@ export function createDiscoveryViews(appContext) {
           ${appContext.format.art(v)}<span style="flex:1"
             ><small>这次到访，可以收藏</small>
             <h3>${v.stamp}</h3>
-            <p>${v.kind} · ${owned ? '已在你的护照里' : '现场领取'}</p></span
+            <p>
+              ${v.kind} · ${owned ? '已在你的护照里' : v.limit ? `限量 ${v.limit} 枚` : '现场领取'}
+            </p></span
           >${appContext.format.icon('chevron')}
         </button>
         <div class="info-row">
@@ -119,9 +119,7 @@ export function createDiscoveryViews(appContext) {
           <div>${v.location}<small>纪念章领取点位于场馆内部</small></div>
           <button data-action="guide">查看位置</button>
         </div>
-        <p class="subtitle" style="font-size:10px;margin-top:14px">
-          纪念章用于保存参观经历；入馆预约需通过场馆渠道另行完成。
-        </p>
+        <p class="venue-disclaimer">纪念章用于保存参观经历；入馆预约需通过场馆渠道另行完成。</p>
       </div>
     </section>`;
   }

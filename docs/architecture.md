@@ -29,7 +29,7 @@
 
 ```text
 data
-├─ records[stampId]            已收藏的章、首次领取日期及到访日期
+├─ records[stampId]            已收藏的章、收藏编号、首次领取日期及到访日期
 ├─ visits[venueId/date]        到访主体：场馆、日期、票根、徽章、照片、感想
 ├─ tickets[ticketId]           票根元数据、保存状态及已领取章
 └─ wanted[]                   想去的场馆

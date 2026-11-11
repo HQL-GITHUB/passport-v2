@@ -234,7 +234,7 @@ export function bindEvents(appContext) {
       return;
     }
     if (action === 'zoom') {
-      appContext.dialogs.openModal('zoom');
+      appContext.dialogs.openModal('zoom', button.dataset.id);
       return;
     }
     if (action === 'guide') {
@@ -328,8 +328,16 @@ export function bindEvents(appContext) {
       appContext.render();
       return;
     }
+    if (action === 'share-collection') {
+      appContext.navigation.navigate(
+        appContext.ui.collection === 'collected' ? 'share-album' : 'share-footprints',
+      );
+      return;
+    }
     if (action === 'download-card') {
-      appContext.sharing.downloadCard();
+      if (['share-footprints', 'share-album'].includes(appContext.ui.screen))
+        appContext.sharing.downloadJournalCard();
+      else appContext.sharing.downloadCard();
       return;
     }
   });

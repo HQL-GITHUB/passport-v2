@@ -1,3 +1,14 @@
+/**
+ * The single-file build inlines images as data URLs of several megabytes, more than a CSS custom
+ * property may hold. A blob URL keeps the stylesheet reference short; other URLs pass through.
+ */
+export function cssImageUrl(src) {
+  if (!src.startsWith('data:')) return src;
+  const [head, body] = src.split(',');
+  const bytes = Uint8Array.from(atob(body), (c) => c.charCodeAt(0));
+  return URL.createObjectURL(new Blob([bytes], { type: head.slice(5).split(';')[0] }));
+}
+
 export function loadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();

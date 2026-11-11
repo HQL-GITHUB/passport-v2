@@ -17,5 +17,7 @@ export const APP_CONFIG = Object.freeze({
     'ticket-success',
     'visit',
     'visit-share',
+    'share-footprints',
+    'share-album',
   ],
 });

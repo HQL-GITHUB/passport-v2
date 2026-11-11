@@ -11,6 +11,14 @@ function hash(text) {
   return n.toString(16);
 }
 
+// Stand-in for the number a venue service would issue with each claim: later claims get larger numbers,
+// and a limited stamp never numbers past its edition size.
+function issueNumber(stampId, claimedAt, limit = Infinity) {
+  const perDay = 7 + (parseInt(hash(stampId), 16) % 12),
+    days = Math.max(0, Math.round((Date.parse(claimedAt) - Date.parse('2025-01-01')) / 86400000));
+  return Math.min(limit, 1 + days * perDay + (parseInt(hash(stampId + claimedAt), 16) % perDay));
+}
+
 function ensure(data, venue, day, stampIds = [], ticketId = null) {
   data.visits ||= {};
   const id = key(venue.id, day);
@@ -51,6 +59,10 @@ function normalize(raw, venues, stamps, validDay) {
     const method = methods.includes(r.method) ? r.method : 'qr';
     result.records[s.id] = {
       firstAt: r.firstAt,
+      issue:
+        Number.isInteger(r.issue) && r.issue > 0 && r.issue <= (s.limit || Infinity)
+          ? r.issue
+          : issueNumber(s.id, r.firstAt, s.limit),
       visits,
       method,
       events: Array.isArray(r.events)
@@ -148,4 +160,10 @@ function normalize(raw, venues, stamps, validDay) {
   }
   return result;
 }
-export { key as visitKey, hash as hashIdentity, ensure as ensureVisit, normalize as normalizeData };
+export {
+  key as visitKey,
+  hash as hashIdentity,
+  issueNumber,
+  ensure as ensureVisit,
+  normalize as normalizeData,
+};

@@ -70,6 +70,7 @@ export const venues = [
     location: '展厅出口 · 观众服务区',
     serial: 'LJ-S-0004',
     kind: '展览纪念章',
+    limit: 8000,
     word: '形状',
   },
 ];
@@ -84,6 +85,7 @@ export const stamps = [
     kind: '展览纪念章',
     edition: '2025',
     serial: 'LJ-E-2025',
+    limit: 10000,
     period: ['2025-09-01', '2025-12-31'],
     description:
       '为那次与器物相遇的参观，留住一枚特展纪念。票根上的日期，让过去的旅程也能慢慢补齐。',

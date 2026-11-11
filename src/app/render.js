@@ -15,9 +15,22 @@ export function createRenderer(appContext) {
         'ticket-success': appContext.views.renderTicketSuccess,
         visit: appContext.views.renderVisit,
         'visit-share': appContext.views.renderShare,
+        'share-footprints': appContext.views.renderJournalShare,
+        'share-album': appContext.views.renderJournalShare,
       };
     appContext.views.renderHeader();
+    appContext.runtime.pageMedal?.destroy();
     appContext.dom.main.innerHTML = views[appContext.ui.screen]();
+    const stage = appContext.dom.main.querySelector('.medal-stage');
+    appContext.runtime.pageMedal = stage
+      ? new appContext.MedalViewer(stage, {
+          canFlip: stage.dataset.flip === 'true',
+          animate: !matchMedia('(prefers-reduced-motion: reduce)').matches,
+          intro: false,
+          // The claim ceremony owns the stamp until it settles.
+          locked: () => !!stage.closest('.ceremony:not(.settled)'),
+        })
+      : null;
     appContext.views.renderFooter();
     appContext.dom.app.dataset.screen = appContext.ui.screen;
     document.title = `${
@@ -34,6 +47,8 @@ export function createRenderer(appContext) {
             ticket: '票根入册',
             'ticket-confirm': '确认这次到访',
             'ticket-success': '旅程已收藏',
+            'share-footprints': '足迹分享预览',
+            'share-album': '章册分享预览',
           }[appContext.ui.screen]
     } · 旅行护照`;
     if (keepScroll) appContext.dom.main.scrollTop = pos;

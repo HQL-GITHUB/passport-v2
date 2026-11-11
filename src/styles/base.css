@@ -192,7 +192,7 @@ img {
   border-radius: 50%;
 }
 .swatch.white {
-  background: white;
+  background: var(--paper);
   border: 1px solid #d2d7df;
 }
 .swatch.ink {
@@ -226,7 +226,7 @@ img {
   min-width: 0;
 }
 .device {
-  background: white;
+  background: var(--paper);
   border: 7px solid #fafafa;
   border-radius: 47px;
   box-shadow:
@@ -556,7 +556,7 @@ img {
 }
 .badge-card {
   width: 100%;
-  text-align: left;
+  text-align: center;
   min-width: 0;
   padding: 0;
 }
@@ -635,14 +635,14 @@ img {
 }
 .foot-hint {
   text-align: center;
-  font-size: 9px;
+  font-size: 12px;
   color: #9299a6;
   margin-top: 25px;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 .app-footer {
   flex-shrink: 0;
-  background: white;
+  background: var(--paper);
 }
 .bottom-nav {
   display: grid;
@@ -681,7 +681,7 @@ img {
 }
 .home-indicator {
   height: 15px;
-  background: white;
+  background: var(--paper);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -735,7 +735,7 @@ img {
 }
 .button.outline {
   border: 1px solid var(--line);
-  background: white;
+  background: var(--paper);
   color: var(--ink);
   font-weight: 400;
 }
@@ -751,7 +751,7 @@ img {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: white;
+  background: var(--paper);
 }
 .page-actions.two-column {
   display: grid;
@@ -777,7 +777,7 @@ img {
   gap: 4px;
   align-items: center;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 .subtle-label svg {
   width: 12px;
@@ -882,7 +882,7 @@ img {
   align-items: center;
   min-height: 282px;
   margin: 13px -23px 8px;
-  background: radial-gradient(ellipse at center, #f2f5fc 0%, #fff 66%);
+  background: radial-gradient(ellipse at center, #f2f5fc 0%, var(--paper) 66%);
 }
 .stamp-showcase:before {
   content: '';
@@ -909,7 +909,7 @@ img {
   bottom: 9px;
   right: 25px;
   color: #858c9a;
-  font-size: 9px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -968,7 +968,7 @@ img {
   height: 11px;
 }
 .visit-ticket-number {
-  font: 9px/1.8 var(--font);
+  font: 11px/1.8 var(--font);
   letter-spacing: 1px;
   color: #8b93a2;
   text-align: right;
@@ -1053,7 +1053,7 @@ img {
   background: #f6f8fc;
   padding: 15px;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.8;
   text-align: center;
   color: #6d7690;
@@ -1091,7 +1091,7 @@ img {
   height: 16px;
 }
 .scan-switch button.active {
-  background: white;
+  background: var(--paper);
   color: var(--ink);
   box-shadow: 0 2px 6px #212e4510;
 }
@@ -1195,9 +1195,10 @@ img {
 }
 .scan-place > button {
   margin-left: auto;
-  font-size: 11px;
-  min-height: 40px;
+  font-size: 12px;
+  min-height: 44px;
   color: var(--blue);
+  min-width: 44px;
 }
 .demo-notice {
   text-align: center;
@@ -1236,22 +1237,68 @@ img {
   margin-top: 10px;
 }
 .success-art {
-  width: 272px;
+  width: 244px;
   max-width: 100%;
-  margin: 14px auto 14px;
+  margin: 18px auto 6px;
   position: relative;
 }
-.success-art .badge-art {
-  filter: drop-shadow(0 16px 13px #3c456523);
-  animation: stamp-arrive 0.6s cubic-bezier(0.12, 0.7, 0.3, 1) both;
+/* On the page a sideways drag turns the stamp and a vertical one still scrolls. */
+.success-art .medal-stage {
+  width: 100%;
+  margin: 0;
+  touch-action: pan-y;
 }
-.success-art:before {
-  content: '';
+/* Where the stamp is about to land, the ring it throws off on impact, and the light that crosses it after. */
+.stamp-seat,
+.stamp-ring {
   position: absolute;
-  inset: 4px;
-  border: 1px solid #e0e8fc;
+  inset: 0 0 auto;
+  aspect-ratio: 1;
   border-radius: 50%;
-  transform: scale(1.06);
+  opacity: 0;
+  pointer-events: none;
+}
+.stamp-seat {
+  border: 1px dashed #c5cbd6;
+}
+.stamp-ring {
+  border: 3px solid var(--rim);
+}
+.stamp-sheen {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, #fff0 42%, #ffffffb3 50%, #fff0 58%) 130% 0 / 260% 100%
+    no-repeat;
+}
+/* Claim ceremony: ui/ceremony.js cues each element with a start time; the resting styles are the final frame. */
+.ceremony:not(.settled) [data-ceremony] {
+  animation: 0.42s ease-out var(--at, 0ms) both rise-in;
+}
+.ceremony:not(.settled) [data-ceremony='stamp'] {
+  animation-name: stamp-drop;
+  animation-duration: 0.62s;
+  animation-timing-function: linear;
+}
+.ceremony:not(.settled) [data-ceremony='ticket'] {
+  animation-name: ticket-slide;
+  animation-duration: 0.5s;
+}
+.ceremony:not(.settled) [data-ceremony='seat'] {
+  animation-name: seat-clear;
+  animation-duration: 0.2s;
+}
+.ceremony:not(.settled) [data-ceremony='ring'] {
+  animation-name: ring-spread;
+  animation-duration: 0.65s;
+  /* Unlike the rest, the ring must stay hidden until its cue. */
+  animation-fill-mode: forwards;
+}
+.ceremony:not(.settled) [data-ceremony='sheen'] {
+  animation-name: sheen-pass;
+  animation-duration: 0.75s;
+  animation-timing-function: ease-in-out;
 }
 .success-place {
   font-size: 17px;
@@ -1263,29 +1310,8 @@ img {
   color: var(--muted);
   margin-top: 5px;
 }
-.success-divider {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  margin: 23px 0 16px;
-  color: #9ba3b0;
-  font-size: 8px;
-  letter-spacing: 2px;
-}
-.success-divider:before,
-.success-divider:after {
-  content: '';
-  height: 1px;
-  background: var(--line);
-  flex: 1;
-}
-.success-caption {
-  font-size: 12px;
-  line-height: 1.8;
-  color: #737d8d;
-}
 .success-footer .button.secondary {
-  background: white;
+  background: var(--paper);
   color: var(--muted);
   font-size: 12px;
   min-height: 39px;
@@ -1349,7 +1375,7 @@ img {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(transparent 25%, #101522aa);
+  background: linear-gradient(#10152200 18%, #10152259 52%, #101522d9);
 }
 .discover-hero .hero-copy {
   position: absolute;
@@ -1358,28 +1384,22 @@ img {
   bottom: 17px;
   z-index: 1;
 }
-.hero-copy small {
-  font-size: 9px;
-  letter-spacing: 2px;
-  opacity: 0.85;
-}
 .hero-copy h2 {
   font-size: 24px;
   font-weight: 500;
   line-height: 1.4;
-  margin-top: 5px;
 }
 .hero-copy p {
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 5px;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 .hero-open {
   position: absolute;
   right: 0;
-  bottom: 3px;
-  width: 35px;
-  height: 35px;
+  bottom: 0;
+  width: 40px;
+  height: 40px;
   background: #ffffff26;
   border-radius: 50%;
   display: grid;
@@ -1507,9 +1527,9 @@ img {
   padding: 22px 23px 0;
 }
 .venue-category {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--blue);
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
 }
 .venue-title {
   font-size: 24px;
@@ -1726,7 +1746,7 @@ img {
   width: min(410px, 100%);
   max-height: calc(100svh - 48px);
   overflow: auto;
-  background: white;
+  background: var(--paper);
   border-radius: 22px;
   padding: 22px;
   box-shadow: 0 30px 100px #13203833;
@@ -1771,7 +1791,7 @@ img {
 .character-count {
   text-align: right;
   color: #9199a7;
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 5px;
 }
 .photo-upload {
@@ -1802,12 +1822,12 @@ img {
   margin-top: 12px;
 }
 .remove-photo {
-  font-size: 11px;
+  font-size: 12px;
   color: #9098a5;
   min-height: 35px;
 }
 .modal-error {
-  font-size: 11px;
+  font-size: 12px;
   color: #b53838;
   line-height: 1.7;
   margin-top: 8px;
@@ -1815,14 +1835,248 @@ img {
 .zoom-modal {
   background: #f6f7fb;
 }
-.zoom-modal .badge-art {
-  max-width: 340px;
-  margin: auto;
-  filter: drop-shadow(0 15px 12px #202e4926);
-}
 .zoom-modal .modal-sub {
   text-align: center;
-  margin-top: 17px;
+  margin: 12px 0 0;
+}
+/* Stamp viewer: the illustration sits on a disc that tilts with the pointer and flips to an engraved back. */
+.medal-stage {
+  width: min(292px, 100%);
+  margin: 8px auto 0;
+  perspective: 900px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.medal-stage.dragging {
+  cursor: grabbing;
+}
+.medal {
+  position: relative;
+  aspect-ratio: 1;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+}
+/* Where each stamp's circle sits inside its atlas tile, so the disc turns around the stamp's own centre. */
+.medal-museum {
+  --rim: #9f9b9b;
+  --art-width: 113.79%;
+  --art-left: -8.35%;
+  --art-top: -7.08%;
+}
+.medal-artmuseum {
+  --rim: #bc8b7c;
+  --art-width: 113.38%;
+  --art-left: -3.8%;
+  --art-top: -6.96%;
+}
+.medal-landscape {
+  --rim: #b1b7a5;
+  --art-width: 112.16%;
+  --art-left: -6.62%;
+  --art-top: -3.84%;
+}
+.medal-modern {
+  --rim: #bda7a8;
+  --art-width: 111.36%;
+  --art-left: -2.66%;
+  --art-top: -3.55%;
+}
+.medal-edition {
+  --rim: #b08d5c;
+}
+.medal-face,
+.medal-edge i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+.medal-edge i {
+  background: color-mix(in srgb, var(--rim) 74%, #20242c);
+}
+.medal-face {
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.medal-front {
+  transform: translateZ(4px);
+}
+.medal-front .badge-art {
+  position: absolute;
+  width: var(--art-width);
+  left: var(--art-left);
+  top: var(--art-top);
+}
+.medal-front .badge-edition:after {
+  display: none;
+}
+.medal-back {
+  transform: rotateY(180deg) translateZ(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16%;
+  text-align: center;
+  color: color-mix(in srgb, var(--rim) 42%, #20242c);
+  text-shadow: 0 1px 0 #ffffff80;
+  background: radial-gradient(
+    circle at 34% 28%,
+    color-mix(in srgb, var(--rim) 20%, #fff),
+    color-mix(in srgb, var(--rim) 58%, #fff) 60%,
+    color-mix(in srgb, var(--rim) 86%, #fff)
+  );
+  box-shadow: inset 0 0 0 5px color-mix(in srgb, var(--rim) 80%, #fff);
+}
+.medal-back:before {
+  content: '';
+  position: absolute;
+  inset: 8.5%;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.32;
+}
+.medal-back small {
+  font-size: 11px;
+  letter-spacing: 5px;
+  margin-right: -5px;
+  opacity: 0.8;
+}
+.medal-back strong {
+  font-size: 20px;
+  line-height: 1.5;
+  font-weight: 600;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.medal-back > span:not(.medal-sheen) {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.medal-back b {
+  font: 21px/1.3 var(--serif);
+  letter-spacing: 0.5px;
+  margin-top: 10px;
+}
+/* The collector's own number, set apart like the serial struck on a medal. */
+.medal-back em {
+  font: 15px/1.4 var(--serif);
+  font-style: normal;
+  letter-spacing: 1.6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+}
+.medal-rim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.7;
+}
+.medal-rim text {
+  font: 6.4px var(--font);
+  letter-spacing: 1.3px;
+  text-shadow: none;
+}
+.badge-issue {
+  display: block;
+  font: 12px/1.7 var(--serif);
+  letter-spacing: 0.7px;
+  color: #7d8593;
+  margin-top: 1px;
+}
+.issue-plate {
+  display: inline-block;
+  margin-top: 9px;
+  padding: 4px 15px 3px;
+  border: 1px solid #d9dce4;
+  border-radius: 999px;
+  font: 15px/1.5 var(--serif);
+  letter-spacing: 1.3px;
+}
+.issue-list {
+  list-style: none;
+  margin: 13px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+.issue-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.issue-list svg {
+  width: 13px;
+  height: 13px;
+  color: #95a2b7;
+}
+.issue-list b {
+  display: inline-block;
+  font: 14px/1.6 var(--serif);
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: var(--ink);
+}
+.visit-ticket-number b {
+  display: block;
+  font: 14px/1.6 var(--serif);
+  font-weight: 400;
+  letter-spacing: 0.8px;
+  color: var(--ink);
+}
+.medal-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    linear-gradient(
+        115deg,
+        #fff0 34%,
+        rgb(255 255 255 / calc(var(--glare, 0) * 0.5)) 50%,
+        #fff0 66%
+      )
+      var(--sheen-x, 50%) var(--sheen-y, 50%) / 240% 240% no-repeat,
+    linear-gradient(rgb(16 21 34 / var(--shade, 0)), rgb(16 21 34 / var(--shade, 0)));
+}
+.medal-shadow {
+  display: block;
+  width: 60%;
+  height: 16px;
+  margin: 18px auto 0;
+  border-radius: 50%;
+  background: #1b243a;
+  filter: blur(11px);
+  opacity: 0.2;
+  transform: scaleX(var(--shadow, 1));
+}
+.medal-flip {
+  display: block;
+  margin: 4px auto 0;
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: 13px;
+  color: var(--blue);
+}
+.medal-hint {
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
 }
 .choice-list {
   display: flex;
@@ -1901,14 +2155,84 @@ img {
   height: 1px;
   overflow: hidden;
 }
-@keyframes stamp-arrive {
+/* Individual transform properties, so a stamp that already sits at an angle keeps it while it drops. */
+@keyframes stamp-drop {
+  0% {
+    opacity: 0;
+    translate: 0 -30%;
+    scale: 1.5;
+    rotate: -12deg;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.55);
+  }
+  14% {
+    opacity: 1;
+  }
+  55% {
+    translate: 0 0;
+    scale: 0.94;
+    rotate: 0deg;
+    animation-timing-function: ease-out;
+  }
+  78% {
+    scale: 1.025;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+@keyframes ticket-slide {
   from {
     opacity: 0;
-    transform: scale(1.22) rotate(-14deg);
+    translate: 0 28px;
   }
   to {
     opacity: 1;
-    transform: scale(1) rotate(0);
+    translate: 0 0;
+  }
+}
+@keyframes seat-clear {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ring-spread {
+  from {
+    opacity: 0.75;
+    scale: 0.94;
+  }
+  to {
+    opacity: 0;
+    scale: 1.34;
+  }
+}
+@keyframes sheen-pass {
+  0% {
+    opacity: 0;
+    background-position: 130% 0;
+  }
+  20%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    background-position: -30% 0;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 7px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
   }
 }
 @keyframes screen-enter {
@@ -1942,7 +2266,7 @@ img {
   font-size: 13px;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 11px;
 }
 .passport-stats span {
   font-size: 12px;
@@ -1951,7 +2275,7 @@ img {
   font-size: 14px;
 }
 .collection-switch .count {
-  font-size: 11px;
+  font-size: 12px;
 }
 .badge-card h3 {
   font-size: 14px;
@@ -1968,10 +2292,10 @@ img {
   line-height: 1.7;
 }
 .bottom-nav button {
-  font-size: 11px;
+  font-size: 12px;
 }
 .stamp-category {
-  font-size: 11px;
+  font-size: 12px;
 }
 .stamp-subtitle {
   font-size: 12px;
@@ -1983,7 +2307,7 @@ img {
   font-size: 12px;
 }
 .visit-city {
-  font-size: 11px;
+  font-size: 12px;
 }
 .memory-header h3 {
   font-size: 13px;
@@ -2002,10 +2326,7 @@ img {
   font-size: 12px;
 }
 .success-place-sub {
-  font-size: 11px;
-}
-.success-caption {
-  font-size: 13px;
+  font-size: 12px;
 }
 .search-box input {
   font-size: 16px;
@@ -2029,13 +2350,13 @@ img {
   font-size: 13px;
 }
 .scan-help small {
-  font-size: 11px;
+  font-size: 12px;
 }
 .scan-place strong {
   font-size: 13px;
 }
 .scan-place p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
 }
 .demo-notice {
@@ -2081,6 +2402,7 @@ img {
 .share-options label,
 .info-row button {
   min-height: 44px;
+  font-size: 12px;
 }
 @media (min-width: 1300px) {
   .design-layout {
@@ -2115,7 +2437,7 @@ img {
 }
 @media (max-width: 540px) {
   body {
-    background: white;
+    background: var(--paper);
   }
   .design-layout {
     display: block;
@@ -2275,4 +2597,60 @@ img {
     transition: none !important;
     scroll-behavior: auto !important;
   }
+}
+.venue-disclaimer {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 14px;
+}
+.stamp-category.pending {
+  background: var(--soft);
+  color: var(--muted);
+  margin-left: 6px;
+}
+.stamp-page.unowned .stamp-zoom .badge-art {
+  filter: drop-shadow(0 14px 10px #3c456522) grayscale(0.85) opacity(0.62);
+}
+/* Limited stamps: how much of the edition is already out. */
+.edition-meter {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px 15px 12px;
+  margin-top: 19px;
+}
+.edition-meter-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 550;
+}
+.edition-meter-head b {
+  font: 16px/1.4 var(--serif);
+  font-weight: 400;
+  letter-spacing: 0.4px;
+}
+.edition-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--soft);
+  margin-top: 9px;
+  overflow: hidden;
+}
+.edition-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--ink);
+}
+.edition-meter p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.stamp-page.unowned .edition-meter {
+  margin-bottom: 14px;
 }

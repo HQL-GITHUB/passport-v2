@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { venues, stamps } from '../../src/data/catalog.js';
-import { ensureVisit, normalizeData, visitKey } from '../../src/domain/visits.js';
+import { ensureVisit, issueNumber, normalizeData, visitKey } from '../../src/domain/visits.js';
 import { createPresentation } from '../../src/lib/presentation.js';
 import { APP_CONFIG } from '../../src/config.js';
 
@@ -122,4 +122,41 @@ test('visit dates validate leap years and reject invalid or future dates', () =>
   assert.equal(validDay('2026-11-10'), true);
   assert.equal(validDay('2026-13-01'), false);
   assert.equal(validDay('not-a-date'), false);
+});
+
+test('every collected stamp keeps one collector number, issued once and growing with the claim date', () => {
+  const record = (firstAt, extra = {}) => ({ firstAt, visits: [firstAt], ...extra });
+  const legacy = normalize({ version: 2, records: { artmuseum: record('2026-10-24') } });
+  const issued = legacy.records.artmuseum.issue;
+  assert.equal(Number.isInteger(issued) && issued > 0, true);
+  assert.equal(issued, issueNumber('artmuseum', '2026-10-24'));
+  assert.equal(normalize(structuredClone(legacy)).records.artmuseum.issue, issued);
+  const kept = normalize({
+    version: 3,
+    records: { artmuseum: record('2026-10-24', { issue: 42 }) },
+  });
+  assert.equal(kept.records.artmuseum.issue, 42);
+  const repaired = normalize({
+    version: 3,
+    records: { artmuseum: record('2026-10-24', { issue: 'forged' }) },
+  });
+  assert.equal(repaired.records.artmuseum.issue, issued);
+  assert.equal(issueNumber('artmuseum', '2026-10-25') > issued, true);
+  assert.equal(context.format.issue({ issue: 42 }), 'No. 000042');
+});
+
+test('a limited stamp numbers within its edition and shows the edition size', () => {
+  const limited = stamps.find((s) => s.id === 'museum-exhibition');
+  assert.equal(limited.limit > 0, true);
+  assert.equal(issueNumber(limited.id, '2026-11-10', limited.limit) <= limited.limit, true);
+  assert.equal(issueNumber(limited.id, '2099-01-01', limited.limit), limited.limit);
+  const record = (issue) => ({ firstAt: '2026-11-10', visits: ['2025-10-18'], issue });
+  const kept = normalize({ version: 3, records: { [limited.id]: record(77) } });
+  assert.equal(kept.records[limited.id].issue, 77);
+  const repaired = normalize({ version: 3, records: { [limited.id]: record(limited.limit + 1) } });
+  assert.equal(repaired.records[limited.id].issue <= limited.limit, true);
+  assert.equal(
+    context.format.issue({ issue: 77 }, limited),
+    `No. ${'77'.padStart(String(limited.limit).length, '0')} / ${limited.limit}`,
+  );
 });

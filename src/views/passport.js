@@ -24,6 +24,12 @@ export function createPassportViews(appContext) {
               `<button data-action="collection" data-value="${value}" class="${appContext.ui.collection === value ? 'active' : ''}" aria-pressed="${appContext.ui.collection === value}">${label}<span class="count">${count}</span></button>`,
           )
           .join('')}
+        ${
+          (appContext.ui.collection === 'footprints' && rows.length) ||
+          (appContext.ui.collection === 'collected' && list.length)
+            ? `<button class="collection-share" data-action="share-collection" aria-label="${appContext.ui.collection === 'footprints' ? '分享我的足迹' : '分享我的章册'}">${appContext.format.icon('share')}分享</button>`
+            : ''
+        }
       </div>
       <div id="collection-content">${appContext.views.renderCollection()}</div>
       <p class="foot-hint">让走过的地方，都有一页可翻。</p>
@@ -60,6 +66,7 @@ export function createPassportViews(appContext) {
               ${v.name} ·
               ${wanted ? '想去' : appContext.format.displayVisit(appContext.format.firstVisit(appContext.data.records[v.id]))}
             </p>
+            ${wanted ? '' : `<p class="badge-issue">${appContext.format.issue(appContext.data.records[v.id], v)}</p>`}
           </button>`,
       )
       .join('')}</div>`;
@@ -75,55 +82,89 @@ export function createPassportViews(appContext) {
           添加第一张票根${appContext.format.icon('arrow')}
         </button>
       </div>`;
-    let year = '';
-    return `<div class="footprint-list">${rows
-      .map((v) => {
-        const tickets = appContext.selectors.savedTickets(v),
-          badges = v.stampIds.map(appContext.catalog.byId),
-          heading =
-            year !== v.day.slice(0, 4)
-              ? /* HTML */ `<p class="footprint-year">
-                  ${v.day.slice(0, 4)}<span>年的文化足迹</span>
-                </p>`
-              : '';
-        year = v.day.slice(0, 4);
-        return /* HTML */ `${heading}
-          <article
-            class="footprint-card ${appContext.ui.highlightVisit === v.key ? 'visit-highlight' : ''}"
-          >
-            <button class="footprint-open" data-action="open-visit" data-key="${v.key}">
-              <div class="footprint-date">
-                <span
-                  >${appContext.format.date(v.day)} <i>· ${appContext.format.safe(v.city)}</i></span
-                >${appContext.format.icon('chevron')}
-              </div>
-              <h2>${appContext.format.safe(v.name)}</h2>
-              <p class="footprint-exhibit">
-                ${appContext.format.safe(v.exhibit || '一次与文化的相遇')}
-              </p>
-              <div
-                class="visit-collage ${tickets.length ? 'with-ticket' : v.photo ? 'with-photo' : 'badges-only'}"
-              >
-                ${tickets.length ? `<div class="collage-ticket">${appContext.views.ticketVisual(tickets[0])}</div>` : v.photo ? `<img class="collage-photo" src="${appContext.format.safe(v.photo)}" alt="这次参观的照片">` : ''}
-                <div class="collage-badges">
-                  ${badges
-                    .slice(0, 2)
-                    .map((b) => appContext.format.art(b))
-                    .join(
-                      '',
-                    )}${!badges.length && !tickets.length && !v.photo ? `<span class="visit-empty-emblem">${appContext.format.icon('book')}旅程已记录</span>` : ''}
-                </div>
-              </div>
-              ${v.note ? /* HTML */ `<p class="footprint-note">“${appContext.format.safe(v.note.length > 52 ? v.note.slice(0, 52) + '…' : v.note)}”</p>` : ''}
-              <div class="footprint-meta">
-                <span
-                  >${tickets.length ? `${tickets.length} 张票根` : '到访记忆'}${badges.length ? ` · ${badges.length} 枚纪念章` : ''}</span
-                ><span>翻开这一页${appContext.format.icon('up-right')}</span>
-              </div>
-            </button>
-          </article>`;
-      })
+    const years = [];
+    for (const v of rows) {
+      const year = v.day.slice(0, 4);
+      if (years.at(-1)?.year !== year) years.push({ year, stops: [] });
+      years.at(-1).stops.push(v);
+    }
+    return `<div class="footprint-list">${years
+      .map(
+        ({ year, stops }) =>
+          /* HTML */ `<p class="footprint-year">${year}<span>年的文化足迹</span></p>
+            <ol class="footprint-timeline">
+              ${stops.map(footprintStop).join('')}
+            </ol>`,
+      )
       .join('')}</div>`;
+  }
+  // Each stamp of a visit with what makes it collectible: its edition mark and the collector's number.
+  function footprintStamps(badges) {
+    const lines = badges
+      .filter((s) => appContext.data.records[s.id])
+      .map(
+        (s) =>
+          `<span class="footprint-stamp"><span>${s.stamp}</span>${s.edition ? '<i>特展</i>' : s.limit ? '<i>限量</i>' : ''}<b>${appContext.format.issue(appContext.data.records[s.id], s)}</b></span>`,
+      );
+    return lines.length ? `<span class="footprint-stamps">${lines.join('')}</span>` : '';
+  }
+  // A visit with a ticket or photo opens as a full page; one that only holds stamps stays a single line.
+  function footprintStop(v) {
+    const tickets = appContext.selectors.savedTickets(v),
+      badges = v.stampIds.map(appContext.catalog.byId),
+      rich = tickets.length > 0 || !!v.photo,
+      note = v.note?.trim(),
+      name = appContext.format.safe(v.name),
+      exhibit = appContext.format.safe(v.exhibit || '一次与文化的相遇');
+    return /* HTML */ `<li class="footprint-stop">
+      <p class="footprint-when">
+        <b>${appContext.format.dateShort(v.day)}</b>${appContext.format.safe(v.city)}
+      </p>
+      <article
+        class="footprint-card ${rich ? '' : 'compact'} ${appContext.ui.highlightVisit === v.key ? 'visit-highlight' : ''}"
+      >
+        <button class="footprint-open" data-action="open-visit" data-key="${v.key}">
+          ${
+            rich
+              ? /* HTML */ `<div class="footprint-head">
+                    <h2>${name}</h2>
+                    ${appContext.format.icon('chevron')}
+                  </div>
+                  <p class="footprint-exhibit">${exhibit}</p>
+                  <div class="visit-collage ${tickets.length ? 'with-ticket' : 'with-photo'}">
+                    ${tickets.length ? `<div class="collage-ticket">${appContext.views.ticketVisual(tickets[0])}</div>` : `<img class="collage-photo" src="${appContext.format.safe(v.photo)}" alt="这次参观的照片">`}
+                    <div class="collage-badges">
+                      ${badges
+                        .slice(0, 2)
+                        .map((b) => appContext.format.art(b))
+                        .join('')}
+                    </div>
+                  </div>
+                  ${footprintStamps(badges)}
+                  ${note ? /* HTML */ `<p class="footprint-note">“${appContext.format.safe(note.length > 52 ? note.slice(0, 52) + '…' : note)}”</p>` : ''}
+                  <div class="footprint-meta">
+                    <span>${tickets.length ? `${tickets.length} 张票根` : '到访记忆'}</span
+                    ><span>翻开这一页${appContext.format.icon('up-right')}</span>
+                  </div>`
+              : /* HTML */ `<span class="footprint-mark"
+                    >${
+                      badges.length
+                        ? badges
+                            .slice(0, 2)
+                            .map((b) => appContext.format.art(b))
+                            .join('')
+                        : appContext.format.icon('book')
+                    }</span
+                  ><span class="footprint-brief"
+                    ><h2>${name}</h2>
+                    <p class="footprint-exhibit">${exhibit}</p>
+                    ${footprintStamps(badges)}
+                    ${note ? /* HTML */ `<p class="footprint-note">“${appContext.format.safe(note)}”</p>` : ''}</span
+                  >${appContext.format.icon('chevron')}`
+          }
+        </button>
+      </article>
+    </li>`;
   }
   return {
     renderPassport,

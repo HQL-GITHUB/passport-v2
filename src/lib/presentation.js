@@ -17,6 +17,11 @@ export function createPresentation(appContext) {
     art: (v, cls = '') =>
       `<span class="badge-art badge-${v.art} ${v.edition ? 'badge-edition' : ''} ${cls}" ${v.edition ? `data-edition="特展 · ${v.edition}"` : ''} role="img" aria-label="${v.stamp}纪念章插画"></span>`,
     date: (value) => String(value).replaceAll('-', '.'),
+    // A limited stamp shows its number against the edition size.
+    issue: (record, stamp) =>
+      stamp?.limit
+        ? `No. ${String(record.issue).padStart(String(stamp.limit).length, '0')} / ${stamp.limit}`
+        : `No. ${String(record.issue).padStart(6, '0')}`,
     dateShort: (value) => appContext.format.date(value).slice(5),
     clone: (value) => JSON.parse(JSON.stringify(value)),
     validDay: (value) => {

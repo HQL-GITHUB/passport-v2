@@ -1,9 +1,16 @@
 import { APP_CONFIG } from '../config.js';
 import * as catalog from '../data/catalog.js';
 import { createDemoData } from '../data/demo-data.js';
-import { visitKey, hashIdentity, ensureVisit, normalizeData } from '../domain/visits.js';
+import {
+  visitKey,
+  hashIdentity,
+  issueNumber,
+  ensureVisit,
+  normalizeData,
+} from '../domain/visits.js';
 import { TicketMedia } from '../storage/ticket-media.js';
 import { TicketEditor } from '../lib/ticket-editor.js';
+import { MedalViewer } from '../lib/medal-viewer.js';
 import * as images from '../lib/images.js';
 import { createPresentation } from '../lib/presentation.js';
 import { createUiState, createRuntimeState } from '../state/state.js';
@@ -14,6 +21,7 @@ import { createMetadataStorage } from '../storage/metadata.js';
 import { createQueries } from '../state/queries.js';
 import { createNavigation } from '../app/navigation.js';
 import { createFeedback } from '../ui/feedback.js';
+import { createCeremony } from '../ui/ceremony.js';
 import { createShellViews } from '../views/shell.js';
 import { createPassportViews } from '../views/passport.js';
 import { createStampViews } from '../views/stamps.js';
@@ -35,9 +43,16 @@ export function createApp() {
     config: APP_CONFIG,
     catalog,
     fixtures: { initialData: createDemoData },
-    domain: { key: visitKey, hash: hashIdentity, ensure: ensureVisit, normalize: normalizeData },
+    domain: {
+      key: visitKey,
+      hash: hashIdentity,
+      issue: issueNumber,
+      ensure: ensureVisit,
+      normalize: normalizeData,
+    },
     media: new TicketMedia(),
     TicketEditor,
+    MedalViewer,
     images,
     assets: { atlas, hero },
     ui: createUiState(),
@@ -55,6 +70,7 @@ export function createApp() {
   Object.assign((appContext.selectors ||= {}), createQueries(appContext));
   Object.assign((appContext.navigation ||= {}), createNavigation(appContext));
   Object.assign((appContext.feedback ||= {}), createFeedback(appContext));
+  Object.assign((appContext.ceremony ||= {}), createCeremony(appContext));
   Object.assign((appContext.views ||= {}), createShellViews(appContext));
   Object.assign((appContext.views ||= {}), createPassportViews(appContext));
   Object.assign((appContext.views ||= {}), createStampViews(appContext));
@@ -70,7 +86,8 @@ export function createApp() {
   Object.assign((appContext.memories ||= {}), createMemoryController(appContext));
   Object.assign((appContext.sharing ||= {}), createShareCardService(appContext));
   appContext.data = appContext.storage.readData();
-  document.documentElement.style.setProperty('--badge-atlas-url', 'url("' + atlas + '")');
+  const atlasUrl = images.cssImageUrl(atlas);
+  document.documentElement.style.setProperty('--badge-atlas-url', 'url("' + atlasUrl + '")');
   const unbind = bindEvents(appContext);
   return {
     async start() {
@@ -82,10 +99,13 @@ export function createApp() {
     destroy() {
       unbind();
       clearTimeout(appContext.runtime.toastTimer);
+      appContext.ceremony.finish();
+      appContext.runtime.pageMedal?.destroy();
       appContext.runtime.claimToken++;
       appContext.runtime.ticketToken++;
       appContext.dialogs.closeModal(false);
       for (const id of appContext.media.urls.keys()) appContext.media.revoke(id);
+      if (atlasUrl !== atlas) URL.revokeObjectURL(atlasUrl);
     },
   };
 }

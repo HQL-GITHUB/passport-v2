@@ -1,9 +1,9 @@
 /** Application module. Dependencies are provided by createApp(). */
 export function createDialogController(appContext) {
-  function openModal(kind) {
+  function openModal(kind, stampId) {
     appContext.dialogs.closeModal(false);
     appContext.runtime.lastFocused = document.activeElement;
-    const stamp = appContext.catalog.byId(appContext.ui.selected),
+    const stamp = appContext.catalog.byId(stampId || appContext.ui.selected),
       visit = appContext.selectors.currentVisit();
     let body = '',
       label = '',
@@ -86,10 +86,17 @@ ${appContext.format.safe(visit.note)}</textarea>
         <p class="share-privacy">请查看下方预览，确认希望公开的票面内容。</p>
         <button class="button" data-action="editor-apply" disabled>使用当前票根</button>`;
     } else if (kind === 'zoom') {
+      const record = appContext.data.records[stamp.id],
+        animate = !matchMedia('(prefers-reduced-motion: reduce)').matches;
       label = stamp.stamp;
       extra = 'zoom-modal';
-      body = /* HTML */ `${appContext.format.art(stamp)}
-        <p class="modal-sub">${stamp.name} · ${stamp.kind}</p>`;
+      appContext.runtime.modalState = { kind, viewer: null, canFlip: !!record, animate };
+      body = /* HTML */ `${appContext.views.renderMedal(stamp, record)}
+        <p class="modal-sub">${stamp.name} · ${stamp.kind}</p>
+        ${record ? '<button class="medal-flip" data-medal-flip aria-pressed="false">翻到背面</button>' : ''}
+        <p class="medal-hint">
+          ${record ? (animate ? '拖动章面，翻看背面的到访印记。' : '背面刻着这次到访的日期与编号。') : animate ? '拖动可以倾斜章面，收藏后可翻看背面。' : '收藏后，可以翻看背面的到访印记。'}
+        </p>`;
     } else if (kind === 'city') {
       label = '选择下一站的城市';
       body = `<div class="choice-list">${['全部城市', ...new Set(appContext.catalog.venues.map((v) => v.city))].map((city) => `<button data-action="set-city" data-value="${city}" class="${appContext.ui.city === city ? 'active' : ''}">${city}${appContext.ui.city === city ? appContext.format.icon('check') : ''}</button>`).join('')}</div>`;
@@ -137,9 +144,15 @@ ${appContext.format.safe(visit.note)}</textarea>
     });
     if (kind === 'ticket-editor')
       appContext.dialogs.setupTicketEditor(appContext.selectors.getShareContext().tickets[0]);
+    if (kind === 'zoom')
+      appContext.runtime.modalState.viewer = new appContext.MedalViewer(
+        appContext.dom.modalRoot.querySelector('.medal-stage'),
+        appContext.runtime.modalState,
+      );
   }
   function closeModal(restoreFocus = true) {
     const hadModal = !!appContext.runtime.modalState;
+    appContext.runtime.modalState?.viewer?.destroy();
     appContext.dom.modalRoot.innerHTML = '';
     appContext.runtime.modalState = null;
     appContext.dom.app.inert = false;

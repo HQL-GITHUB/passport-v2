@@ -18,6 +18,14 @@ export function createMetadataStorage(appContext) {
         saved: true,
         kind: 'sample',
       };
+      raw.tickets['demo-museum-2025-10-10'] = {
+        venueId: 'museum',
+        visitedAt: '2025-10-10',
+        receivedAt: '2025-10-10',
+        redeemed: ['museum-exhibition'],
+        saved: true,
+        kind: 'sample',
+      };
     }
     return appContext.domain.normalize(
       raw,

@@ -3,7 +3,6 @@ export function createTicketViews(appContext) {
   function renderTicket() {
     const d = appContext.ui.ticketDraft;
     return /* HTML */ `<section class="page ticket-page screen-enter">
-      <p class="eyebrow">KEEP THE PLACES YOU’VE BEEN</p>
       <h1 class="scan-title">去过的地方，<br />慢慢补齐。</h1>
       ${appContext.views.renderClaimModes()}
       <p class="ticket-intro">拍下纸质票根，或导入电子票截图。</p>
@@ -42,7 +41,6 @@ export function createTicketViews(appContext) {
       r = appContext.data.tickets[d.id],
       other = d.venueId === 'other';
     return /* HTML */ `<section class="page ticket-confirm-page screen-enter">
-      <p class="eyebrow">A JOURNEY, REMEMBERED</p>
       <h1 class="page-title">确认这次到访</h1>
       <p class="subtitle">把票根、日期和纪念，放进同一页。</p>
       <div class="ticket-result-label">
@@ -113,7 +111,7 @@ export function createTicketViews(appContext) {
       .map((v) => {
         const done = r?.redeemed.includes(v.id),
           owned = !!appContext.data.records[v.id];
-        return `<label class="ticket-reward ${done ? 'redeemed' : ''}"><input type="checkbox" data-ticket-reward="${v.id}" ${done || d.selected.includes(v.id) ? 'checked' : ''} ${done || appContext.ui.claimBusy ? 'disabled' : ''}>${appContext.format.art(v)}<span class="ticket-reward-copy"><strong>${v.stamp}</strong><small>${v.kind}</small><span>${done ? '这张票根已领取' : owned ? '已有此章 · 补充这次到访' : '加入我的章册'}</span></span></label>`;
+        return `<label class="ticket-reward ${done ? 'redeemed' : ''}"><input type="checkbox" data-ticket-reward="${v.id}" ${done || d.selected.includes(v.id) ? 'checked' : ''} ${done || appContext.ui.claimBusy ? 'disabled' : ''}>${appContext.format.art(v)}<span class="ticket-reward-copy"><strong>${v.stamp}</strong><small>${v.kind}${v.limit ? ` · 限量 ${v.limit} 枚` : ''}</small><span>${done ? '这张票根已领取' : owned ? '已有此章 · 补充这次到访' : '加入我的章册'}</span></span></label>`;
       })
       .join('');
   }
@@ -161,6 +159,16 @@ export function createTicketViews(appContext) {
       </div>
       <h2 class="success-place">${appContext.format.safe(v.name)}</h2>
       <p class="success-place-sub">${appContext.format.safe(v.exhibit)}</p>
+      ${
+        result.stampIds.length
+          ? `<ul class="issue-list">${result.stampIds
+              .map(
+                (id) =>
+                  `<li><button data-action="zoom" data-id="${id}"><span>${appContext.catalog.byId(id).stamp}</span><b>${appContext.format.issue(appContext.data.records[id], appContext.catalog.byId(id))}</b>${appContext.format.icon('chevron')}</button></li>`,
+              )
+              .join('')}</ul>`
+          : ''
+      }
       <div class="ticket-date-pair">
         <div><small>参观日期</small><strong>${appContext.format.date(v.day)}</strong></div>
         <span>${appContext.format.icon('arrow')}</span>

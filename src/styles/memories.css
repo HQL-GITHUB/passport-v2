@@ -26,11 +26,59 @@
   color: var(--muted);
   letter-spacing: 0.6px;
 }
+/* Timeline: a thin rail in the page margin carries the dates, so the cards keep their width. */
+.footprint-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.footprint-stop {
+  position: relative;
+  padding: 0 0 20px 22px;
+}
+.footprint-stop:before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 11px;
+  bottom: -11px;
+  width: 1px;
+  background: #dfe3eb;
+}
+.footprint-stop:last-child:before {
+  bottom: 20px;
+  background: linear-gradient(#dfe3eb 40%, #dfe3eb00);
+}
+.footprint-stop:after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 4px var(--paper);
+}
+.footprint-when {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 22px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.footprint-when b {
+  font: 18px/22px var(--serif);
+  font-weight: 400;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+}
 .footprint-card {
   border: 1px solid #e4e9f2;
   border-radius: 14px;
-  margin-bottom: 17px;
-  background: #fff;
+  background: var(--paper);
   overflow: hidden;
   box-shadow: 0 3px 9px #20386004;
 }
@@ -43,31 +91,79 @@
   text-align: left;
   padding: 16px;
 }
-.footprint-date {
+.footprint-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 9px;
-  font: 13px var(--serif);
-  color: #667793;
-  margin-bottom: 11px;
 }
-.footprint-date i {
-  font: 12px var(--font);
-  font-style: normal;
-  color: var(--muted);
-}
-.footprint-date > svg {
+.footprint-head > svg,
+.footprint-open > svg {
   width: 14px;
   height: 14px;
   color: #95a2b7;
 }
-.footprint-open > h2 {
+.footprint-head > svg {
+  margin-top: 7px;
+}
+.footprint-open h2 {
   font-size: 17px;
   font-weight: 600;
   line-height: 1.6;
   letter-spacing: -0.4px;
   overflow-wrap: anywhere;
+}
+/* Stamp-only visits stay one line tall. */
+.footprint-card.compact .footprint-open {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 14px 11px 11px;
+}
+.footprint-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  background: var(--soft);
+}
+.footprint-mark > .badge-art {
+  width: 50px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 3px 2px #24385918);
+}
+.footprint-mark > .badge-art + .badge-art {
+  width: 30px;
+  margin: 22px -4px 0 -24px;
+}
+.footprint-mark .badge-edition:after {
+  display: none;
+}
+.footprint-mark > svg {
+  width: 22px;
+  height: 22px;
+  color: var(--muted);
+}
+.footprint-brief {
+  flex: 1;
+  min-width: 0;
+}
+.footprint-card.compact h2 {
+  font-size: 15px;
+  letter-spacing: -0.2px;
+}
+.footprint-card.compact .footprint-exhibit {
+  font-size: 12px;
+  margin-top: 0;
+}
+.footprint-card.compact .footprint-note {
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .footprint-exhibit {
   font-size: 13px;
@@ -110,6 +206,9 @@
 }
 .collage-ticket .sample-ticket-date {
   margin-top: 11px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 .collage-ticket .sample-ticket-date span {
   font-size: 7px;
@@ -186,18 +285,6 @@
   height: 193px;
   width: 100%;
   object-fit: cover;
-}
-.visit-empty-emblem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 11px;
-  font-size: 12px;
-  color: #6e82a9;
-}
-.visit-empty-emblem svg {
-  width: 33px;
-  height: 33px;
 }
 .footprint-note {
   font-size: 12px;
@@ -303,7 +390,7 @@
   border: 1px solid #e5eaf2;
   border-radius: 12px;
   overflow: hidden;
-  background: white;
+  background: var(--paper);
 }
 .saved-ticket-open {
   display: block;
@@ -360,7 +447,7 @@
   min-height: 44px;
   padding: 7px 0 7px 9px;
 }
-.visit-add-ticket {
+.visit-add {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -375,7 +462,7 @@
   padding: 12px;
   background: #fafbfe;
 }
-.visit-add-ticket svg {
+.visit-add svg {
   width: 18px;
   height: 18px;
 }
@@ -446,7 +533,7 @@
 }
 .stamp-visit-link small {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.7;
   margin-left: 20px;
   color: #8b97aa;
@@ -551,7 +638,7 @@
 .missing-ticket {
   padding: 25px 10px;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.9;
   color: #8b98ad;
   background: #f4f6fa;
@@ -638,7 +725,7 @@
   font: 64px/1.5 var(--serif);
 }
 .share-ticket-edit {
-  font-size: 11px;
+  font-size: 12px;
   color: #5477c0;
   min-height: 44px;
   padding: 7px 0;
@@ -668,7 +755,7 @@
 }
 .ticket-editor-modes > button.active {
   color: #345bb5;
-  background: #fff;
+  background: var(--paper);
   box-shadow: 0 1px 5px #2b3f6510;
 }
 .ticket-editor-stage {
@@ -705,7 +792,7 @@
   color: #7184a5;
 }
 .ticket-editor-modal .share-privacy {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
 }
 .ticket-editor-modal select {
@@ -729,8 +816,11 @@
   .footprint-open {
     padding: 13px;
   }
-  .footprint-open > h2 {
+  .footprint-open h2 {
     font-size: 16px;
+  }
+  .footprint-stop {
+    padding-left: 19px;
   }
   .footprint-meta {
     font-size: 12px;
@@ -798,5 +888,179 @@
   }
   .memory-success .collage-ticket .sample-ticket > strong {
     font-size: 16px;
+  }
+}
+.share-memory-badges small.share-issue {
+  font: 10px/1.6 var(--serif);
+  letter-spacing: 0.6px;
+  color: #5f6b80;
+  margin-top: 0;
+}
+/* Stamps listed on a footprint: name, edition mark, collector number. */
+.footprint-stamps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 13px;
+}
+.footprint-stamp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.footprint-stamp i {
+  font-style: normal;
+  line-height: 1.5;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  white-space: nowrap;
+}
+.footprint-stamp b {
+  margin-left: auto;
+  font: 13px/1.6 var(--serif);
+  font-weight: 400;
+  letter-spacing: 0.6px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.footprint-card.compact .footprint-stamps {
+  margin-top: 4px;
+}
+.footprint-card.compact .footprint-stamp b {
+  margin-left: 0;
+}
+/* Share entry beside the passport tabs, and the overview card it opens. */
+.collection-switch .collection-share {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 0 4px 8px;
+  font-size: 12px;
+  color: var(--blue);
+}
+.collection-share svg {
+  width: 15px;
+  height: 15px;
+}
+.share-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 16px 20px 0;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e3e8f1;
+}
+.share-stats > div {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.share-stats strong {
+  font: 21px/1 var(--serif);
+  font-weight: 400;
+}
+.share-stats span {
+  font-size: 9px;
+  color: var(--muted);
+}
+.share-journal {
+  padding: 4px 20px 0;
+}
+.share-year {
+  font: 18px/1.4 var(--serif);
+  margin-top: 14px;
+}
+.share-stop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+}
+.share-stop > b {
+  flex-shrink: 0;
+  width: 44px;
+  font: 14px var(--serif);
+  font-weight: 400;
+}
+.share-stop > span:not(.share-stop-badges) {
+  flex: 1;
+  min-width: 0;
+}
+.share-stop strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.share-stop small {
+  display: block;
+  font-size: 9px;
+  color: #7f899a;
+}
+.share-stop-badges {
+  display: flex;
+  flex-direction: row-reverse;
+  flex-shrink: 0;
+}
+.share-stop-badges .badge-art {
+  width: 36px;
+}
+.share-stop-badges .badge-art + .badge-art {
+  margin-right: -6px;
+}
+.share-stop-badges .badge-edition:after,
+.share-album .badge-edition:after {
+  display: none;
+}
+.share-album {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 10px;
+  padding: 18px 20px 0;
+  text-align: center;
+}
+.share-album small {
+  display: block;
+  font-size: 9px;
+  line-height: 1.6;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+.share-album small.share-issue {
+  font: 9px/1.6 var(--serif);
+  letter-spacing: 0.3px;
+  color: #5f6b80;
+  margin-top: 0;
+}
+.share-more {
+  text-align: center;
+  font-size: 9px;
+  color: #7f899a;
+  margin-top: 12px;
+}
+.journal-share-paper .share-paper-footer {
+  margin-top: 18px;
+}
+.share-album small.share-issue {
+  white-space: nowrap;
+}
+@media (max-width: 360px) {
+  .share-album {
+    gap: 12px 6px;
+    padding-inline: 14px;
+  }
+  .share-album small.share-issue {
+    font-size: 8px;
+    letter-spacing: 0;
   }
 }

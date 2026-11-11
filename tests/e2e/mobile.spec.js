@@ -10,7 +10,7 @@ test('mobile forms have readable focus sizes and the confirmation stays within t
     await page.goto('/#/discover/museum');
     await expect(page.getByRole('searchbox')).toHaveCSS('font-size', '16px');
     await page.goto('/#/visit/landscape/2026-10-03');
-    await page.locator('#app-footer .button').click();
+    await page.locator('.memory-block .visit-add').click();
     await expect(page.locator('#memory-input')).toHaveCSS('font-size', '16px');
     await page.getByRole('button', { name: '关闭', exact: true }).click();
     await page.goto('/#/ticket/museum');

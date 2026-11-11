@@ -4,7 +4,6 @@ export function createScanViews(appContext) {
     const v = appContext.catalog.byId(appContext.ui.selected),
       nfc = appContext.ui.scanMode === 'nfc';
     return /* HTML */ `<section class="page scan-page screen-enter">
-      <p class="eyebrow">YOU WERE HERE</p>
       <h1 class="scan-title">把这一刻，<br />盖进护照。</h1>
       ${appContext.views.renderClaimModes()}
       <div class="scan-area ${nfc ? 'nfc' : ''} ${appContext.ui.claimBusy ? 'claim-progress' : ''}">
@@ -37,13 +36,18 @@ export function createScanViews(appContext) {
       <p class="success-sub">
         ${appContext.ui.duplicate ? '馆章已收藏，首次领取日期依然保留。' : `你的第 ${appContext.selectors.collected().length} 枚纪念章，已收入护照。`}
       </p>
-      <div class="success-art">${appContext.format.art(v)}</div>
+      <div class="success-art medal-${v.art} ${v.edition ? 'medal-edition' : ''}">
+        <span class="stamp-seat" aria-hidden="true"></span>
+        ${appContext.views.renderMedal(v, r)}
+        <span class="stamp-ring" aria-hidden="true"></span>
+      </div>
       <h2 class="success-place">${v.stamp}</h2>
-      <p class="success-place-sub">
-        ${v.name} · ${appContext.format.date(r?.firstAt || appContext.config.demoDate)}
-      </p>
-      <div class="success-divider">A MEMORY TO KEEP</div>
-      <p class="success-caption">走过的地方，会成为你的故事。<br />愿下一次出发，也有所遇见。</p>
+      ${
+        r
+          ? `<p class="issue-plate">${appContext.format.issue(r, v)}</p>
+            <button class="medal-flip" data-medal-flip aria-pressed="false">翻到背面</button>`
+          : ''
+      }
     </section>`;
   }
   return {

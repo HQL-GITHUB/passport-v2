@@ -1,3 +1,12 @@
+/* Lining figures for dates, counts and "No." serials; every other glyph falls through to the system serif. */
+@font-face {
+  font-family: 'Passport Numerals';
+  src: url('../assets/passport-numerals.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+002C-003A, U+004E, U+006F;
+}
 :root {
   color-scheme: light;
   --paper: #fff;
@@ -8,6 +17,6 @@
   --soft: #f5f6f9;
   --blue: #2455e8;
   --blue-soft: #eef2ff;
-  --serif: Georgia, 'Songti SC', SimSun, serif;
+  --serif: 'Passport Numerals', Georgia, 'Songti SC', SimSun, serif;
   --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }

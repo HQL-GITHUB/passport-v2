@@ -148,6 +148,7 @@ export function createClaimController(appContext) {
         newCount++;
         r = appContext.data.records[s.id] = {
           firstAt: appContext.config.demoDate,
+          issue: appContext.domain.issue(s.id, appContext.config.demoDate, s.limit),
           visits: [],
           method: 'ticket',
           events: [],
@@ -202,6 +203,7 @@ export function createClaimController(appContext) {
     appContext.storage.persist();
     appContext.claims.clearTicketDraft();
     appContext.navigation.navigate('ticket-success', venue.id);
+    appContext.ceremony.play();
   }
   async function collectStamp() {
     if (appContext.ui.claimBusy) return;
@@ -234,6 +236,11 @@ export function createClaimController(appContext) {
     } else
       appContext.data.records[id] = {
         firstAt: appContext.config.demoDate,
+        issue: appContext.domain.issue(
+          id,
+          appContext.config.demoDate,
+          appContext.catalog.byId(id).limit,
+        ),
         visits: [appContext.config.demoDate],
         method,
         events: [
@@ -256,6 +263,7 @@ export function createClaimController(appContext) {
     appContext.data.wanted = appContext.data.wanted.filter((v) => v !== id);
     appContext.storage.persist();
     appContext.navigation.navigate('success', id);
+    appContext.ceremony.play();
   }
   return {
     clearTicketDraft,

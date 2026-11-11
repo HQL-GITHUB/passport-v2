@@ -27,20 +27,75 @@ export function createStampViews(appContext) {
             <p class="privacy">${appContext.format.icon('lock')}仅自己可见，分享时可自行选择</p>
           </section>`
       : `<div class="stamp-unowned">${v.period ? '展览已经结束，可以用当时的票根补领纪念。' : `前往${v.name}，把这枚纪念收入护照。`}</div>`;
-    return /* HTML */ `<section class="page stamp-page screen-enter">
+    return /* HTML */ `<section class="page stamp-page ${r ? '' : 'unowned'} screen-enter">
       <div class="stamp-intro">
-        <span class="stamp-category">${appContext.format.icon('book')}${v.kind}</span>
+        <span class="stamp-category">${appContext.format.icon('book')}${v.kind}</span
+        >${r ? '' : `<span class="stamp-category pending">${appContext.format.icon('lock')}尚未收藏</span>`}
         <h1 class="stamp-title">${v.stamp}</h1>
         <p class="stamp-subtitle">${v.name} · ${v.city}</p>
       </div>
       <div class="stamp-showcase">
         <button class="stamp-zoom" data-action="zoom" aria-label="放大欣赏${v.stamp}纪念章">
           ${appContext.format.art(v)}</button
-        ><span class="zoom-hint">${appContext.format.icon('search')}点击欣赏细节</span>
+        ><span class="zoom-hint"
+          >${appContext.format.icon('search')}${r ? '点击翻看章面' : '点击预览章面'}</span
+        >
       </div>
       <p class="stamp-description">${v.description}</p>
-      ${memory}
+      ${renderEdition(v)}${memory}
     </section>`;
+  }
+  function renderEdition(v) {
+    const e = appContext.selectors.edition(v);
+    if (!e) return '';
+    const count = (n) => n.toLocaleString('en-US');
+    return /* HTML */ `<div class="edition-meter">
+      <div class="edition-meter-head">
+        <span>${v.period ? '限时 · 限量发行' : '限量发行'}</span
+        ><b>${count(e.issued)} / ${count(e.limit)}</b>
+      </div>
+      <div class="edition-bar" role="img" aria-label="已发行 ${e.issued} 枚，共 ${e.limit} 枚">
+        <i style="width:${((e.issued / e.limit) * 100).toFixed(1)}%"></i>
+      </div>
+      <p>
+        ${e.left > 0 ? `还剩 ${count(e.left)} 枚，发完即止。` : '已全部发行完毕。'}${v.period ? `仅限 ${appContext.format.date(v.period[0])} – ${appContext.format.date(v.period[1])} 的参观领取。` : ''}
+      </p>
+    </div>`;
+  }
+  // The stamp as a disc that MedalViewer can turn; the back is engraved once the stamp is collected.
+  function renderMedal(v, r) {
+    return /* HTML */ `<div class="medal-stage" data-flip="${!!r}">
+      <div class="medal medal-${v.art} ${v.edition ? 'medal-edition' : ''}">
+        <div class="medal-edge" aria-hidden="true">
+          ${[-3, -2, -1, 0, 1, 2, 3].map((z) => `<i style="transform:translateZ(${z}px)"></i>`).join('')}
+        </div>
+        <div class="medal-face medal-front">
+          ${appContext.format.art(v)}<span class="medal-sheen"></span
+          ><span class="stamp-sheen" aria-hidden="true"></span>
+        </div>
+        ${
+          r
+            ? /* HTML */ `<div class="medal-face medal-back">
+                <small>旅行护照</small>
+                <strong>${v.stamp}</strong>
+                <span>${v.name} · ${v.city}</span>
+                <b>${appContext.format.date(appContext.format.selectedVisit(r))}</b>
+                <em>${appContext.format.issue(r, v)}</em>
+                <svg class="medal-rim" viewBox="0 0 200 200" aria-hidden="true">
+                  <defs><path id="medal-rim-arc" d="M7 100A93 93 0 0 0 193 100" /></defs>
+                  <text>
+                    <textPath href="#medal-rim-arc" startOffset="50%" text-anchor="middle">
+                      ${v.serial} · ${v.kind}
+                    </textPath>
+                  </text>
+                </svg>
+                <span class="medal-sheen"></span>
+              </div>`
+            : ''
+        }
+      </div>
+      <span class="medal-shadow" aria-hidden="true"></span>
+    </div>`;
   }
   function renderVisitTicket(v, r) {
     const day = appContext.format.selectedVisit(r);
@@ -56,10 +111,14 @@ export function createStampViews(appContext) {
           </div>
           <div class="visit-ticket-number">
             <div class="visit-number-bars" aria-hidden="true"></div>
-            ${v.serial}
+            <b>${appContext.format.issue(r, v)}</b>
           </div>
         </div>
         <dl class="visit-provenance">
+          <div>
+            <dt>纪念章型号</dt>
+            <dd>${v.serial}</dd>
+          </div>
           <div>
             <dt>领取方式</dt>
             <dd>${appContext.format.visitMethods(r, day)}</dd>
@@ -90,6 +149,7 @@ export function createStampViews(appContext) {
   }
   return {
     renderStamp,
+    renderMedal,
     renderVisitTicket,
   };
 }

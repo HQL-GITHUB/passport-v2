@@ -8,7 +8,7 @@ export function createShellViews(appContext) {
     }
     const titles = {
       venue: '文化目的地',
-      stamp: '我的纪念章',
+      stamp: owned ? '我的纪念章' : '纪念章',
       scan: '为旅程盖章',
       success: '这一站，已收藏',
       share: '旅行卡预览',
@@ -17,8 +17,10 @@ export function createShellViews(appContext) {
       'ticket-success': '旅程已收藏',
       visit: '这次到访的记忆',
       'visit-share': '到访分享预览',
+      'share-footprints': '足迹分享预览',
+      'share-album': '章册分享预览',
     };
-    appContext.dom.header.innerHTML = `<button class="header-back" data-action="back" aria-label="返回">${appContext.format.icon('back')}</button><span class="header-caption">${titles[appContext.ui.screen]}</span>${appContext.ui.screen === 'stamp' && owned ? `<button class="icon-button" data-action="share" aria-label="分享这枚纪念章">${appContext.format.icon('share')}</button>` : appContext.ui.screen === 'visit' ? `<button class="icon-button" data-action="visit-share" aria-label="分享这次到访">${appContext.format.icon('share')}</button>` : '<span style="width:28px" aria-hidden="true"></span>'}`;
+    appContext.dom.header.innerHTML = `<button class="header-back" data-action="back" aria-label="返回">${appContext.format.icon('back')}</button><span class="header-caption">${titles[appContext.ui.screen]}</span><span style="width:28px" aria-hidden="true"></span>`;
   }
   function renderFooter() {
     const v = appContext.catalog.byId(appContext.ui.selected),
@@ -54,14 +56,14 @@ export function createShellViews(appContext) {
       appContext.dom.footer.innerHTML = `<div class="page-actions success-footer"><button class="button" data-action="onsite-visit">查看这次到访${appContext.format.icon('arrow')}</button><button class="button secondary" data-action="edit-memory">${appContext.format.icon('edit')}给这一站留一句话</button></div>`;
       return;
     }
-    if (['share', 'visit-share'].includes(appContext.ui.screen)) {
+    if (
+      ['share', 'visit-share', 'share-footprints', 'share-album'].includes(appContext.ui.screen)
+    ) {
       appContext.dom.footer.innerHTML = `<div class="page-actions"><button class="button" data-action="download-card">${appContext.format.icon('download')}保存旅行卡</button></div>`;
       return;
     }
     if (appContext.ui.screen === 'visit') {
-      const visit = appContext.data.visits[appContext.ui.visitKey];
-      const hasMemory = !!(visit.note?.trim() || visit.photo);
-      appContext.dom.footer.innerHTML = `<div class="page-actions two-column"><button class="heart-button" data-action="${hasMemory ? 'edit-memory' : 'visit-share'}" aria-label="${hasMemory ? '补充这次到访的记忆' : '分享这次到访'}">${appContext.format.icon(hasMemory ? 'edit' : 'share')}</button><button class="button" data-action="${hasMemory ? 'visit-share' : 'edit-memory'}">${appContext.format.icon(hasMemory ? 'share' : 'edit')}${hasMemory ? '分享这次到访' : '留下一笔'}</button></div>`;
+      appContext.dom.footer.innerHTML = `<div class="page-actions"><button class="button" data-action="visit-share">${appContext.format.icon('share')}分享这次到访</button></div>`;
       return;
     }
     if (appContext.ui.screen === 'ticket') {

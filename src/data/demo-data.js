@@ -19,6 +19,14 @@ export const createDemoData = () => ({
       note: '',
       photo: '',
     },
+    // Collected on site during the 2025 exhibition: the passport's limited, time-bound example.
+    // Its ticket stub is added in storage/metadata.js; the sample ticket flow uses another day.
+    'museum-exhibition': {
+      firstAt: '2025-10-10',
+      visits: ['2025-10-10'],
+      note: '',
+      photo: '',
+    },
   },
   wanted: [],
   tickets: {},

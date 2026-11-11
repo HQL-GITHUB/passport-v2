@@ -148,7 +148,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
+  font-size: 12px;
   color: #64718a;
   margin-top: 10px;
 }
@@ -169,7 +169,7 @@
   gap: 7px;
   border: 1px solid #e1e6f0;
   border-radius: 10px;
-  background: white;
+  background: var(--paper);
   min-height: 47px;
   font-size: 12px;
 }
@@ -327,7 +327,7 @@
   border-radius: 12px;
   min-width: 0;
   cursor: pointer;
-  background: #fff;
+  background: var(--paper);
 }
 .ticket-reward:has(input:checked) {
   border-color: #c1cff5;
@@ -365,7 +365,7 @@
 .ticket-reward-copy > span {
   font-size: 12px;
   line-height: 1.8;
-  color: #516ca8;
+  color: var(--muted);
 }
 .ticket-reward.redeemed {
   background: #f7f8fa;
@@ -388,6 +388,29 @@
 }
 .badge-edition {
   position: relative;
+}
+/* Limited editions share the venue illustration; a bronze finish sets them apart. */
+.badge-edition:before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #a8814d;
+  mix-blend-mode: color;
+  opacity: 0.88;
+  -webkit-mask: var(--badge-atlas-url) no-repeat 0 0 / 200% 200%;
+  mask: var(--badge-atlas-url) no-repeat 0 0 / 200% 200%;
+}
+.badge-artmuseum.badge-edition:before {
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
+}
+.badge-landscape.badge-edition:before {
+  -webkit-mask-position: 0 100%;
+  mask-position: 0 100%;
+}
+.badge-modern.badge-edition:before {
+  -webkit-mask-position: 100% 100%;
+  mask-position: 100% 100%;
 }
 .badge-edition:after {
   content: attr(data-edition);
@@ -462,7 +485,7 @@
 .ticket-date-pair small {
   display: block;
   color: #6c7990;
-  font-size: 10px;
+  font-size: 12px;
   margin-bottom: 7px;
 }
 .ticket-date-pair strong {
@@ -535,7 +558,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .visit-provenance > div {
   display: flex;
@@ -557,7 +580,7 @@
   margin-top: 16px;
 }
 .visit-history > p {
-  font-size: 11px;
+  font-size: 12px;
   color: #748096;
   margin-bottom: 8px;
 }
@@ -570,7 +593,7 @@
   min-height: 44px;
   padding: 8px 10px;
   border-radius: 7px;
-  font-size: 11px;
+  font-size: 12px;
   background: #f4f6fa;
   color: #6e7e98;
 }
@@ -587,7 +610,6 @@
 }
 @media (max-width: 360px) {
   .claim-methods button {
-    font-size: 11px;
     gap: 4px;
   }
   .claim-methods button svg {

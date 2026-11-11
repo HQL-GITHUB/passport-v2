@@ -108,8 +108,41 @@ export function createQueries(appContext) {
       .ticketRewards(d)
       .filter((v) => d.selected.includes(v.id) && !redeemed.includes(v.id));
   }
+  // How far a limited stamp's edition has been issued; simulated up to the demo date.
+  function edition(v) {
+    if (!v.limit) return null;
+    const issued = Math.max(
+      appContext.data.records[v.id]?.issue || 0,
+      appContext.domain.issue(v.id, appContext.config.demoDate, v.limit),
+    );
+    return { limit: v.limit, issued, left: v.limit - issued };
+  }
+  // What a shared overview carries: places, dates and stamps. Tickets, photos and notes stay private.
+  function journalShare() {
+    const rows = appContext.selectors.visitRows(),
+      stamps = appContext.selectors.collected(),
+      album = appContext.ui.screen === 'share-album',
+      years = [...new Set(rows.map((v) => v.day.slice(0, 4)))].sort(),
+      shown = album ? stamps.slice(0, 12) : rows.slice(0, 10);
+    return {
+      album,
+      span: years.length > 1 ? `${years[0]} – ${years.at(-1)}` : years[0] || '',
+      stats: [
+        [rows.length, '次到访'],
+        [stamps.length, '枚纪念章'],
+        [new Set(rows.map((v) => v.city)).size, '座城市'],
+      ],
+      stamps: album ? shown : [],
+      visits: album
+        ? []
+        : shown.map((v) => ({ ...v, badges: v.stampIds.map(appContext.catalog.byId) })),
+      more: (album ? stamps.length : rows.length) - shown.length,
+    };
+  }
   return {
     collected,
+    edition,
+    journalShare,
     visitRows,
     visitForStamp,
     currentVisit,

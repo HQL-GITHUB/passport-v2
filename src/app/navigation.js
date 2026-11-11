@@ -72,6 +72,12 @@ export function createNavigation(appContext) {
       appContext.ui.screen = 'scan';
     if (appContext.ui.screen === 'ticket-confirm' && !appContext.ui.ticketDraft)
       appContext.ui.screen = 'ticket';
+    if (
+      (appContext.ui.screen === 'share-footprints' &&
+        !Object.keys(appContext.data.visits).length) ||
+      (appContext.ui.screen === 'share-album' && !Object.keys(appContext.data.records).length)
+    )
+      appContext.ui.screen = 'passport';
     if (appContext.ui.screen === 'ticket-success' && !appContext.ui.ticketResult)
       appContext.ui.screen = 'passport';
     if (
@@ -188,6 +194,10 @@ export function createNavigation(appContext) {
       appContext.navigation.navigate('discover', appContext.ui.selected, true);
       return;
     }
+    // An overview share opened directly returns to the tab it shares.
+    if (['share-footprints', 'share-album'].includes(appContext.ui.screen))
+      appContext.ui.collection =
+        appContext.ui.screen === 'share-album' ? 'collected' : 'footprints';
     appContext.navigation.navigate('passport', appContext.ui.selected, true);
   }
   function openVisit(key, replace = false) {
