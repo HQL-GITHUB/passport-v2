@@ -28,7 +28,7 @@ npm run dev
 | `npm run build:standalone` | 生成内含代码、样式与演示图片的离线 HTML          |
 | `npm run build:all`        | 同时生成网站和离线版本                           |
 | `npm test`                 | 运行数据规则与迁移的单元测试                     |
-| `npm run test:e2e`         | 生成离线文件，并运行浏览器回归测试               |
+| `npm run test:e2e`         | 生成网站与离线文件，并运行浏览器回归测试         |
 | `npm run format`           | 格式化源码、配置、测试和文档                     |
 | `npm run format:check`     | 检查格式，不改动文件                             |
 | `npm run verify`           | 依次执行单元测试、格式检查、网站构建、浏览器测试 |
@@ -101,6 +101,8 @@ passport-v2/
 单元测试覆盖同次到访合并、旧记录迁移、独立记忆、已清空记录保持、无章到访和日期校验。
 
 浏览器测试覆盖原图恢复、独立移除、无章到访、分享遮挡与下载、首次使用状态切换，以及单文件离线运行。
+
+徽章回归同时检查源码、网站构建与离线版中的详情页、放大查看层和领取成功页，覆盖上下倾斜与正反面。可执行 `npm run test:e2e -- tests/e2e/medal.spec.js --browser=webkit` 验证 WebKit（首次运行需先执行 `npx playwright install webkit`）。Playwright 的 WebKit 不能代替 iPhone Safari 和微信的真机合成验证。
 
 首次运行浏览器测试时安装 Chromium：
 

@@ -1891,23 +1891,10 @@ img {
   --rim: #b08d5c;
 }
 .medal-edge {
+  /* Keep the rim's centre aligned with the faces when WebKit sorts the 3D layers. */
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-}
-.medal-face,
-.medal-edge b {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-}
-/* A solid disc just behind each face, so no angle looks through the medal. */
-.medal-edge b {
-  background: color-mix(in srgb, var(--rim) 74%, #20242c);
-  transform: translateZ(3px);
-}
-.medal-edge b + b {
-  transform: translateZ(-3px);
 }
 /* The rim wall: each <i> is turned to its place around the circle and stands one strip on the top and one on the bottom. */
 .medal-edge i {
@@ -1929,6 +1916,11 @@ img {
   background: color-mix(in srgb, var(--rim) calc(72% - var(--lit) * 18%), #20242c);
 }
 .medal-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Fill the face itself: a separate solid disc can be composited over the artwork on iOS. */
+  background: color-mix(in srgb, var(--rim) 74%, #20242c);
   overflow: hidden;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;

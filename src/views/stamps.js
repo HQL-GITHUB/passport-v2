@@ -63,12 +63,11 @@ export function createStampViews(appContext) {
     </div>`;
   }
   // The stamp as a disc that MedalViewer can turn; the back is engraved once the stamp is collected.
-  // Its rim is a wall of sixty flat strips, two per <i>, lit from above; the <b> discs fill the inside.
+  // Its rim is a wall of sixty flat strips, two per <i>, lit from above.
   function renderMedal(v, r) {
     return /* HTML */ `<div class="medal-stage" data-flip="${!!r}">
       <div class="medal medal-${v.art} ${v.edition ? 'medal-edition' : ''}">
         <div class="medal-edge" aria-hidden="true">
-          <b></b><b></b>
           ${Array.from({ length: 30 }, (_, n) => `<i style="transform:rotate(${n * 6}deg);--lit:${Math.cos((n * Math.PI) / 30).toFixed(2)}"></i>`).join('')}
         </div>
         <div class="medal-face medal-front">

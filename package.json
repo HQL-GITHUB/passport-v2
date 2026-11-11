@@ -14,9 +14,9 @@
     "build:all": "npm run build && npm run build:standalone",
     "preview": "vite preview --host 127.0.0.1 --port 4174 --strictPort",
     "test": "node --test tests/unit/*.test.js",
-    "pretest:e2e": "npm run build:standalone",
+    "pretest:e2e": "npm run build:all",
     "test:e2e": "node scripts/test-e2e.mjs",
-    "verify": "npm test && npm run format:check && npm run build && npm run test:e2e",
+    "verify": "npm test && npm run format:check && npm run test:e2e",
     "format": "prettier --write src scripts tests index.html *.js *.json README.md docs/*.md",
     "format:check": "prettier --check src scripts tests index.html *.js *.json README.md docs/*.md"
   },
