@@ -51,9 +51,12 @@ function normalize(raw, venues, stamps, validDay) {
   const base = (s) => venues.find((v) => v.id === (s.venueId || s.id));
   const validVenue = (id) => venues.some((v) => v.id === id) || /^custom-[a-f0-9]+$/.test(id);
   const methods = ['ticket', 'qr', 'nfc', 'legacy'];
-  for (const s of stamps) {
-    const r = raw?.records?.[s.id];
-    if (!r || !validDay(r.firstAt) || !Array.isArray(r.visits)) continue;
+  // Records keep the order they were made in: stamps collected on the same day fill the album
+  // in that order.
+  for (const id of Object.keys(raw?.records || {})) {
+    const s = stampById(id),
+      r = raw.records[id];
+    if (!s || !r || !validDay(r.firstAt) || !Array.isArray(r.visits)) continue;
     const visits = [...new Set(r.visits.filter(validDay))];
     if (!visits.length) visits.push(r.firstAt);
     const method = methods.includes(r.method) ? r.method : 'qr';

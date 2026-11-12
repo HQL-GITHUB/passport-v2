@@ -150,11 +150,11 @@ export function createClaimController(appContext) {
       if (savingImage) await appContext.media.remove(d.id);
       return;
     }
-    let newCount = 0;
+    const newIds = [];
     for (const s of rewards) {
       let r = appContext.data.records[s.id];
       if (!r) {
-        newCount++;
+        newIds.push(s.id);
         r = appContext.data.records[s.id] = {
           firstAt: appContext.config.demoDate,
           issue: appContext.domain.issue(s.id, appContext.config.demoDate, s.limit),
@@ -200,8 +200,9 @@ export function createClaimController(appContext) {
       appContext.data.wanted = appContext.data.wanted.filter((id) => id !== venue.id);
     appContext.ui.ticketResult = {
       stampIds: rewards.map((s) => s.id),
-      newCount,
-      existingCount: rewards.length - newCount,
+      newIds,
+      newCount: newIds.length,
+      existingCount: rewards.length - newIds.length,
       visitedAt: d.visitedAt,
       receivedAt: appContext.config.demoDate,
       venueId: venue.id,

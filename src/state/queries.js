@@ -7,6 +7,19 @@ export function createQueries(appContext) {
         appContext.data.records[b.id].firstAt.localeCompare(appContext.data.records[a.id].firstAt),
       );
   }
+  // The same stamps as they fill the album, like a passport: earliest first. Stamps collected on
+  // the same day keep the order their records were made in, so a new one always comes last.
+  function collectedInOrder() {
+    const made = Object.keys(appContext.data.records);
+    return appContext.selectors
+      .collected()
+      .sort(
+        (a, b) =>
+          appContext.data.records[a.id].firstAt.localeCompare(
+            appContext.data.records[b.id].firstAt,
+          ) || made.indexOf(a.id) - made.indexOf(b.id),
+      );
+  }
   // The stamps still to collect, shown as empty slots in the album. The whole catalogue for now;
   // once it covers more cities this should narrow to places the collector has been or wants to go.
   function uncollected() {
@@ -164,6 +177,7 @@ export function createQueries(appContext) {
   }
   return {
     collected,
+    collectedInOrder,
     uncollected,
     edition,
     journalShare,

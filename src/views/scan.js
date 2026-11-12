@@ -65,19 +65,11 @@ export function createScanViews(appContext) {
   }
   // The collector's own stamps in the order they were collected, with this one in its place: "my
   // fifth" shown as the fifth in the row. A new stamp takes the next place; one collected before
-  // keeps the place it has. Five fit, around this stamp; the row opens the album.
+  // keeps the place it has. Five fit, around this stamp; the row opens the album, where the
+  // stamps lie in the same order.
   function renderShelf(v, again) {
-    const earlier = appContext.selectors
-        .collected()
-        .filter((s) => s.id !== v.id)
-        .reverse(),
-      // Stamps collected on the same day have no order of their own; a new one always comes last.
-      at = again
-        ? earlier.filter(
-            (s) => appContext.data.records[s.id].firstAt <= appContext.data.records[v.id].firstAt,
-          ).length
-        : earlier.length,
-      mine = [...earlier.slice(0, at), v, ...earlier.slice(at)],
+    const mine = appContext.selectors.collectedInOrder(),
+      at = mine.indexOf(v),
       first = Math.max(0, Math.min(at - 2, mine.length - 5)),
       shown = mine.slice(first, first + 5),
       more = '<span class="shelf-more" aria-hidden="true">…</span>',

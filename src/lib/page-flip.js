@@ -6,6 +6,9 @@ const STRIPS = 14;
 const LEANS = [11, 8, 13];
 const GRIP_LEAN = 12;
 const MAX_LEAN = 19;
+// A page is seldom taken straight across: a drag turns it while it rises or falls no more than
+// this many times as far as it goes sideways, which is about sixty degrees.
+const STEEP = 1.75;
 // The light falls from the reader's left, this far off the page; the rest is ambient.
 const LIGHT = (30 * Math.PI) / 180;
 const AMBIENT = 0.55;
@@ -46,6 +49,8 @@ function turnForEdge(edge) {
 
 /** Turns the leaves of the passport book: drag a page across by its edge, or step with the pager and the arrow keys. */
 export class PageBook {
+  // How long a page turned by itself takes to come down on the other side, in milliseconds.
+  static TURN = 760;
   constructor(
     root,
     { animate = true, intro = false, cover = false, enabled = () => true, onTurn = () => {} } = {},
@@ -120,9 +125,10 @@ export class PageBook {
       const dx = e.clientX - press.x,
         dy = e.clientY - press.y;
       if (!press.dir) {
-        // A page turns sideways; anything else is a tap or the page scrolling.
-        if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) {
-          if (Math.abs(dy) > 12) this.press = null;
+        // A page turns sideways, or by a corner carried up or down; anything steeper is a tap
+        // or a drag that was not meant for the page.
+        if (Math.abs(dx) < 8 || Math.abs(dy) > Math.abs(dx) * STEEP) {
+          if (Math.abs(dy) > 24) this.press = null;
           return;
         }
         const box = this.stage.getBoundingClientRect();
@@ -229,8 +235,8 @@ export class PageBook {
     this.steps.forEach((button) => button.addEventListener('click', this.pager));
     this.announce(false);
     this.rest();
-    // When the book has settled, in milliseconds from now.
-    let settled = 0;
+    // When the book has settled on its page, in milliseconds from now.
+    this.settled = 0;
     // Arriving from elsewhere, the passport is closed: its cover swings open on the first page,
     // and the pages turn on to the one the book is opened at.
     if (cover && animate && this.front) {
@@ -238,11 +244,11 @@ export class PageBook {
       this.opened = 0;
       this.index = 0;
       this.turn.fill(0);
-      settled = this.open(index, 220);
+      this.settled = this.open(index, 220);
     }
     // The edge of the page lifts once on arrival, to show that it turns.
     if (intro && animate && this.index < this.leaves.length - 1)
-      this.tweens.set(this.index, { lift: 0.16, delay: settled + 450, duration: 1100 });
+      this.tweens.set(this.index, { lift: 0.16, delay: this.settled + 450, duration: 1100 });
     this.paint();
     if (this.tweens.size) this.frame = requestAnimationFrame(this.tick);
   }
@@ -298,7 +304,7 @@ export class PageBook {
     this.index = index;
     this.announce();
   }
-  send(leaf, to, { delay = 0, duration = 760, soft = false } = {}) {
+  send(leaf, to, { delay = 0, duration = PageBook.TURN, soft = false } = {}) {
     if (!this.animate) duration = 180;
     // A page at rest is taken by its lower corner; one let go keeps the lean it had.
     if (Number.isInteger(this.turn[leaf])) this.leans[leaf] = LEANS[leaf % LEANS.length];

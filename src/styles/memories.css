@@ -961,7 +961,9 @@
   min-height: 300px;
   max-height: 470px;
   max-height: calc(100cqh - 132px);
-  touch-action: pan-y pinch-zoom;
+  /* The book does not scroll, and a page is taken by its corner and carried up as often as
+     across: every drag on it belongs to the page, none to the browser. */
+  touch-action: pinch-zoom;
 }
 /* The back cover shows as a dark rim around the pages. Open, the book lies on its front cover
    too: that board runs out to the left of the gutter, off the screen, and shows as the same rim
@@ -1371,6 +1373,75 @@
 }
 .stamp-slots .badge-card.unowned .badge-art {
   scale: 0.84;
+}
+/* In the passport of the claim ceremony, the place of a new stamp as it was until now: the same
+   dashed ring and dimmed stamp. It is gone once the stamp has landed. */
+.stamp-slots .slot-seat {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  outline: 1px dashed #c3cad6;
+  outline-offset: -1px;
+  opacity: 0;
+}
+.stamp-slots .slot-seat .badge-art {
+  scale: 0.84;
+  filter: grayscale(0.85) opacity(0.5);
+}
+/* The passport of the claim ceremony, laid over the page for as long as its act lasts: the book
+   at the size it has in the passport itself, on the page's own paper. */
+.claim-book {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  height: 100cqh;
+  padding: 0 23px;
+}
+.claim-book.leaving {
+  opacity: 0;
+  transition: opacity 0.22s;
+}
+.claim-paper {
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+}
+.claim-book .book-stage.pressed {
+  animation: book-press 0.26s ease-out;
+}
+/* A stamp held over its place in the book: the ring that lights the place up, the stamp's shadow
+   on the page, the ring thrown off as it lands, and the stamp. */
+.claim-mark {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+}
+.claim-mark > * {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+.claim-seat,
+.claim-shadow,
+.claim-ring {
+  opacity: 0;
+}
+.claim-seat {
+  border: 1.5px solid var(--blue);
+}
+.claim-shadow {
+  background: radial-gradient(closest-side, #1b243a80 55%, #1b243a00);
+}
+.claim-ring {
+  border: 2px solid var(--rim);
+}
+.claim-die {
+  rotate: var(--lean);
+  filter: drop-shadow(0 6px 4px #292a3010);
 }
 @container leaf (max-height: 360px) {
   .stamp-slots .badge-edition:after {

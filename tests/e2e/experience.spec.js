@@ -174,7 +174,14 @@ test('the album lists the stamps still to collect as slots that lead to how to g
   await page.getByRole('button', { name: '章册 4/5', exact: true }).click();
   const slots = page.locator('.badge-card.unowned'),
     next = page.getByRole('button', { name: '下一页', exact: true });
-  // The four collected stamps fill the first page; the empty slot is on the next one.
+  // The four collected stamps fill the first page, in the order they were collected, as in a
+  // passport; the empty slot is on the next one.
+  await expect(page.locator('.book-page[data-local="0"].stamp-leaf h3')).toHaveText([
+    '器物与时间·2025',
+    '柔软的秩序',
+    '光的形状',
+    '山川来信',
+  ]);
   await expect(page.locator('.album-pending')).toHaveText('还有 1 枚，等你出发');
   await expect(slots).toHaveCount(1);
   await expect(slots.locator('h3')).toHaveText('青铜回响');
@@ -276,10 +283,11 @@ test('a stamp turns slowly by itself until a drag takes over, on the stamp page 
   await page.goto('/#/scan/museum');
   await page.getByRole('button', { name: '模拟现场领取', exact: true }).click();
   const claimed = page.locator('.success-art .medal-stage');
-  // The ceremony holds the stamp still; once it is over the stamp starts to turn.
+  // The ceremony holds the stamp still; once it is over the stamp starts to turn. The tap that
+  // ends it lands on the passport lying over the page.
   await expect(page.locator('.success-page')).toHaveClass(/ceremony/);
   expect(await angle(claimed)).toBe(0);
-  await page.locator('.success-page .page-title').click();
+  await page.locator('.claim-book').click();
   await expect(page.locator('.success-page')).toHaveClass(/settled/);
   await expect.poll(() => angle(claimed)).toBeGreaterThan(8);
   await takeOver(claimed);
@@ -655,9 +663,21 @@ test('a claim plays the stamping ceremony once, a tap settles it, and the stamp 
   const success = page.locator('.success-page');
   const stage = page.locator('.success-art .medal-stage');
   await expect(success).toHaveClass(/ceremony/);
-  // While the ceremony plays, a tap on the stamp settles it without turning the stamp over.
-  await stage.click();
+  // A new stamp is first pressed into the passport, which lies over the page. The four earlier
+  // stamps fill the first page of the album, so it opens on the second, where the place of
+  // this one still holds the dimmed stamp it was waiting for.
+  const book = page.locator('.claim-book .passport-book'),
+    place = book.locator('.book-page[data-local="1"] .badge-card');
+  await expect(book).toHaveAttribute('data-page', '1');
+  await expect(place.locator('h3')).toHaveText('青铜回响');
+  await expect(place.locator('.slot-seat')).toHaveCSS('opacity', '1');
+  await expect(place.locator('.badge-frame > .badge-art')).toHaveCSS('opacity', '0');
+  // While the ceremony plays, a tap settles it: the passport goes, and nothing under it is pressed.
+  await page.locator('.claim-book').click();
   await expect(success).toHaveClass(/settled/);
+  await expect(page.locator('.claim-book')).toHaveCount(0);
+  await expect(page.locator('#app')).toHaveAttribute('data-screen', 'success');
+  await expect(stage).toHaveAttribute('data-side', 'front');
   await expect(page.locator('.issue-plate')).toHaveText(/^No\. \d{6}$/);
   // The stamp took the fifth place in the collector's own row, which completes the album.
   await expect(page.locator('.success-shelf .shelf-item i')).toHaveText([
@@ -689,6 +709,68 @@ test('a claim plays the stamping ceremony once, a tap settles it, and the stamp 
   await expect(page.locator('#modal-root > *')).toHaveCount(0);
   await page.reload();
   await expect(success).not.toHaveClass(/ceremony/);
+});
+
+test('left to play, the ceremony turns to the place of the stamp, presses it in and gives it to the page', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/#/scan/museum');
+  await page.getByRole('button', { name: '模拟现场领取', exact: true }).click();
+  const success = page.locator('.success-page'),
+    place = page.locator('.claim-book .badge-card[data-id="museum"]'),
+    print = place.locator('.badge-frame > .badge-art');
+  // The stamp comes down on its place and leaves its print; the number and the day fill in.
+  await expect(print).toHaveCSS('opacity', '0');
+  await expect(print).toHaveCSS('opacity', '1');
+  await expect(place.locator('.slot-seat')).toHaveCSS('opacity', '0');
+  await expect(place.locator('.badge-issue')).toHaveCSS('opacity', '1');
+  await expect(place.locator('.badge-date')).toHaveText('2026.11.10');
+  // Then the stamp rises to the page, the passport goes, and the page says the rest. The
+  // number has rolled in the passport: on the page it is simply there.
+  await expect(page.locator('.claim-book')).toHaveCount(0, { timeout: 8000 });
+  await expect(page.locator('.success-art .medal-stage')).toHaveCSS('opacity', '1');
+  await expect(page.locator('.issue-plate b:not([data-issue])')).toHaveText(/^\d{6}$/);
+  await expect(success).toHaveClass(/settled/, { timeout: 8000 });
+  await expect(page.locator('.success-line')).toHaveCSS('opacity', '1');
+  // The album itself opens on that page, with the stamp in the same place.
+  await page.locator('.success-shelf').click();
+  await expect(page.locator('.book-status')).toHaveText('章册 第 2 页，共 2 页');
+  await expect(
+    page.locator('.book-page[data-section="collected"][data-local="1"]:not(.book-copy) h3'),
+  ).toHaveText('青铜回响');
+});
+
+test('stamps from one ticket that lie on two pages are pressed in turn, the page turning between them', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1040 });
+  await page.goto('/');
+  await page.getByRole('button', { name: '体验首次使用', exact: false }).click();
+  // Three stamps on site leave one place on the first page of a new passport. The first-use
+  // passport lives in memory, so the pages are reached without loading the app again.
+  for (const id of ['artmuseum', 'landscape', 'modern']) {
+    await page.evaluate((id) => (location.hash = `#/scan/${id}`), id);
+    await page.getByRole('button', { name: '模拟现场领取', exact: true }).click();
+    await expect(page.locator('#app')).toHaveAttribute('data-screen', 'success');
+  }
+  await page.evaluate(() => (location.hash = '#/ticket/museum'));
+  await page.getByRole('button', { name: '用示例票根体验', exact: false }).click();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.getByRole('button', { name: '确认收藏 2 枚纪念章', exact: false }).click();
+  const book = page.locator('.claim-book .passport-book'),
+    print = (id) => book.locator(`.badge-card[data-id="${id}"] .badge-frame > .badge-art`);
+  // The venue's stamp takes the fourth place; the exhibition's is the first on the next page.
+  await expect(book).toHaveAttribute('data-page', '0');
+  await expect(print('museum')).toHaveCSS('opacity', '1');
+  await expect(print('museum-exhibition')).toHaveCSS('opacity', '0');
+  await expect(book).toHaveAttribute('data-page', '1');
+  await expect(print('museum-exhibition')).toHaveCSS('opacity', '1');
+  await expect(page.locator('.success-page')).toHaveClass(/settled/, { timeout: 10000 });
+  await expect(page.locator('.claim-book')).toHaveCount(0);
+  for (const stamp of await page.locator('.collage-badges > .badge-art').all())
+    await expect(stamp).toHaveCSS('opacity', '1');
+  await expect(page.locator('.issue-list b')).toHaveText([/^No\. \d{6}$/, /^No\. \d{5} \/ 10000$/]);
 });
 
 test('the claim page leads with the stamp and tells a return visit from a new stamp', async ({

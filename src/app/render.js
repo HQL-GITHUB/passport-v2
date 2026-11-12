@@ -19,6 +19,8 @@ export function createRenderer(appContext) {
         'share-album': appContext.views.renderJournalShare,
       };
     appContext.views.renderHeader();
+    // A ceremony does not outlive the page it plays on.
+    appContext.ceremony.finish();
     appContext.runtime.pageMedal?.destroy();
     appContext.dom.main.innerHTML = views[appContext.ui.screen]();
     const stage = appContext.dom.main.querySelector('.medal-stage');

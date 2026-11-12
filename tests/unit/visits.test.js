@@ -160,3 +160,13 @@ test('a limited stamp numbers within its edition and shows the edition size', ()
     `No. ${'77'.padStart(String(limited.limit).length, '0')} / ${limited.limit}`,
   );
 });
+
+test('records keep the order they were made in, so stamps of one day fill the album in that order', () => {
+  const record = { firstAt: '2026-11-10', visits: ['2026-11-10'] };
+  const result = normalize({
+    version: 3,
+    records: { modern: record, 'not-a-stamp': record, museum: record, artmuseum: record },
+  });
+  assert.deepEqual(Object.keys(result.records), ['modern', 'museum', 'artmuseum']);
+  assert.deepEqual(Object.keys(normalize(result).records), ['modern', 'museum', 'artmuseum']);
+});

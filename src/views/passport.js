@@ -59,8 +59,10 @@ export function createPassportViews(appContext) {
   function inBook(section = appContext.ui.collection) {
     return Object.hasOwn(sections, section);
   }
+  // The album fills like a passport: the stamps in the order they were collected, then the places
+  // still empty. A new stamp takes the first empty place and nothing before it moves.
   function albumStamps() {
-    return [...appContext.selectors.collected(), ...appContext.selectors.uncollected()];
+    return [...appContext.selectors.collectedInOrder(), ...appContext.selectors.uncollected()];
   }
   function bookPages() {
     const pages = (list, size) =>
@@ -139,15 +141,21 @@ export function createPassportViews(appContext) {
       <circle cx="86.5" cy="86.5" r="1.4" />
     </g>
   </svg>`;
-  function renderBook() {
+  // The claim ceremony shows the book too, and names the stamps just collected: that book opens
+  // on the page of the first of them, with their places still empty. It is only looked at, so
+  // it holds the album alone and has no pager.
+  function renderBook(claimed) {
     const pages = bookPages(),
       leaves = [
         ...pages.collected.map((items, local) => ['collected', local, items]),
-        ...pages.tickets.map((items, local) => ['tickets', local, items]),
+        ...(claimed ? [] : pages.tickets).map((items, local) => ['tickets', local, items]),
       ],
       owned = appContext.selectors.collected().length,
       pending = appContext.selectors.uncollected().length;
-    return /* HTML */ `<div class="passport-book" data-page="${bookIndex()}">
+    return /* HTML */ `<div
+      class="passport-book"
+      data-page="${claimed ? stampPageOf(claimed[0]) : bookIndex()}"
+    >
       <div class="book-stage">
         <div class="book-cover" aria-hidden="true"></div>
         <div class="book-leaves">
@@ -176,7 +184,7 @@ export function createPassportViews(appContext) {
                 </div>
                 ${
                   album
-                    ? `<div class="stamp-slots">${items.map(stampSlot).join('')}</div>`
+                    ? `<div class="stamp-slots">${items.map((v) => stampSlot(v, claimed?.includes(v.id))).join('')}</div>`
                     : appContext.selectors.ticketRows().length
                       ? `<div class="ticket-slots">${items.map(ticketSlot).join('')}</div>`
                       : emptyTickets()
@@ -199,25 +207,36 @@ export function createPassportViews(appContext) {
           </div>
         </div>
       </div>
-      <div class="book-pager">
-        <button data-book-step="-1" aria-label="上一页">${appContext.format.icon('back')}</button>
-        <span class="book-dots" aria-hidden="true"
-          ><i class="cover"></i
-          >${leaves.map(([section]) => `<i class="${section}"></i>`).join('')}</span
-        >
-        <button data-book-step="1" aria-label="下一页">${appContext.format.icon('chevron')}</button>
-        <span class="sr-only book-status" role="status"></span>
-      </div>
+      ${
+        claimed
+          ? ''
+          : /* HTML */ `<div class="book-pager">
+              <button data-book-step="-1" aria-label="上一页">
+                ${appContext.format.icon('back')}
+              </button>
+              <span class="book-dots" aria-hidden="true"
+                ><i class="cover"></i
+                >${leaves.map(([section]) => `<i class="${section}"></i>`).join('')}</span
+              >
+              <button data-book-step="1" aria-label="下一页">
+                ${appContext.format.icon('chevron')}
+              </button>
+              <span class="sr-only book-status" role="status"></span>
+            </div>`
+      }
     </div>`;
   }
   // A place in the album. A collected stamp sits on the page with its number and, under it, the
   // day it was collected; one still to collect is a dimmed slot that opens the stamp's own page, which says how
-  // to get it: on site, or with a ticket once its exhibition has ended.
-  function stampSlot(v) {
+  // to get it: on site, or with a ticket once its exhibition has ended. In the book of the claim
+  // ceremony the place of a new stamp also holds what was there before, the dimmed stamp in its
+  // dashed ring, for the stamp to come down on.
+  function stampSlot(v, awaited) {
     const record = appContext.data.records[v.id];
     if (record)
       return /* HTML */ `<button class="badge-card" data-action="stamp" data-id="${v.id}">
         <div class="badge-frame">
+          ${awaited ? `<span class="slot-seat">${appContext.format.art(v)}</span>` : ''}
           ${record.firstAt === appContext.config.demoDate ? '<span class="badge-kind new">新</span>' : ''}${appContext.format.art(v)}
         </div>
         <h3>${v.stamp}</h3>
@@ -374,6 +393,7 @@ export function createPassportViews(appContext) {
     renderFootprints,
     inBook,
     bookIndex,
+    renderBook,
     stampPageOf,
     bookTurned,
   };

@@ -107,8 +107,10 @@ for (const [build, entry] of Object.entries(entries)) {
 
     await page.goto(`${entry}#/scan/museum`);
     await page.getByRole('button', { name: '模拟现场领取', exact: true }).click();
-    await page.locator('.success-page .page-title').click();
+    await page.locator('.claim-book').click();
     await expect(page.locator('.success-page')).toHaveClass(/settled/);
+    // The passport of the ceremony fades from over the page before the stamp can be taken.
+    await expect(page.locator('.claim-book')).toHaveCount(0);
     const claimed = page.locator('.success-art .medal-stage');
     await checkTilt(claimed, 'front', -65);
     await page.getByRole('button', { name: '翻到背面', exact: true }).click();
