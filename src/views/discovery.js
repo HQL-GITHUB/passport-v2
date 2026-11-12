@@ -1,5 +1,9 @@
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createDiscoveryViews(appContext) {
+  // A photograph fades in when it arrives; one that has been shown before is simply there, so
+  // rendering the page again does not make it blink.
+  const fade = (src) =>
+    `data-fade ${appContext.runtime.shownImages.has(src) ? 'class="shown"' : ''}`;
   function venueRows() {
     const list = appContext.selectors.filteredVenues();
     if (!list.length)
@@ -8,20 +12,22 @@ export function createDiscoveryViews(appContext) {
         <p>试试其他关键词，或换一个城市看看。</p>
         <button class="button secondary" data-action="clear-filters">查看全部目的地</button>
       </div>`;
-    // A venue shows its photograph, with its stamp on the corner; one without shows the stamp.
+    // A venue is a card: its photograph, with its stamp on the corner, or the stamp alone where
+    // there is no photograph. The stamp says what can be collected there; one already collected
+    // carries a tick on its rim.
     return list
       .map((v) => {
-        const photo = appContext.assets.venues[v.id],
+        const photo = appContext.assets.venueThumbs[v.id],
           owned = !!appContext.data.records[v.id];
         return /* HTML */ `<button class="venue-card" data-action="venue" data-id="${v.id}">
           <span class="venue-thumb ${photo ? 'has-photo' : ''}"
-            >${photo ? `<img src="${photo}" alt="" loading="lazy" decoding="async">` : ''}${appContext.format.art(v)}</span
+            >${photo ? `<img src="${photo}" alt="" loading="lazy" decoding="async" ${fade(photo)}>` : ''}<span
+              class="venue-seal"
+              >${appContext.format.art(v)}${owned ? `<span class="venue-status" role="img" aria-label="馆章已收藏">${appContext.format.icon('check')}</span>` : ''}</span
+            ></span
           ><span class="venue-copy"
             ><h3>${v.name}</h3>
-            <p>${v.city} · ${v.exhibit}</p>
-            <span class="venue-status ${owned ? 'owned' : ''}"
-              >${appContext.format.icon(owned ? 'check' : 'pin')}${owned ? '馆章已收藏' : '到馆可领取纪念章'}</span
-            ></span
+            <p>${v.city} · ${v.exhibit}</p></span
           >
         </button>`;
       })
@@ -49,11 +55,10 @@ export function createDiscoveryViews(appContext) {
                   alt=""
                   ${n ? 'loading="lazy"' : ''}
                   decoding="async"
+                  ${fade(appContext.assets.venues[v.id])}
                 /><span class="hero-copy"
                   ><strong>${v.headline.join('<br />')}</strong
                   ><span>${v.name} · ${v.exhibit}</span></span
-                ><span class="hero-open" aria-hidden="true"
-                  >${appContext.format.icon('up-right')}</span
                 >
               </button>`,
           )
@@ -75,7 +80,7 @@ export function createDiscoveryViews(appContext) {
         ><input
           id="venue-search"
           type="search"
-          placeholder="下一站，去看什么？"
+          placeholder="每一次探索，都值得留下印记"
           value="${appContext.format.safe(appContext.ui.query)}"
           autocomplete="off"
         /><button
@@ -88,6 +93,12 @@ export function createDiscoveryViews(appContext) {
         </button>
       </div>
       ${renderHero()}
+      <div class="row">
+        <h2 class="section-title">值得出发的地方</h2>
+        <span id="venue-count" class="section-count"
+          >${appContext.selectors.filteredVenues().length} 个目的地</span
+        >
+      </div>
       <div class="category-tabs" role="group" aria-label="场馆类别">
         ${[
           ['all', '全部'],
@@ -100,12 +111,6 @@ export function createDiscoveryViews(appContext) {
               `<button class="${appContext.ui.category === key ? 'active' : ''}" data-action="category" data-value="${key}" aria-pressed="${appContext.ui.category === key}">${label}</button>`,
           )
           .join('')}
-      </div>
-      <div class="row">
-        <h2 class="section-title">值得出发的地方</h2>
-        <span id="venue-count" class="section-count"
-          >${appContext.selectors.filteredVenues().length} 个目的地</span
-        >
       </div>
       <div id="venue-list" class="venue-list" aria-live="polite">
         ${appContext.views.venueRows()}

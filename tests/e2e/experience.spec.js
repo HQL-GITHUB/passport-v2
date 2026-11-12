@@ -39,14 +39,17 @@ test('discovery keeps city, category, search and scroll through app and browser 
   await expect.poll(() => scrollPosition(page)).toBe(scroll);
 });
 
-test('the discover page asks its question in the search box, features the venues with photographs in a row that moves on by itself, and lists each destination by its photograph or its stamp', async ({
+test('the discover page greets from its search box, features the venues with photographs in a row that moves on by itself, and lists each destination by its photograph or its stamp', async ({
   page,
 }) => {
   await page.goto('/#/discover/museum');
   const hero = page.locator('.discover-hero'),
     slides = page.locator('.hero-slide'),
     current = page.locator('[data-carousel-dot][aria-current="true"]');
-  await expect(page.getByRole('searchbox')).toHaveAttribute('placeholder', '下一站，去看什么？');
+  await expect(page.getByRole('searchbox')).toHaveAttribute(
+    'placeholder',
+    '每一次探索，都值得留下印记',
+  );
   await expect(page.locator('.page-title')).toHaveCount(0);
   await expect(slides.locator('.hero-copy > span')).toHaveText([
     '临江博物馆 · 器物与时间',
@@ -84,7 +87,7 @@ test('the discover page asks its question in the search box, features the venues
   expect(await page.locator('#app-main').evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(
     true,
   );
-  // The destinations still to collect lead the list.
+  // The destinations still to collect lead the list; only the collected ones are remarked on.
   await expect(page.locator('.venue-card h3')).toHaveText([
     '临江博物馆',
     '青窑陶瓷博物馆',
@@ -95,6 +98,19 @@ test('the discover page asks its question in the search box, features the venues
     '山川影像馆',
     '几何艺术中心',
   ]);
+  await expect(page.locator('.venue-card:has(.venue-status) h3')).toHaveText([
+    '白屿美术馆',
+    '山川影像馆',
+    '几何艺术中心',
+  ]);
+  await expect(page.locator('.venue-seal > .venue-status').first()).toHaveAttribute(
+    'aria-label',
+    '馆章已收藏',
+  );
+  // The featured photographs carry no stamp, and the categories sit under the title of the list
+  // they narrow.
+  await expect(slides.locator('.badge-art')).toHaveCount(0);
+  await expect(page.locator('.row:has(.section-title) + .category-tabs')).toHaveCount(1);
   // The row gives way to the results of a search, stays through a change of category on the
   // slide it was showing, and follows the chosen city.
   await page.getByRole('searchbox').fill('天文');
@@ -327,9 +343,8 @@ test('the four newer venues start uncollected, each with a photo and a stamp ima
   await expect(page.locator('#venue-count')).toHaveText('8 个目的地');
   for (const [id, name, stamp] of added) {
     await expect(page.locator(`.venue-card[data-id="${id}"] h3`)).toHaveText(name);
-    await expect(page.locator(`.venue-card[data-id="${id}"] .venue-status`)).toHaveText(
-      '到馆可领取纪念章',
-    );
+    // Not collected yet: the stamp on the card's corner says so, without a remark.
+    await expect(page.locator(`.venue-card[data-id="${id}"] .venue-status`)).toHaveCount(0);
     await page.goto(`/#/venue/${id}`);
     await expect(page.locator('.venue-title')).toHaveText(name);
     await expect(page.locator('.venue-photo')).toHaveAttribute('alt', `${name}概念建筑`);

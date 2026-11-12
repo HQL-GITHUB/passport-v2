@@ -18,5 +18,7 @@
   --blue: #2455e8;
   --blue-soft: #eef2ff;
   --serif: 'Passport Numerals', Georgia, 'Songti SC', SimSun, serif;
+  /* A Song face for a line meant to be read as writing: whichever one the system has. */
+  --song: 'Songti SC', 'Noto Serif SC', 'Noto Serif CJK SC', 'Source Han Serif SC', SimSun, serif;
   --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }

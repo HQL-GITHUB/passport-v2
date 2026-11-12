@@ -48,7 +48,8 @@ export function createApp() {
       if (url !== src) blobUrls.push(url);
       return url;
     },
-    photos = Object.fromEntries(Object.entries(assets.venues).map(([id, src]) => [id, short(src)]));
+    shortAll = (map) =>
+      Object.fromEntries(Object.entries(map).map(([id, src]) => [id, short(src)]));
   const appContext = {
     config: APP_CONFIG,
     catalog,
@@ -66,7 +67,11 @@ export function createApp() {
     Carousel,
     PageBook,
     images,
-    assets: { ...assets, venues: photos },
+    assets: {
+      ...assets,
+      venues: shortAll(assets.venues),
+      venueThumbs: shortAll(assets.venueThumbs),
+    },
     ui: createUiState(),
     runtime: createRuntimeState(),
     dom: {

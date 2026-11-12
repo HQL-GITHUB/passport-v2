@@ -43,5 +43,7 @@ export function createRuntimeState() {
     bookShown: false,
     // The featured venue the discover page was last showing.
     heroVenue: null,
+    // The photographs that have arrived and been shown, by address.
+    shownImages: new Set(),
   };
 }

@@ -1,9 +1,9 @@
 /** Registers listeners once and returns a teardown for development reloads. */
 export function bindEvents(appContext) {
   const disposers = [];
-  function listen(target, event, handler) {
-    target.addEventListener(event, handler);
-    disposers.push(() => target.removeEventListener(event, handler));
+  function listen(target, event, handler, capture = false) {
+    target.addEventListener(event, handler, capture);
+    disposers.push(() => target.removeEventListener(event, handler, capture));
   }
   listen(document, 'click', async (event) => {
     const backdrop = event.target.closest('[data-modal-backdrop]');
@@ -471,6 +471,18 @@ export function bindEvents(appContext) {
       first?.focus();
     }
   });
+  // A photograph fades in once it has arrived. `load` does not bubble, so it is caught on its
+  // way down.
+  listen(
+    document,
+    'load',
+    (event) => {
+      if (!event.target.matches?.('img[data-fade]')) return;
+      appContext.runtime.shownImages.add(event.target.getAttribute('src'));
+      event.target.classList.add('shown');
+    },
+    true,
+  );
   listen(window, 'popstate', appContext.navigation.restorePage);
   return () => disposers.reverse().forEach((dispose) => dispose());
 }
