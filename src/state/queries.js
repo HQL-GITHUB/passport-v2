@@ -112,14 +112,34 @@ export function createQueries(appContext) {
       tickets: appContext.selectors.savedTickets(visit),
     };
   }
+  // The places whose stamp is still to collect come first; within each group the catalogue's
+  // order stays.
   function filteredVenues() {
-    const q = appContext.ui.query.trim().toLocaleLowerCase();
+    const q = appContext.ui.query.trim().toLocaleLowerCase(),
+      owned = (v) => (appContext.data.records[v.id] ? 1 : 0);
+    return appContext.catalog.venues
+      .filter(
+        (v) =>
+          (appContext.ui.city === '全部城市' || v.city === appContext.ui.city) &&
+          (appContext.ui.category === 'all' || v.category === appContext.ui.category) &&
+          (!q ||
+            `${v.name}${v.stamp}${v.exhibit}${v.city}${v.type}`.toLocaleLowerCase().includes(q)),
+      )
+      .sort((a, b) => owned(a) - owned(b));
+  }
+  // The venues the discover page features above its list: those in the chosen city that have a
+  // photograph and a headline to set over it. A category does not narrow them.
+  function featuredVenues() {
     return appContext.catalog.venues.filter(
       (v) =>
-        (appContext.ui.city === '全部城市' || v.city === appContext.ui.city) &&
-        (appContext.ui.category === 'all' || v.category === appContext.ui.category) &&
-        (!q || `${v.name}${v.stamp}${v.exhibit}${v.city}${v.type}`.toLocaleLowerCase().includes(q)),
+        v.headline &&
+        appContext.assets.venues[v.id] &&
+        (appContext.ui.city === '全部城市' || v.city === appContext.ui.city),
     );
+  }
+  // While a search is typed, they give way to its results.
+  function heroHidden() {
+    return !!appContext.ui.query;
   }
   function ticketRewards(d) {
     if (!d || !appContext.format.validDay(d.visitedAt) || d.venueId === 'other') return [];
@@ -189,6 +209,8 @@ export function createQueries(appContext) {
     ticketVenue,
     getShareContext,
     filteredVenues,
+    featuredVenues,
+    heroHidden,
     ticketRewards,
     selectedTicketRewards,
   };

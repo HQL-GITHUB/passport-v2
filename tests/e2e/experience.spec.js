@@ -39,6 +39,97 @@ test('discovery keeps city, category, search and scroll through app and browser 
   await expect.poll(() => scrollPosition(page)).toBe(scroll);
 });
 
+test('the discover page asks its question in the search box, features the venues with photographs in a row that moves on by itself, and lists each destination by its photograph or its stamp', async ({
+  page,
+}) => {
+  await page.goto('/#/discover/museum');
+  const hero = page.locator('.discover-hero'),
+    slides = page.locator('.hero-slide'),
+    current = page.locator('[data-carousel-dot][aria-current="true"]');
+  await expect(page.getByRole('searchbox')).toHaveAttribute('placeholder', '下一站，去看什么？');
+  await expect(page.locator('.page-title')).toHaveCount(0);
+  await expect(slides.locator('.hero-copy > span')).toHaveText([
+    '临江博物馆 · 器物与时间',
+    '青窑陶瓷博物馆 · 泥土与火的诗',
+    '临江航海博物馆 · 风起时，船出发',
+    '经纬织造馆 · 织出一段时光',
+    '云川天文馆 · 抬头以后',
+  ]);
+  await expect(current).toHaveAccessibleName('第 1 张，共 5 张：临江博物馆');
+  // A dot brings its slide into view; the slide opens its venue, and coming back the row is
+  // where it was left.
+  await page.locator('[data-carousel-dot]').nth(2).click();
+  await expect(current).toHaveAccessibleName('第 3 张，共 5 张：临江航海博物馆');
+  await expect(slides.nth(2)).toBeInViewport({ ratio: 1 });
+  await slides.nth(2).click();
+  await expect(page.locator('.venue-title')).toHaveText('临江航海博物馆');
+  await back(page);
+  await expect(current).toHaveAccessibleName('第 3 张，共 5 张：临江航海博物馆');
+  await expect(slides.nth(2)).toBeInViewport({ ratio: 1 });
+  // The list shows the photograph of a venue that has one, with its stamp on the corner, and
+  // the stamp alone of one that has none.
+  const thumb = (id) => page.locator(`.venue-card[data-id="${id}"] .venue-thumb`);
+  for (const id of ['museum', 'porcelain', 'maritime', 'textile', 'astronomy']) {
+    await expect(thumb(id)).toHaveClass(/has-photo/);
+    await thumb(id).scrollIntoViewIfNeeded();
+    await thumb(id)
+      .locator('img')
+      .evaluate((image) => image.decode());
+    await expect(thumb(id).locator('.badge-art')).toHaveCount(1);
+  }
+  for (const id of ['artmuseum', 'landscape', 'modern']) {
+    await expect(thumb(id).locator('img')).toHaveCount(0);
+    await expect(thumb(id).locator('.badge-art')).toHaveCount(1);
+  }
+  expect(await page.locator('#app-main').evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(
+    true,
+  );
+  // The destinations still to collect lead the list.
+  await expect(page.locator('.venue-card h3')).toHaveText([
+    '临江博物馆',
+    '青窑陶瓷博物馆',
+    '临江航海博物馆',
+    '经纬织造馆',
+    '云川天文馆',
+    '白屿美术馆',
+    '山川影像馆',
+    '几何艺术中心',
+  ]);
+  // The row gives way to the results of a search, stays through a change of category on the
+  // slide it was showing, and follows the chosen city.
+  await page.getByRole('searchbox').fill('天文');
+  await expect(hero).toBeHidden();
+  await expect(page.locator('.venue-card')).toHaveCount(1);
+  await page.getByRole('button', { name: '清空搜索', exact: true }).click();
+  await expect(hero).toBeVisible();
+  await expect(current).toHaveAccessibleName('第 3 张，共 5 张：临江航海博物馆');
+  await page.locator('[data-carousel-dot]').nth(3).click();
+  await page.getByRole('button', { name: '艺术空间', exact: true }).click();
+  await expect(hero).toBeVisible();
+  await expect(slides).toHaveCount(5);
+  await expect(current).toHaveAccessibleName('第 4 张，共 5 张：经纬织造馆');
+  await expect(page.locator('.venue-card h3')).toHaveText([
+    '经纬织造馆',
+    '山川影像馆',
+    '几何艺术中心',
+  ]);
+  await page.getByRole('button', { name: '全部', exact: true }).click();
+  await page.getByRole('button', { name: '全部城市', exact: true }).click();
+  await page.getByRole('button', { name: '云川', exact: true }).click();
+  await expect(slides.locator('.hero-copy > span')).toHaveText([
+    '青窑陶瓷博物馆 · 泥土与火的诗',
+    '经纬织造馆 · 织出一段时光',
+    '云川天文馆 · 抬头以后',
+  ]);
+  // Left alone, with motion allowed, it moves on to the next slide.
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.reload();
+  await expect(current).toHaveAccessibleName('第 1 张，共 5 张：临江博物馆');
+  await expect(current).toHaveAccessibleName('第 2 张，共 5 张：青窑陶瓷博物馆', {
+    timeout: 8000,
+  });
+});
+
 test('a visit and its stamp return to the same footprint and reading position', async ({
   page,
 }) => {
@@ -75,7 +166,7 @@ test('the navigation stays under every page and each page keeps its actions in i
   await page.goto('/');
   await expect(nav.locator('button')).toHaveText(['发现', '盖章', '护照']);
   await expect(actions).toHaveCount(0);
-  await page.getByRole('button', { name: '章册 4/5', exact: true }).click();
+  await page.getByRole('button', { name: '章册 4/9', exact: true }).click();
   await page.locator('.badge-card').filter({ hasText: '山川来信' }).click();
   await expect(actions).toHaveText('分享这枚纪念');
   await page.locator('.stamp-visit-link').click();
@@ -87,7 +178,7 @@ test('the navigation stays under every page and each page keeps its actions in i
   await expect(page.locator('#app-footer button')).toHaveCount(3);
   await nav.getByRole('button', { name: '护照', exact: true }).click();
   await expect(page.locator('#app')).toHaveAttribute('data-screen', 'passport');
-  await expect(page.getByRole('button', { name: '章册 4/5', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: '章册 4/9', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
@@ -153,14 +244,14 @@ test('leaving an unsaved ticket through the navigation asks first', async ({ pag
 
 test('the album returns from a visit to the originating stamp and album tab', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: '章册 4/5', exact: true }).click();
+  await page.getByRole('button', { name: '章册 4/9', exact: true }).click();
   await page.locator('.badge-card').filter({ hasText: '山川来信' }).click();
   await page.locator('.stamp-visit-link').click();
   await expect(page.locator('.visit-name')).toHaveText('山川影像馆');
   await back(page);
   await expect(page.locator('.stamp-title')).toHaveText('山川来信');
   await back(page);
-  await expect(page.getByRole('button', { name: '章册 4/5', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: '章册 4/9', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
@@ -171,44 +262,124 @@ test('the album lists the stamps still to collect as slots that lead to how to g
 }) => {
   await page.setViewportSize({ width: 1440, height: 1040 });
   await page.goto('/');
-  await page.getByRole('button', { name: '章册 4/5', exact: true }).click();
+  await page.getByRole('button', { name: '章册 4/9', exact: true }).click();
   const slots = page.locator('.badge-card.unowned'),
     next = page.getByRole('button', { name: '下一页', exact: true });
   // The four collected stamps fill the first page, in the order they were collected, as in a
-  // passport; the empty slot is on the next one.
+  // passport; the empty slots follow on the next two.
   await expect(page.locator('.book-page[data-local="0"].stamp-leaf h3')).toHaveText([
     '器物与时间·2025',
     '柔软的秩序',
     '光的形状',
     '山川来信',
   ]);
-  await expect(page.locator('.album-pending')).toHaveText('还有 1 枚，等你出发');
-  await expect(slots).toHaveCount(1);
-  await expect(slots.locator('h3')).toHaveText('青铜回响');
-  await expect(slots.locator('.badge-pending')).toHaveText('到馆领取');
+  await expect(page.locator('.album-pending')).toHaveText('还有 5 枚，等你出发');
+  await expect(slots.locator('h3')).toHaveText([
+    '青铜回响',
+    '一色入窑',
+    '向海而行',
+    '经纬之间',
+    '星河有约',
+  ]);
+  await expect(slots.locator('.badge-pending')).toHaveText(Array(5).fill('到馆领取'));
   await next.click();
-  await slots.click();
+  await slots.first().click();
+  await expect(page.locator('.stamp-title')).toHaveText('青铜回响');
   await expect(page.locator('.stamp-page')).toHaveClass(/unowned/);
   await expect(page.getByRole('button', { name: '到馆领取这枚章', exact: true })).toBeVisible();
   await back(page);
-  await expect(page.getByRole('button', { name: '章册 4/5', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: '章册 4/9', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
-  await expect(page.locator('.book-status')).toHaveText('章册 第 2 页，共 2 页');
+  await expect(page.locator('.book-status')).toHaveText('章册 第 2 页，共 3 页');
   // A new passport shows the whole album as slots; an ended exhibition points to the ticket.
   await page.getByRole('button', { name: '体验首次使用', exact: false }).click();
-  await page.getByRole('button', { name: '章册 0/5', exact: true }).click();
+  await page.getByRole('button', { name: '章册 0/9', exact: true }).click();
   await expect(page.locator('.album-pending')).toHaveText('第一枚纪念章，等你出发');
-  await expect(slots).toHaveCount(5);
+  await expect(slots).toHaveCount(9);
   await expect(slots.filter({ hasText: '柔软的秩序' }).locator('.badge-pending')).toHaveText(
     '限量 · 还剩 1,895 枚',
   );
   const ended = slots.filter({ hasText: '器物与时间·2025' });
   await expect(ended.locator('.badge-pending')).toHaveText('可用票根补领');
   await next.click();
+  await next.click();
   await ended.click();
   await expect(page.getByRole('button', { name: '用票根补领这枚章', exact: true })).toBeVisible();
+});
+
+test('the four newer venues start uncollected, each with a photo and a stamp image of its own, and collecting them completes the album', async ({
+  page,
+}) => {
+  const added = [
+      ['porcelain', '青窑陶瓷博物馆', '一色入窑'],
+      ['maritime', '临江航海博物馆', '向海而行'],
+      ['textile', '经纬织造馆', '经纬之间'],
+      ['astronomy', '云川天文馆', '星河有约'],
+    ],
+    claim = async (id) => {
+      await page.goto(`/#/scan/${id}`);
+      await page.getByRole('button', { name: '模拟现场领取', exact: true }).click();
+      await expect(page.locator('#app')).toHaveAttribute('data-screen', 'success');
+    };
+  await page.goto('/#/discover/museum');
+  await expect(page.locator('#venue-count')).toHaveText('8 个目的地');
+  for (const [id, name, stamp] of added) {
+    await expect(page.locator(`.venue-card[data-id="${id}"] h3`)).toHaveText(name);
+    await expect(page.locator(`.venue-card[data-id="${id}"] .venue-status`)).toHaveText(
+      '到馆可领取纪念章',
+    );
+    await page.goto(`/#/venue/${id}`);
+    await expect(page.locator('.venue-title')).toHaveText(name);
+    await expect(page.locator('.venue-photo')).toHaveAttribute('alt', `${name}概念建筑`);
+    await page.locator('.venue-photo').evaluate((image) => image.decode());
+    await expect(page.locator('.venue-chapter h3')).toHaveText(stamp);
+    await expect(page.locator('.venue-chapter p')).toContainText('现场领取');
+    // The stamp is drawn from its own image, not from a tile of the atlas.
+    const art = page.locator(`.venue-chapter .badge-${id}`),
+      source = await art.evaluate((el) =>
+        getComputedStyle(el).backgroundImage.replace(/^url\("?|"?\)$/g, ''),
+      );
+    expect(source).toContain(`badge-${id}`);
+    await page.evaluate(async (url) => {
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+    }, source);
+    await art.click();
+    await expect(page.locator('.stamp-page')).toHaveClass(/unowned/);
+    await expect(page.locator('.stamp-subtitle')).toContainText(name);
+    await page.goto('/#/discover/museum');
+  }
+  // Collected on site, the first of them takes the fifth place in the passport, and its card
+  // carries its own image.
+  await claim('porcelain');
+  await expect(page.locator('.success-place')).toHaveText('一色入窑');
+  await expect(page.locator('.success-moment')).toHaveText('我的第 5 枚 · 已收入护照');
+  await expect(page.locator('.success-shelf .shelf-current .badge-art')).toHaveClass(
+    /badge-porcelain/,
+  );
+  await page.getByRole('button', { name: '分享这一刻', exact: true }).click();
+  let download = page.waitForEvent('download');
+  await page.getByRole('button', { name: '保存旅行卡', exact: true }).click();
+  expect((await download).suggestedFilename()).toBe('旅行护照-青窑陶瓷博物馆-2026-11-10.png');
+  // With the others and the venue stamp of the museum, the album is complete; its card draws
+  // stamps from the atlas and from their own images side by side.
+  for (const id of ['maritime', 'textile', 'astronomy', 'museum']) await claim(id);
+  await expect(page.locator('.success-moment')).toHaveText('我的第 9 枚 · 已收入护照');
+  await expect(page.locator('.success-line')).toHaveText('这一册纪念章，集齐了');
+  await page.locator('.success-shelf').click();
+  await expect(page.getByRole('button', { name: '章册 9/9', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(page.locator('.badge-card.unowned')).toHaveCount(0);
+  await page.getByRole('button', { name: '分享我的章册', exact: true }).click();
+  await expect(page.locator('.share-album .share-issue')).toHaveCount(9);
+  download = page.waitForEvent('download');
+  await page.getByRole('button', { name: '保存旅行卡', exact: true }).click();
+  expect((await download).suggestedFilename()).toBe('旅行护照-我的章册.png');
 });
 
 test('a collected stamp turns over to its visit record, an uncollected one stays face up', async ({
@@ -233,7 +404,7 @@ test('a collected stamp turns over to its visit record, an uncollected one stays
   await page.reload();
   await expect(page.locator('.visit-ticket-number b')).toHaveText(issue);
   await page.goto('/');
-  await page.getByRole('button', { name: '章册 4/5', exact: true }).click();
+  await page.getByRole('button', { name: '章册 4/9', exact: true }).click();
   await expect(page.locator('.badge-issue')).toHaveCount(4);
   // Under its number each collected stamp carries the day it was collected.
   const dated = page.locator('.badge-card').filter({ hasText: '光的形状' });
@@ -319,7 +490,7 @@ test('the demo passport holds a 2025 exhibition visit with its ticket, and the s
   await expect(visit.locator('.footprint-when b')).toHaveText('10.10');
   await expect(visit.locator('.collage-ticket .sample-ticket')).toBeVisible();
   await expect(visit.locator('.collage-badges .badge-edition')).toHaveCount(1);
-  await page.getByRole('button', { name: '章册 4/5', exact: true }).click();
+  await page.getByRole('button', { name: '章册 4/9', exact: true }).click();
   const card = page.locator('.badge-card').filter({ hasText: '器物与时间·2025' });
   await expect(card.locator('.badge-issue')).toHaveText('No. 03391 / 10000');
   await card.click();
@@ -336,7 +507,7 @@ test('the demo passport holds a 2025 exhibition visit with its ticket, and the s
   await expect(page.locator('.success-sub')).toHaveText('票根已入册 · 1 枚新纪念章已收藏');
   await expect(page.locator('.issue-list b').nth(1)).toHaveText('No. 03391 / 10000');
   await page.getByRole('button', { name: '回到我的护照', exact: true }).click();
-  await expect(page.getByRole('button', { name: '章册 5/5', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '章册 5/9', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '足迹 5', exact: true }).click();
   await expect(page.locator('.footprint-card')).toHaveCount(5);
 });
@@ -381,7 +552,7 @@ test('the footprints and the album each share as one card without private memori
     'aria-pressed',
     'true',
   );
-  await page.getByRole('button', { name: '章册 4/5', exact: true }).click();
+  await page.getByRole('button', { name: '章册 4/9', exact: true }).click();
   await page.getByRole('button', { name: '分享我的章册', exact: true }).click();
   await expect(page.locator('#app')).toHaveAttribute('data-screen', 'share-album');
   await expect(page.locator('.share-album .share-issue')).toHaveCount(4);
@@ -392,7 +563,7 @@ test('the footprints and the album each share as one card without private memori
   // Opened directly, the card still returns to the tab it shares.
   await page.goto('/#/share-album/museum');
   await back(page);
-  await expect(page.getByRole('button', { name: '章册 4/5', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: '章册 4/9', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
@@ -408,9 +579,9 @@ test('the passport opens on its tabs, which stay in reach, and tickets have a ta
   const tabs = page.locator('.collection-switch'),
     tab = (name) => page.getByRole('button', { name, exact: true });
   // The two bookmarks of the book lead, and the passport opens on the album.
-  await expect(tabs.locator('button')).toHaveText(['章册4/5', '票根2', '足迹4', '想去0']);
-  await expect(tab('章册 4/5')).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('.book-status')).toHaveText('章册 第 1 页，共 2 页');
+  await expect(tabs.locator('button')).toHaveText(['章册4/9', '票根2', '足迹4', '想去0']);
+  await expect(tab('章册 4/9')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.book-status')).toHaveText('章册 第 1 页，共 3 页');
   // Sharing the open tab sits in the header, beside adding a ticket.
   await expect(page.locator('#app-header .collection-share')).toHaveAttribute(
     'aria-label',
@@ -496,9 +667,9 @@ test('the album and the tickets are pages of one book, turned by drag, pager, ke
   }
   // Coming from the footprints the passport is closed: its cover opens on the album.
   await tab('足迹 4').click();
-  await tab('章册 4/5').click();
+  await tab('章册 4/9').click();
   await expect(book).toHaveClass(/covered/);
-  await expect(status).toHaveText('章册 第 1 页，共 2 页');
+  await expect(status).toHaveText('章册 第 1 页，共 3 页');
   await expect(book).not.toHaveClass(/covered/);
   // A short pull lets the page fall back; a pull across turns it without opening the stamp.
   await drag(0.9, 0.78);
@@ -531,9 +702,14 @@ test('the album and the tickets are pages of one book, turned by drag, pager, ke
   }
   await expect(book).toHaveAttribute('data-page', '0');
   await drag(0.8, 0.2);
-  await expect(status).toHaveText('章册 第 2 页，共 2 页');
+  await expect(status).toHaveText('章册 第 2 页，共 3 页');
   await expect(page.locator('#app')).toHaveAttribute('data-screen', 'passport');
-  await expect(settled('collected', 1).locator('.badge-card h3')).toHaveText('青铜回响');
+  await expect(settled('collected', 1).locator('.badge-card h3')).toHaveText([
+    '青铜回响',
+    '一色入窑',
+    '向海而行',
+    '经纬之间',
+  ]);
   // The page that was turned now lies to the left of the gutter: its back, the same paper,
   // reaches the edge of the screen. On the first page the inside of the cover lies there.
   const left = page.locator('.book-left'),
@@ -544,21 +720,22 @@ test('the album and the tickets are pages of one book, turned by drag, pager, ke
   expect(await left.evaluate((el) => el.getBoundingClientRect().right)).toBeCloseTo(gutter, 0);
   expect(await left.evaluate((el) => el.getBoundingClientRect().left)).toBeLessThan(0);
   await drag(0.2, 0.8);
-  await expect(status).toHaveText('章册 第 1 页，共 2 页');
+  await expect(status).toHaveText('章册 第 1 页，共 3 页');
   await expect(book).toHaveAttribute('data-turned', '0');
   expect(await paper()).toBe(false);
   await expect(settled('collected', 0).locator('.badge-card')).toHaveCount(4);
   // After the album's last page the tickets begin: the tab and the header's share follow.
   await next.click();
   await next.click();
+  await next.click();
   await expect(status).toHaveText('票根 第 1 页，共 2 页');
   await expect(tab('票根 2')).toHaveAttribute('aria-pressed', 'true');
-  await expect(tab('章册 4/5')).toHaveAttribute('aria-pressed', 'false');
+  await expect(tab('章册 4/9')).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.collection-share')).toHaveCount(0);
   await page.keyboard.press('ArrowRight');
   await expect(status).toHaveText('票根 第 2 页，共 2 页');
   await expect(next).toBeDisabled();
-  await expect(book).toHaveAttribute('data-turned', '3');
+  await expect(book).toHaveAttribute('data-turned', '4');
   await expect(
     settled('tickets', 1).getByRole('button', { name: '再添一张票根', exact: true }),
   ).toBeVisible();
@@ -566,28 +743,28 @@ test('the album and the tickets are pages of one book, turned by drag, pager, ke
   // book, and a stamp opened from a page comes back to that page.
   await page.keyboard.press('ArrowLeft');
   await page.keyboard.press('ArrowLeft');
-  await expect(status).toHaveText('章册 第 2 页，共 2 页');
+  await expect(status).toHaveText('章册 第 3 页，共 3 页');
   await tab('票根 2').click();
   await expect(book).not.toHaveClass(/covered/);
   await expect(status).toHaveText('票根 第 1 页，共 2 页');
-  await tab('章册 4/5').click();
+  await tab('章册 4/9').click();
   await expect(book).not.toHaveClass(/covered/);
-  await expect(status).toHaveText('章册 第 2 页，共 2 页');
+  await expect(status).toHaveText('章册 第 3 页，共 3 页');
   await expect(page.locator('#app-header .collection-share')).toHaveAttribute(
     'aria-label',
     '分享我的章册',
   );
-  await settled('collected', 1).locator('.badge-card').click();
-  await expect(page.locator('.stamp-title')).toHaveText('青铜回响');
+  await settled('collected', 2).locator('.badge-card').click();
+  await expect(page.locator('.stamp-title')).toHaveText('星河有约');
   // Back from the stamp the passport is closed again: the cover opens and the pages turn on
   // to the one that was left.
   await back(page);
   await expect(book).toHaveClass(/covered/);
-  await expect(status).toHaveText('章册 第 2 页，共 2 页');
-  await expect(settled('collected', 1)).toHaveCount(1);
+  await expect(status).toHaveText('章册 第 3 页，共 3 页');
+  await expect(settled('collected', 2)).toHaveCount(1);
   // The bookmark of the open section goes back to its first page.
-  await tab('章册 4/5').click();
-  await expect(status).toHaveText('章册 第 1 页，共 2 页');
+  await tab('章册 4/9').click();
+  await expect(status).toHaveText('章册 第 1 页，共 3 页');
   await expect(settled('collected', 0)).toHaveCount(1);
   // Straight into the tickets from another tab, the book opens and turns through the album.
   await tab('足迹 4').click();
@@ -617,7 +794,7 @@ test('the book closes back to its cover from the first page, and opens again by 
   }
   // The passport opens on the album by itself. Before its first page comes the cover.
   await expect(book).not.toHaveClass(/covered/);
-  await expect(status).toHaveText('章册 第 1 页，共 2 页');
+  await expect(status).toHaveText('章册 第 1 页，共 3 页');
   await prev.click();
   await expect(status).toHaveText('封面');
   await expect(book).toHaveClass(/shut/);
@@ -631,7 +808,7 @@ test('the book closes back to its cover from the first page, and opens again by 
   await expect(page.locator('.book-left')).toBeHidden();
   // A tap opens it on the first page, without pressing the stamp that lies under the finger.
   await stage.click();
-  await expect(status).toHaveText('章册 第 1 页，共 2 页');
+  await expect(status).toHaveText('章册 第 1 页，共 3 页');
   await expect(book).not.toHaveClass(/covered/);
   await expect(page.locator('#app')).toHaveAttribute('data-screen', 'passport');
   await expect(page.locator('.book-page:not([inert])')).toHaveCount(1);
@@ -639,7 +816,7 @@ test('the book closes back to its cover from the first page, and opens again by 
   await drag(0.3, 0.8);
   await expect(status).toHaveText('封面');
   await drag(0.8, 0.3);
-  await expect(status).toHaveText('章册 第 1 页，共 2 页');
+  await expect(status).toHaveText('章册 第 1 页，共 3 页');
   await expect(book).not.toHaveClass(/shut/);
   // A bookmark opens the closed book and turns on to its section.
   await page.keyboard.press('ArrowLeft');
@@ -651,7 +828,7 @@ test('the book closes back to its cover from the first page, and opens again by 
     'true',
   );
   await expect(book).not.toHaveClass(/covered/);
-  await expect(book).toHaveAttribute('data-turned', '2');
+  await expect(book).toHaveAttribute('data-turned', '3');
 });
 
 test('a claim plays the stamping ceremony once, a tap settles it, and the stamp turns over in place', async ({
@@ -664,10 +841,10 @@ test('a claim plays the stamping ceremony once, a tap settles it, and the stamp 
   const stage = page.locator('.success-art .medal-stage');
   await expect(success).toHaveClass(/ceremony/);
   // A new stamp is first pressed into the passport, which lies over the page. The four earlier
-  // stamps fill the first page of the album, so it opens on the second, where the place of
-  // this one still holds the dimmed stamp it was waiting for.
+  // stamps fill the first page of the album, so it opens on the second, where the first place
+  // is this one's and still holds the dimmed stamp it was waiting for.
   const book = page.locator('.claim-book .passport-book'),
-    place = book.locator('.book-page[data-local="1"] .badge-card');
+    place = book.locator('.book-page[data-local="1"] .badge-card').first();
   await expect(book).toHaveAttribute('data-page', '1');
   await expect(place.locator('h3')).toHaveText('青铜回响');
   await expect(place.locator('.slot-seat')).toHaveCSS('opacity', '1');
@@ -679,7 +856,7 @@ test('a claim plays the stamping ceremony once, a tap settles it, and the stamp 
   await expect(page.locator('#app')).toHaveAttribute('data-screen', 'success');
   await expect(stage).toHaveAttribute('data-side', 'front');
   await expect(page.locator('.issue-plate')).toHaveText(/^No\. \d{6}$/);
-  // The stamp took the fifth place in the collector's own row, which completes the album.
+  // The stamp took the fifth place in the collector's own row; four more are still to collect.
   await expect(page.locator('.success-shelf .shelf-item i')).toHaveText([
     '01',
     '02',
@@ -693,7 +870,7 @@ test('a claim plays the stamping ceremony once, a tap settles it, and the stamp 
   );
   await expect(page.locator('.success-shelf .shelf-current .badge-art')).toHaveCSS('opacity', '1');
   await expect(page.locator('.success-moment')).toHaveText('我的第 5 枚 · 已收入护照');
-  await expect(page.locator('.success-line')).toHaveText('这一册纪念章，集齐了');
+  await expect(page.locator('.success-line')).toHaveText('这一站，值得被记住');
   await expect(page.locator('.success-line')).toHaveCSS('opacity', '1');
   // The ground the stamp landed on stays under it.
   await expect(page.locator('.stamp-ground')).toHaveCSS('opacity', '1');
@@ -735,9 +912,9 @@ test('left to play, the ceremony turns to the place of the stamp, presses it in 
   await expect(page.locator('.success-line')).toHaveCSS('opacity', '1');
   // The album itself opens on that page, with the stamp in the same place.
   await page.locator('.success-shelf').click();
-  await expect(page.locator('.book-status')).toHaveText('章册 第 2 页，共 2 页');
+  await expect(page.locator('.book-status')).toHaveText('章册 第 2 页，共 3 页');
   await expect(
-    page.locator('.book-page[data-section="collected"][data-local="1"]:not(.book-copy) h3'),
+    page.locator('.book-page[data-section="collected"][data-local="1"]:not(.book-copy) h3').first(),
   ).toHaveText('青铜回响');
 });
 
@@ -819,7 +996,7 @@ test('the claim page leads with the stamp and tells a return visit from a new st
   await expect(page.locator('.success-moment')).toHaveText('我的第 1 枚 · 已收入护照');
   await expect(page.locator('.success-line')).toHaveText('这一站，值得被记住');
   await page.locator('.success-shelf').click();
-  await expect(page.getByRole('button', { name: '章册 1/5', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: '章册 1/9', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );

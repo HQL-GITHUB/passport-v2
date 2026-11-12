@@ -83,7 +83,7 @@ test('the passport book fits the screen and turns under a finger, down to a smal
   ]) {
     await page.setViewportSize({ width, height });
     await page.goto('/');
-    await page.getByRole('button', { name: '章册 4/5', exact: true }).click();
+    await page.getByRole('button', { name: '章册 4/9', exact: true }).click();
     const stage = page.locator('.book-stage'),
       open = page.locator('.book-page:not([inert])');
     // Four stamps with their names, dates and numbers, all on the page.
@@ -93,7 +93,7 @@ test('the passport book fits the screen and turns under a finger, down to a smal
       await expect(part).toBeInViewport({ ratio: 1 });
     expect(await fits()).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`album-${width}x${height}.png`) });
-    // A swipe towards the spine turns the page; a second one reaches the tickets.
+    // A swipe towards the spine turns the page; past the album's last page come the tickets.
     const box = await stage.boundingBox(),
       touch = (type, across) =>
         cdp.send('Input.dispatchTouchEvent', {
@@ -108,7 +108,11 @@ test('the passport book fits the screen and turns under a finger, down to a smal
                   },
                 ],
         });
-    for (const expected of ['章册 第 2 页，共 2 页', '票根 第 1 页，共 2 页']) {
+    for (const expected of [
+      '章册 第 2 页，共 3 页',
+      '章册 第 3 页，共 3 页',
+      '票根 第 1 页，共 2 页',
+    ]) {
       await touch('touchStart', 0.85);
       for (const across of [0.75, 0.6, 0.45, 0.3]) await touch('touchMove', across);
       await touch('touchEnd');

@@ -8,32 +8,74 @@ export function createDiscoveryViews(appContext) {
         <p>试试其他关键词，或换一个城市看看。</p>
         <button class="button secondary" data-action="clear-filters">查看全部目的地</button>
       </div>`;
+    // A venue shows its photograph, with its stamp on the corner; one without shows the stamp.
     return list
-      .map(
-        (v) =>
-          /* HTML */ `<button class="venue-card" data-action="venue" data-id="${v.id}">
-            <span class="venue-thumb">${appContext.format.art(v)}</span
-            ><span class="venue-copy"
-              ><h3>${v.name}</h3>
-              <p>${v.city} · ${v.exhibit}</p>
-              <span class="venue-status ${appContext.data.records[v.id] ? 'owned' : ''}"
-                >${appContext.format.icon(appContext.data.records[v.id] ? 'check' : 'pin')}${appContext.data.records[v.id] ? '馆章已收藏' : '到馆可领取纪念章'}</span
-              ></span
-            >${appContext.format.icon('chevron')}
-          </button>`,
-      )
+      .map((v) => {
+        const photo = appContext.assets.venues[v.id],
+          owned = !!appContext.data.records[v.id];
+        return /* HTML */ `<button class="venue-card" data-action="venue" data-id="${v.id}">
+          <span class="venue-thumb ${photo ? 'has-photo' : ''}"
+            >${photo ? `<img src="${photo}" alt="" loading="lazy" decoding="async">` : ''}${appContext.format.art(v)}</span
+          ><span class="venue-copy"
+            ><h3>${v.name}</h3>
+            <p>${v.city} · ${v.exhibit}</p>
+            <span class="venue-status ${owned ? 'owned' : ''}"
+              >${appContext.format.icon(owned ? 'check' : 'pin')}${owned ? '馆章已收藏' : '到馆可领取纪念章'}</span
+            ></span
+          >
+        </button>`;
+      })
       .join('');
+  }
+  // The featured venues above the list, each a slide that opens its venue. They stay while the
+  // list is narrowed to a category, and give way to the results of a search.
+  function renderHero() {
+    const slides = appContext.selectors.featuredVenues();
+    if (!slides.length) return '';
+    return /* HTML */ `<div
+      class="discover-hero"
+      role="group"
+      aria-roledescription="轮播"
+      aria-label="推荐的目的地"
+      ${appContext.selectors.heroHidden() ? 'hidden' : ''}
+    >
+      <div class="hero-track" data-carousel-track>
+        ${slides
+          .map(
+            (v, n) =>
+              /* HTML */ `<button class="hero-slide" data-action="venue" data-id="${v.id}">
+                <img
+                  src="${appContext.assets.venues[v.id]}"
+                  alt=""
+                  ${n ? 'loading="lazy"' : ''}
+                  decoding="async"
+                /><span class="hero-copy"
+                  ><strong>${v.headline.join('<br />')}</strong
+                  ><span>${v.name} · ${v.exhibit}</span></span
+                ><span class="hero-open" aria-hidden="true"
+                  >${appContext.format.icon('up-right')}</span
+                >
+              </button>`,
+          )
+          .join('')}
+      </div>
+      ${
+        slides.length > 1
+          ? `<div class="hero-dots">${slides.map((v, n) => `<button data-carousel-dot aria-label="第 ${n + 1} 张，共 ${slides.length} 张：${v.name}" aria-current="${!n}"></button>`).join('')}</div>`
+          : ''
+      }
+    </div>`;
   }
   function renderDiscover() {
     return /* HTML */ `<section class="page discover-page screen-enter">
-      <h1 class="page-title">下一站，去看什么？</h1>
+      <h1 class="sr-only">发现下一站</h1>
       <div class="search-box">
         ${appContext.format.icon('search')}<label class="sr-only" for="venue-search"
           >搜索场馆或展览</label
         ><input
           id="venue-search"
           type="search"
-          placeholder="搜索场馆、展览或城市"
+          placeholder="下一站，去看什么？"
           value="${appContext.format.safe(appContext.ui.query)}"
           autocomplete="off"
         /><button
@@ -45,24 +87,7 @@ export function createDiscoveryViews(appContext) {
           ${appContext.format.icon('close')}
         </button>
       </div>
-      <div
-        class="discover-hero"
-        ${appContext.ui.query || appContext.ui.category !== 'all' || appContext.ui.city === '云川' ? 'hidden' : ''}
-      >
-        <img src="${appContext.assets.hero}" alt="虚构博物馆的弧形建筑与雕塑庭院" />
-        <div class="hero-copy">
-          <h2>从一件器物，<br />读一座城。</h2>
-          <p>临江博物馆 · 器物与时间</p>
-          <button
-            class="hero-open"
-            data-action="venue"
-            data-id="museum"
-            aria-label="查看临江博物馆"
-          >
-            ${appContext.format.icon('up-right')}
-          </button>
-        </div>
-      </div>
+      ${renderHero()}
       <div class="category-tabs" role="group" aria-label="场馆类别">
         ${[
           ['all', '全部'],
@@ -91,11 +116,12 @@ export function createDiscoveryViews(appContext) {
   function renderVenue() {
     const v = appContext.catalog.byId(appContext.ui.selected),
       owned = !!appContext.data.records[v.id],
-      wanted = appContext.data.wanted.includes(v.id);
+      wanted = appContext.data.wanted.includes(v.id),
+      photo = appContext.assets.venues[v.id];
     // Saving the place for later belongs to the venue, so it sits by its name. The stamp and the
     // way to claim it are one panel: what can be collected here, and the button that collects it.
     return /* HTML */ `<section class="page venue-page screen-enter">
-      ${v.id === 'museum' ? `<img class="venue-photo" src="${appContext.assets.hero}" alt="概念博物馆建筑庭院">` : `<div class="venue-poster" data-word="${v.word}">${appContext.format.art(v)}</div>`}
+      ${photo ? `<img class="venue-photo" src="${photo}" alt="${v.name}概念建筑">` : `<div class="venue-poster" data-word="${v.word}">${appContext.format.art(v)}</div>`}
       <div class="venue-inner">
         <div class="venue-heading">
           <div>

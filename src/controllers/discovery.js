@@ -8,9 +8,8 @@ export function createDiscoveryController(appContext) {
       `${appContext.selectors.filteredVenues().length} 个目的地`;
     document.querySelector('[data-action="clear-search"]').hidden = !appContext.ui.query;
     const hero = document.querySelector('.discover-hero');
-    if (hero)
-      hero.hidden =
-        !!appContext.ui.query || appContext.ui.category !== 'all' || appContext.ui.city === '云川';
+    if (hero) hero.hidden = appContext.selectors.heroHidden();
+    appContext.runtime.pageCarousel?.sync();
   }
   return {
     updateSearch,

@@ -479,6 +479,25 @@ img {
 .badge-modern {
   background-position: 100% 100%;
 }
+/* Stamps drawn after the atlas each have an image of their own. */
+.badge-porcelain,
+.badge-maritime,
+.badge-textile,
+.badge-astronomy {
+  background-size: 100% 100%;
+}
+.badge-porcelain {
+  background-image: var(--badge-porcelain-url);
+}
+.badge-maritime {
+  background-image: var(--badge-maritime-url);
+}
+.badge-textile {
+  background-image: var(--badge-textile-url);
+}
+.badge-astronomy {
+  background-image: var(--badge-astronomy-url);
+}
 /* The passport opens straight on its tabs. Each tab is one of the passport's figures, the count
    above its name, and the row stays under the header while the page scrolls. */
 .page.passport-page {
@@ -1533,56 +1552,125 @@ img {
   width: 13px;
   height: 13px;
 }
+/* The discover page opens on its search box; the box itself asks the question. */
+.discover-page {
+  --gutter: 23px;
+}
+.discover-page .search-box {
+  margin-top: 5px;
+}
+/* Under it the featured venues pass by, one photograph at a time. The row runs to both edges
+   of the screen, so the next photograph shows at the margin. */
 .discover-hero {
+  margin: 16px calc(-1 * var(--gutter)) 0;
+}
+.hero-track {
+  display: flex;
+  gap: 10px;
+  padding-left: var(--gutter);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--gutter);
+  scrollbar-width: none;
+}
+.hero-track::-webkit-scrollbar {
+  display: none;
+}
+/* The space after the last slide. Padding at the end of a scrolling row is not kept everywhere. */
+.hero-track:after {
+  content: '';
+  flex: 0 0 calc(var(--gutter) - 10px);
+}
+.hero-slide {
   position: relative;
+  flex: 0 0 calc(100% - var(--gutter));
   height: 213px;
+  padding: 0;
   border-radius: 13px;
   overflow: hidden;
-  margin-top: 20px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  text-align: left;
   color: white;
+  background: #dfe3ea;
 }
-.discover-hero img {
+.hero-slide:focus-visible {
+  outline-offset: -3px;
+}
+.hero-slide img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.discover-hero:after {
+.hero-slide:after {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(#10152200 18%, #10152259 52%, #101522d9);
 }
-.discover-hero .hero-copy {
+.hero-copy {
   position: absolute;
   left: 18px;
-  right: 18px;
+  right: 70px;
   bottom: 17px;
   z-index: 1;
 }
-.hero-copy h2 {
+.hero-copy strong {
+  display: block;
   font-size: 24px;
   font-weight: 500;
   line-height: 1.4;
 }
-.hero-copy p {
+.hero-copy span {
+  display: block;
   font-size: 12px;
   margin-top: 5px;
   opacity: 0.9;
 }
 .hero-open {
   position: absolute;
-  right: 0;
-  bottom: 0;
+  right: 18px;
+  bottom: 17px;
+  z-index: 1;
   width: 40px;
   height: 40px;
   background: #ffffff26;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: white;
 }
 .hero-open svg {
   width: 17px;
+}
+/* The same marks as under the passport book. Each is pressed on a larger place than it shows. */
+.hero-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 11px;
+}
+.hero-dots button {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border-radius: 3px;
+  background: #d5dae3;
+  transition:
+    width 0.2s,
+    background 0.2s;
+}
+.hero-dots button:after {
+  content: '';
+  position: absolute;
+  inset: -12px -3px;
+}
+.hero-dots button[aria-current='true'] {
+  width: 18px;
+  background: var(--blue);
 }
 .category-tabs {
   display: flex;
@@ -1610,61 +1698,86 @@ img {
   font-size: 10px;
   color: var(--muted);
 }
+/* The destinations, two to a row: the venue's photograph with its stamp on the corner, as a
+   seal. A venue without a photograph shows the stamp itself. */
 .venue-list {
-  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 13px;
+  margin-top: 14px;
+}
+.venue-list .empty-state {
+  grid-column: 1 / -1;
 }
 .venue-card {
-  width: 100%;
-  text-align: left;
   display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
 }
 .venue-thumb {
-  width: 79px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
   background: #f5f6fa;
-  border-radius: 10px;
-  flex-shrink: 0;
-  padding: 3px;
 }
+.venue-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+.venue-thumb .badge-art {
+  width: 60%;
+}
+.venue-thumb.has-photo .badge-art {
+  position: absolute;
+  right: 9px;
+  bottom: -13px;
+  width: 31%;
+  filter: drop-shadow(0 3px 5px #1f283c38);
+}
+/* The copy starts below the seal, so a long name never runs under it. */
 .venue-copy {
-  flex: 1;
+  margin-top: 17px;
   min-width: 0;
 }
 .venue-copy h3 {
-  font-size: 13px;
-  font-weight: 550;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 .venue-copy p {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
-  line-height: 1.7;
-  margin-top: 5px;
+  line-height: 1.6;
+  margin-top: 3px;
 }
 .venue-status {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 8px;
+  font-size: 12px;
+  line-height: 1.5;
   background: var(--blue-soft);
   color: var(--blue);
-  padding: 3px 5px;
+  padding: 2px 6px;
   border-radius: 4px;
-  margin-top: 7px;
+  margin-top: 8px;
 }
 .venue-status.owned {
   background: #f2f4f7;
   color: var(--muted);
 }
 .venue-status svg {
-  width: 9px;
-  height: 9px;
-}
-.venue-card > svg {
-  width: 15px;
-  color: #8e97a7;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
 }
 .venue-page {
   padding: 0 0 24px;
@@ -2049,7 +2162,7 @@ img {
   transform-style: preserve-3d;
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
 }
-/* Where each stamp's circle sits inside its atlas tile, so the disc turns around the stamp's own centre. */
+/* Where each stamp's circle sits inside its atlas tile or its own image, so the disc turns around the stamp's own centre. */
 .medal-museum {
   --rim: #9f9b9b;
   /* The rim is a neutral grey; the ground under the stamp takes the blue of its waves instead. */
@@ -2075,6 +2188,35 @@ img {
   --art-width: 111.36%;
   --art-left: -2.66%;
   --art-top: -3.55%;
+}
+/* These four have ivory rims, so the ground under each takes a colour from its face. */
+.medal-porcelain {
+  --rim: #c6c1ad;
+  --glow: #8db3a2;
+  --art-width: 111.86%;
+  --art-left: -4.82%;
+  --art-top: -6.38%;
+}
+.medal-maritime {
+  --rim: #c8b194;
+  --glow: #7a9f99;
+  --art-width: 110.97%;
+  --art-left: -5.13%;
+  --art-top: -5.04%;
+}
+.medal-textile {
+  --rim: #d6c1ac;
+  --glow: #c98f85;
+  --art-width: 107.64%;
+  --art-left: -3.18%;
+  --art-top: -3.95%;
+}
+.medal-astronomy {
+  --rim: #c5b8ad;
+  --glow: #8b90c0;
+  --art-width: 112.97%;
+  --art-left: -5.68%;
+  --art-top: -7.3%;
 }
 .medal-edition {
   --rim: #b08d5c;
@@ -2791,15 +2933,6 @@ img {
 .section-count {
   font-size: 12px;
 }
-.venue-copy h3 {
-  font-size: 14px;
-}
-.venue-copy p {
-  font-size: 12px;
-}
-.venue-status {
-  font-size: 12px;
-}
 .city-button {
   font-size: 12px;
 }
@@ -3043,11 +3176,11 @@ img {
     padding-inline: 16px;
     font-size: 25px;
   }
-  .venue-thumb {
-    width: 67px;
+  .discover-page {
+    --gutter: 19px;
   }
-  .venue-card {
-    gap: 10px;
+  .venue-list {
+    column-gap: 11px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

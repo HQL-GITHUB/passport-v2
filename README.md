@@ -148,4 +148,4 @@ npm run test:e2e
 
 `src/config.js` 中的演示日期固定为 **2026-11-10**，用于重现历史票根匹配与日期校验。接入真实服务时，需要一并替换演示日期、数据目录与验证逻辑。
 
-设计记录见 [design-notes.txt](docs/design-notes.txt)，插画生成记录见 [asset-prompts.json](docs/asset-prompts.json)。工具文档：[Vite](https://vite.dev/guide/)、[Playwright](https://playwright.dev/docs/test-configuration)。
+设计记录见 [design-notes.txt](docs/design-notes.txt)，插画生成记录见 [asset-prompts.json](docs/asset-prompts.json) 与 [asset-prompts-expansion.json](docs/asset-prompts-expansion.json)。工具文档：[Vite](https://vite.dev/guide/)、[Playwright](https://playwright.dev/docs/test-configuration)。

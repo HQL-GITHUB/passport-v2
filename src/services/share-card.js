@@ -3,16 +3,30 @@ export function createShareCardService(appContext) {
   const numerals = '"Passport Numerals", Georgia, serif';
   // Canvas text only uses a web font that has finished loading.
   const loadNumerals = () => document.fonts.load(`40px ${numerals}`, '0').catch(() => {});
+  // A stamp's illustration is its tile of the atlas, or the whole of an image of its own.
+  const badgeSource = (s) => appContext.assets.badges[s.art] || appContext.assets.atlas;
+  // Loads what the given stamps are drawn from, and answers with the function that draws one.
+  async function loadBadges(stamps) {
+    const images = new Map();
+    await Promise.all(
+      [...new Set(stamps.map(badgeSource))].map(async (src) =>
+        images.set(src, await appContext.images.loadImage(src)),
+      ),
+    );
+    return (s) => badgeTile(images.get(badgeSource(s)), s);
+  }
   // Matches the bronze finish that .badge-edition gets in the stylesheet.
-  function badgeTile(atlas, s) {
-    const tw = atlas.naturalWidth / 2,
-      th = atlas.naturalHeight / 2,
+  function badgeTile(image, s) {
+    const own = !!appContext.assets.badges[s.art],
+      at = own ? 0 : s.tile,
+      tw = image.naturalWidth / (own ? 1 : 2),
+      th = image.naturalHeight / (own ? 1 : 2),
       tile = document.createElement('canvas');
     tile.width = tw;
     tile.height = th;
     const ctx = tile.getContext('2d'),
       draw = () =>
-        ctx.drawImage(atlas, (s.tile % 2) * tw, Math.floor(s.tile / 2) * th, tw, th, 0, 0, tw, th);
+        ctx.drawImage(image, (at % 2) * tw, Math.floor(at / 2) * th, tw, th, 0, 0, tw, th);
     draw();
     if (s.edition) {
       ctx.globalCompositeOperation = 'color';
@@ -64,7 +78,9 @@ export function createShareCardService(appContext) {
     button.textContent = '正在生成旅行卡…';
     try {
       const c = appContext.selectors.journalShare(),
-        atlas = await appContext.images.loadImage(appContext.assets.atlas),
+        badge = await loadBadges(
+          [c.id.stamp, ...c.stamps, ...c.visits.flatMap((v) => v.badges)].filter(Boolean),
+        ),
         sans = '"Microsoft YaHei", sans-serif',
         columns = Math.min(3, c.stamps.length),
         size = [0, 520, 400, 260][columns],
@@ -105,7 +121,7 @@ export function createShareCardService(appContext) {
       ctx.roundRect(140, 178, 236, 280, 16);
       ctx.fill();
       ctx.stroke();
-      if (c.id.stamp) ctx.drawImage(badgeTile(atlas, c.id.stamp), 158, 218, 200, 200);
+      if (c.id.stamp) ctx.drawImage(badge(c.id.stamp), 158, 218, 200, 200);
       [
         ['启用日期', appContext.format.date(c.id.since), `38px ${numerals}`],
         ['最近一站', c.id.latest, `500 32px ${sans}`],
@@ -154,7 +170,7 @@ export function createShareCardService(appContext) {
         c.stamps.forEach((s, i) => {
           const x = left + (i % columns) * (size + gap),
             top = y + Math.floor(i / columns) * (size + 130);
-          ctx.drawImage(badgeTile(atlas, s), x, top, size, size);
+          ctx.drawImage(badge(s), x, top, size, size);
           ctx.fillStyle = '#20242c';
           ctx.font = `500 26px ${sans}`;
           ctx.fillText(fit(s.stamp, size + gap - 8), x + size / 2, top + size + 12);
@@ -188,7 +204,7 @@ export function createShareCardService(appContext) {
           ctx.fillText(fit(v.city, 500), 260, y + 62);
           v.badges
             .slice(0, 2)
-            .forEach((s, i) => ctx.drawImage(badgeTile(atlas, s), 990 - 104 - i * 92, y, 104, 104));
+            .forEach((s, i) => ctx.drawImage(badge(s), 990 - 104 - i * 92, y, 104, 104));
           y += 130;
         }
       }
@@ -223,7 +239,7 @@ export function createShareCardService(appContext) {
     try {
       const c = appContext.selectors.getShareContext(),
         v = c.visit,
-        atlas = await appContext.images.loadImage(appContext.assets.atlas),
+        badge = await loadBadges(c.badges),
         ticket =
           appContext.ui.includeTicket && appContext.ui.shareTicket
             ? await appContext.images.loadImage(appContext.ui.shareTicket)
@@ -277,7 +293,7 @@ export function createShareCardService(appContext) {
         for (let i = 0; i < c.badges.length; i++) {
           const s = c.badges[i],
             x = (1080 - total) / 2 + i * (size + gap);
-          ctx.drawImage(badgeTile(atlas, s), x, y, size, size);
+          ctx.drawImage(badge(s), x, y, size, size);
           ctx.textAlign = 'center';
           ctx.font = '22px "Microsoft YaHei", sans-serif';
           ctx.fillStyle = '#728099';

@@ -41,5 +41,7 @@ export function createRuntimeState() {
     cardBusy: false,
     scrollPositions: {},
     bookShown: false,
+    // The featured venue the discover page was last showing.
+    heroVenue: null,
   };
 }

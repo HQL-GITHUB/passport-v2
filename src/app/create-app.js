@@ -11,13 +11,13 @@ import {
 import { TicketMedia } from '../storage/ticket-media.js';
 import { TicketEditor } from '../lib/ticket-editor.js';
 import { MedalViewer } from '../lib/medal-viewer.js';
+import { Carousel } from '../lib/carousel.js';
 import { PageBook } from '../lib/page-flip.js';
 import * as images from '../lib/images.js';
 import { createPresentation } from '../lib/presentation.js';
 import { createUiState, createRuntimeState } from '../state/state.js';
 import { bindEvents } from './events.js';
-import atlas from '../assets/collectible-atlas.png';
-import hero from '../assets/museum-courtyard.png';
+import { assets } from '../data/assets.js';
 import { createMetadataStorage } from '../storage/metadata.js';
 import { createQueries } from '../state/queries.js';
 import { createNavigation } from '../app/navigation.js';
@@ -40,6 +40,15 @@ import { createShareCardService } from '../services/share-card.js';
 
 /** Composition root. Modules use the same context so replacing demo data stays consistent. */
 export function createApp() {
+  // The single-file build inlines every image as a data URL of several megabytes. Stylesheets
+  // and the pages, which are written as HTML strings, refer to each by a short URL instead.
+  const blobUrls = [],
+    short = (src) => {
+      const url = images.imageUrl(src);
+      if (url !== src) blobUrls.push(url);
+      return url;
+    },
+    photos = Object.fromEntries(Object.entries(assets.venues).map(([id, src]) => [id, short(src)]));
   const appContext = {
     config: APP_CONFIG,
     catalog,
@@ -54,9 +63,10 @@ export function createApp() {
     media: new TicketMedia(),
     TicketEditor,
     MedalViewer,
+    Carousel,
     PageBook,
     images,
-    assets: { atlas, hero },
+    assets: { ...assets, venues: photos },
     ui: createUiState(),
     runtime: createRuntimeState(),
     dom: {
@@ -88,8 +98,10 @@ export function createApp() {
   Object.assign((appContext.memories ||= {}), createMemoryController(appContext));
   Object.assign((appContext.sharing ||= {}), createShareCardService(appContext));
   appContext.data = appContext.storage.readData();
-  const atlasUrl = images.cssImageUrl(atlas);
-  document.documentElement.style.setProperty('--badge-atlas-url', 'url("' + atlasUrl + '")');
+  // The stylesheet reads the stamp illustrations from custom properties: the atlas, and one for
+  // each stamp that has an image of its own.
+  for (const [name, src] of Object.entries({ atlas: assets.atlas, ...assets.badges }))
+    document.documentElement.style.setProperty(`--badge-${name}-url`, `url("${short(src)}")`);
   const unbind = bindEvents(appContext);
   return {
     async start() {
@@ -103,12 +115,13 @@ export function createApp() {
       clearTimeout(appContext.runtime.toastTimer);
       appContext.ceremony.finish();
       appContext.runtime.pageMedal?.destroy();
+      appContext.runtime.pageCarousel?.destroy();
       appContext.runtime.pageBook?.destroy();
       appContext.runtime.claimToken++;
       appContext.runtime.ticketToken++;
       appContext.dialogs.closeModal(false);
       for (const id of appContext.media.urls.keys()) appContext.media.revoke(id);
-      if (atlasUrl !== atlas) URL.revokeObjectURL(atlasUrl);
+      blobUrls.forEach((url) => URL.revokeObjectURL(url));
     },
   };
 }

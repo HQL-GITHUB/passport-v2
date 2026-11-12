@@ -22,6 +22,7 @@ export function createRenderer(appContext) {
     // A ceremony does not outlive the page it plays on.
     appContext.ceremony.finish();
     appContext.runtime.pageMedal?.destroy();
+    appContext.runtime.pageCarousel?.destroy();
     appContext.dom.main.innerHTML = views[appContext.ui.screen]();
     const stage = appContext.dom.main.querySelector('.medal-stage');
     appContext.runtime.pageMedal = stage
@@ -33,6 +34,17 @@ export function createRenderer(appContext) {
           tapFlips: !stage.closest('button'),
           // The claim ceremony owns the stamp until it settles.
           locked: () => !!stage.closest('.ceremony:not(.settled)'),
+        })
+      : null;
+    const hero = appContext.dom.main.querySelector('.discover-hero'),
+      slideIds = [...(hero?.querySelectorAll('.hero-slide') || [])].map((el) => el.dataset.id);
+    appContext.runtime.pageCarousel = hero
+      ? new appContext.Carousel(hero, {
+          animate: !matchMedia('(prefers-reduced-motion: reduce)').matches,
+          // Back from a venue, the row is where it was left.
+          start: Math.max(0, slideIds.indexOf(appContext.runtime.heroVenue)),
+          enabled: () => !appContext.runtime.modalState,
+          onChange: (n) => (appContext.runtime.heroVenue = slideIds[n]),
         })
       : null;
     const book = appContext.dom.main.querySelector('.passport-book'),
