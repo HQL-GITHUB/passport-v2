@@ -55,6 +55,10 @@ ${appContext.format.safe(visit.note)}</textarea>
       label = '移除这张票根？';
       body =
         '<p class="modal-sub">票根图片将从本机护照移除。这次到访、纪念章、照片与感想会继续保留。</p><button class="button secondary" data-action="close-modal">保留票根</button><button class="button" data-action="confirm-remove-ticket">移除票根，保留到访</button>';
+    } else if (kind === 'ticket-leave') {
+      label = '离开票根入册？';
+      body =
+        '<p class="modal-sub">这张票根还没有保存。离开后，导入的票根和填写的信息不会保留。</p><button class="button secondary" data-action="close-modal">继续入册</button><button class="button" data-action="confirm-leave">离开，不保存</button>';
     } else if (kind === 'ticket-editor') {
       const c = appContext.selectors.getShareContext();
       label = '确认分享的票根';
@@ -91,9 +95,10 @@ ${appContext.format.safe(visit.note)}</textarea>
       label = stamp.stamp;
       extra = 'zoom-modal';
       appContext.runtime.modalState = { kind, viewer: null, canFlip: !!record, animate };
-      body = /* HTML */ `${appContext.views.renderMedal(stamp, record)}
+      body = /* HTML */ `<div class="zoom-medal">
+          ${appContext.views.renderMedal(stamp, record)}${record ? appContext.views.renderMedalFlip() : ''}
+        </div>
         <p class="modal-sub">${stamp.name} · ${stamp.kind}</p>
-        ${record ? '<button class="medal-flip" data-medal-flip aria-pressed="false">翻到背面</button>' : ''}
         <p class="medal-hint">
           ${record ? (animate ? '拖动章面，翻看背面的到访印记。' : '背面刻着这次到访的日期与编号。') : animate ? '拖动可以倾斜章面，收藏后可翻看背面。' : '收藏后，可以翻看背面的到访印记。'}
         </p>`;

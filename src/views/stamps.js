@@ -35,14 +35,19 @@ export function createStampViews(appContext) {
         <p class="stamp-subtitle">${v.name} · ${v.city}</p>
       </div>
       <div class="stamp-showcase">
-        <button class="stamp-zoom" data-action="zoom" aria-label="放大欣赏${v.stamp}纪念章">
-          ${renderMedal(v, r)}</button
+        <button
+          class="stamp-zoom medal-${v.art} ${v.edition ? 'medal-edition' : ''}"
+          data-action="zoom"
+          aria-label="放大欣赏${v.stamp}纪念章"
+        >
+          <span class="stamp-ground" aria-hidden="true"></span>${renderMedal(v, r)}</button
         ><span class="zoom-hint"
           >${appContext.format.icon('search')}${r ? '点击翻看章面' : '点击预览章面'}</span
         >
       </div>
       <p class="stamp-description">${v.description}</p>
-      ${renderEdition(v)}${memory}
+      ${renderEdition(v)}
+      ${r ? `<div id="page-actions"></div>${memory}` : `${memory}<div id="page-actions"></div>`}
     </section>`;
   }
   function renderEdition(v) {
@@ -98,6 +103,11 @@ export function createStampViews(appContext) {
       <span class="medal-shadow" aria-hidden="true"></span>
     </div>`;
   }
+  // Turns the medal over for those who cannot tap or drag it. It sits at the medal's lower right;
+  // MedalViewer wires it up and keeps its label in step with the side shown.
+  function renderMedalFlip() {
+    return `<button class="medal-flip" data-medal-flip aria-pressed="false" aria-label="翻到背面" title="翻到背面">${appContext.format.icon('flip')}</button>`;
+  }
   function renderVisitTicket(v, r) {
     const day = appContext.format.selectedVisit(r);
     return /* HTML */ `<div class="visit-ticket">
@@ -151,6 +161,7 @@ export function createStampViews(appContext) {
   return {
     renderStamp,
     renderMedal,
+    renderMedalFlip,
     renderVisitTicket,
   };
 }

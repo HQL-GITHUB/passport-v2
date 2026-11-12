@@ -27,12 +27,6 @@
   width: 16px;
   height: 16px;
 }
-.ticket-intro {
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.8;
-  margin-top: 17px;
-}
 .ticket-preview {
   margin-top: 15px;
   padding: 20px;

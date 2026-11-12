@@ -106,6 +106,7 @@ export function createDiscoveryViews(appContext) {
             </p></span
           >${appContext.format.icon('chevron')}
         </button>
+        <div id="page-actions"></div>
         <div class="info-row">
           ${appContext.format.icon('book')}
           <div>正在展出：${v.exhibit}<small>留一点时间，慢慢看一场展。</small></div>

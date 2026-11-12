@@ -7,6 +7,11 @@ export function createQueries(appContext) {
         appContext.data.records[b.id].firstAt.localeCompare(appContext.data.records[a.id].firstAt),
       );
   }
+  // The stamps still to collect, shown as empty slots in the album. The whole catalogue for now;
+  // once it covers more cities this should narrow to places the collector has been or wants to go.
+  function uncollected() {
+    return appContext.catalog.stamps.filter((v) => !appContext.data.records[v.id]);
+  }
   function visitRows() {
     return Object.values(appContext.data.visits)
       .map((v) => ({
@@ -141,6 +146,7 @@ export function createQueries(appContext) {
   }
   return {
     collected,
+    uncollected,
     edition,
     journalShare,
     visitRows,

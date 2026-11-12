@@ -59,7 +59,7 @@ export function createShareCardService(appContext) {
   async function downloadJournalCard() {
     if (appContext.runtime.cardBusy) return;
     appContext.runtime.cardBusy = true;
-    const button = appContext.dom.footer.querySelector('[data-action="download-card"]');
+    const button = appContext.dom.main.querySelector('[data-action="download-card"]');
     button.disabled = true;
     button.textContent = '正在生成旅行卡…';
     try {
@@ -184,7 +184,7 @@ export function createShareCardService(appContext) {
   async function downloadCard() {
     if (appContext.runtime.cardBusy) return;
     appContext.runtime.cardBusy = true;
-    const button = appContext.dom.footer.querySelector('[data-action="download-card"]');
+    const button = appContext.dom.main.querySelector('[data-action="download-card"]');
     button.disabled = true;
     button.textContent = '正在生成旅行卡…';
     try {

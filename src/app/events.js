@@ -17,11 +17,22 @@ export function bindEvents(appContext) {
     const action = button.dataset.action,
       id = button.dataset.id || appContext.ui.selected;
     if (['passport', 'discover', 'venue', 'stamp', 'scan'].includes(action)) {
+      // The navigation is on every page; leaving a ticket that is not saved yet asks first.
+      if (['passport', 'discover'].includes(action) && appContext.claims.hasUnsavedTicket()) {
+        appContext.ui.leaveTo = action;
+        appContext.dialogs.openModal('ticket-leave');
+        return;
+      }
       if (action === 'stamp') {
         appContext.ui.visitDate = button.dataset.visitDate || null;
         appContext.ui.stampReturn = button.dataset.fromVisit || null;
       }
       appContext.navigation.navigate(action, id);
+      return;
+    }
+    if (action === 'confirm-leave') {
+      appContext.dialogs.closeModal(false);
+      appContext.navigation.navigate(appContext.ui.leaveTo);
       return;
     }
     if (action === 'open-visit') {
@@ -39,7 +50,7 @@ export function bindEvents(appContext) {
       }
       return;
     }
-    if (action === 'preview-album') {
+    if (action === 'preview-album' || action === 'open-album') {
       appContext.ui.collection = 'collected';
       appContext.navigation.navigate('passport');
       return;

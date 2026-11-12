@@ -16,7 +16,7 @@ export function createPassportViews(appContext) {
       <div class="collection-switch memory-tabs" role="group" aria-label="护照内容">
         ${[
           ['footprints', '足迹', rows.length],
-          ['collected', '章册', list.length],
+          ['collected', '章册', `${list.length}/${appContext.catalog.stamps.length}`],
           ['wanted', '想去', appContext.data.wanted.length],
         ]
           .map(
@@ -41,18 +41,16 @@ export function createPassportViews(appContext) {
       list = wanted
         ? appContext.catalog.venues.filter((v) => appContext.data.wanted.includes(v.id))
         : appContext.selectors.collected();
-    if (!list.length)
+    if (wanted && !list.length)
       return /* HTML */ `<div class="empty-state">
         <div class="empty-art">${appContext.format.art(appContext.catalog.venues[0])}</div>
-        <h3>${wanted ? '下一站，留给你的好奇心' : '第一枚纪念章，等你出发'}</h3>
-        <p>
-          ${wanted ? '收藏喜欢的目的地，留给下一次出发。' : '参观一座喜欢的馆，把纪念收入章册。'}
-        </p>
+        <h3>下一站，留给你的好奇心</h3>
+        <p>收藏喜欢的目的地，留给下一次出发。</p>
         <button class="button" data-action="discover">
           发现目的地${appContext.format.icon('arrow')}
         </button>
       </div>`;
-    return `<div class="badge-grid">${list
+    const grid = `<div class="badge-grid">${list
       .map(
         (v) =>
           /* HTML */ `<button
@@ -60,7 +58,9 @@ export function createPassportViews(appContext) {
             data-action="${wanted ? 'venue' : 'stamp'}"
             data-id="${v.id}"
           >
-            <div class="badge-frame">${appContext.format.art(v)}</div>
+            <div class="badge-frame">
+              ${!wanted && appContext.data.records[v.id].firstAt === appContext.config.demoDate ? '<span class="badge-kind new">新</span>' : ''}${appContext.format.art(v)}
+            </div>
             <h3>${v.stamp}</h3>
             <p class="badge-meta">
               ${v.name} ·
@@ -70,6 +70,37 @@ export function createPassportViews(appContext) {
           </button>`,
       )
       .join('')}</div>`;
+    return wanted ? grid : (list.length ? grid : '') + pendingStamps(list.length);
+  }
+  // The stamps still to collect, as dimmed slots under the album. Each opens the stamp's own page,
+  // which says how to get it: on site, or with a ticket once its exhibition has ended.
+  function pendingStamps(owned) {
+    const list = appContext.selectors.uncollected();
+    if (!list.length) return '';
+    return /* HTML */ `<div class="album-pending">
+        <h3>${owned ? `还有 ${list.length} 枚，等你出发` : '第一枚纪念章，等你出发'}</h3>
+        <p>${owned ? '点开一枚，看看怎样把它收入章册。' : '参观一座喜欢的馆，把纪念收入章册。'}</p>
+      </div>
+      <div class="badge-grid">
+        ${list
+          .map((v) => {
+            const e = appContext.selectors.edition(v),
+              ended = v.period && v.period[1] < appContext.config.demoDate;
+            return /* HTML */ `<button
+              class="badge-card unowned"
+              data-action="stamp"
+              data-id="${v.id}"
+            >
+              <div class="badge-frame">${appContext.format.art(v)}</div>
+              <h3>${v.stamp}</h3>
+              <p class="badge-meta">${v.name} · ${v.city}</p>
+              <p class="badge-pending">
+                ${ended ? '可用票根补领' : !e ? '到馆领取' : e.left > 0 ? `限量 · 还剩 ${e.left.toLocaleString('en-US')} 枚` : '已全部发行完毕'}
+              </p>
+            </button>`;
+          })
+          .join('')}
+      </div>`;
   }
   function renderFootprints() {
     const rows = appContext.selectors.visitRows();

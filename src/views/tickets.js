@@ -3,9 +3,9 @@ export function createTicketViews(appContext) {
   function renderTicket() {
     const d = appContext.ui.ticketDraft;
     return /* HTML */ `<section class="page ticket-page screen-enter">
-      <h1 class="scan-title">去过的地方，<br />慢慢补齐。</h1>
       ${appContext.views.renderClaimModes()}
-      <p class="ticket-intro">拍下纸质票根，或导入电子票截图。</p>
+      <h1 class="scan-title">去过的地方，慢慢补齐</h1>
+      <p class="scan-subtitle">拍下纸质票根，或导入电子票截图。</p>
       <div class="ticket-preview ${d?.image ? 'has-image' : ''}">
         ${d?.image ? `<img src="${d.image}" alt="待保存的票根原图"><div class="ticket-image-label">${appContext.format.icon('photo')}票根已导入 · 下一步确认保存</div>` : appContext.views.renderSampleTicket()}
       </div>
@@ -25,14 +25,15 @@ export function createTicketViews(appContext) {
         accept="image/jpeg,image/png,image/webp"
         hidden
       />
+      <p class="ticket-error" role="alert" ${appContext.ui.ticketError ? '' : 'hidden'}>
+        ${appContext.format.safe(appContext.ui.ticketError)}
+      </p>
+      <div id="page-actions"></div>
       <p class="ticket-reassurance">
         ${appContext.format.icon('lock')}可将原图保存在护照中，仅自己可见。
       </p>
       <p class="ticket-demo-copy">
         票根图片不会上传。本原型使用示例信息演示识别，可在下一步修改场馆和日期。
-      </p>
-      <p class="ticket-error" role="alert" ${appContext.ui.ticketError ? '' : 'hidden'}>
-        ${appContext.format.safe(appContext.ui.ticketError)}
       </p>
     </section>`;
   }
@@ -94,6 +95,7 @@ export function createTicketViews(appContext) {
       >
         ${appContext.format.safe(appContext.ui.ticketError)}
       </p>
+      <div id="page-actions"></div>
       <p class="ticket-demo-copy">
         识别与章面匹配均为交互演示。没有可领取的章，也能保存票根和到访记忆。
       </p>
@@ -177,6 +179,7 @@ export function createTicketViews(appContext) {
         </div>
       </div>
       <p class="ticket-success-note">票根、纪念章与当天的记忆，<br />都可以在这次到访里找到。</p>
+      <div id="page-actions"></div>
     </section>`;
   }
   return {

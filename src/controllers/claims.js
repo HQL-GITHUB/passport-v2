@@ -5,6 +5,15 @@ export function createClaimController(appContext) {
     appContext.ui.ticketDraft = null;
     appContext.ui.ticketError = '';
   }
+  // Whether leaving the ticket pages now would drop something of the visitor's: an imported image,
+  // or a visit on the confirmation page that has not been saved yet.
+  function hasUnsavedTicket() {
+    const d = appContext.ui.ticketDraft,
+      saved = d && appContext.data.tickets[d.id];
+    if (!d) return false;
+    if (appContext.ui.screen === 'ticket') return !!d.image;
+    return appContext.ui.screen === 'ticket-confirm' && (!saved || (!!d.file && !saved.saved));
+  }
   function resetTicketSelection() {
     const d = appContext.ui.ticketDraft;
     if (!d) return;
@@ -267,6 +276,7 @@ export function createClaimController(appContext) {
   }
   return {
     clearTicketDraft,
+    hasUnsavedTicket,
     resetTicketSelection,
     makeTicketDraft,
     updateTicketConfirmation,

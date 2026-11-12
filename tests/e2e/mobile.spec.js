@@ -38,6 +38,35 @@ test('mobile forms have readable focus sizes and the confirmation stays within t
   }
 });
 
+test('the scan page and the claim page fit the screen without scrolling, down to a small phone', async ({
+  page,
+}, testInfo) => {
+  const overflow = () =>
+    page.locator('#app-main').evaluate((el) => el.scrollHeight - el.clientHeight);
+  for (const [width, height] of [
+    [390, 844],
+    [375, 667],
+    [375, 603],
+    [320, 568],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.goto('/#/scan/artmuseum');
+    await expect(page.locator('.scan-place')).toBeVisible();
+    expect(await overflow()).toBe(0);
+    await page.getByRole('button', { name: '模拟再次到访', exact: true }).click();
+    // The stamp, its number, its place in the collector's row and the way on are always there.
+    for (const part of ['.success-art', '.issue-plate', '.success-shelf', '.success-moment'])
+      await expect(page.locator(part)).toBeInViewport({ ratio: 1 });
+    await expect(page.getByRole('button', { name: '查看这次到访', exact: false })).toBeInViewport({
+      ratio: 1,
+    });
+    expect(await overflow()).toBe(0);
+    // The closing line is the first thing to go when the screen is short.
+    await expect(page.locator('.success-line')).toBeVisible({ visible: height >= 844 });
+    await page.screenshot({ path: testInfo.outputPath(`claim-${width}x${height}.png`) });
+  }
+});
+
 test('a phone safe area adds space above the navigation controls', async ({ page }, testInfo) => {
   await page.goto('/#/ticket/museum');
   await page.addStyleTag({ content: ':root { --safe-top: 47px; }' });

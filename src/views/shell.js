@@ -22,26 +22,32 @@ export function createShellViews(appContext) {
     };
     appContext.dom.header.innerHTML = `<button class="header-back" data-action="back" aria-label="返回">${appContext.format.icon('back')}</button><span class="header-caption">${titles[appContext.ui.screen]}</span><span style="width:28px" aria-hidden="true"></span>`;
   }
+  // The navigation stays under every page. A page's own actions sit in its content, in the
+  // #page-actions slot its view leaves for them, so they can be refreshed without a full render.
   function renderFooter() {
+    const screen = appContext.ui.screen,
+      root = ['passport', 'discover'].includes(screen),
+      current = (name) => (screen === name ? 'aria-current="page" class="active"' : ''),
+      // Already claiming: the middle button marks the place instead of starting over.
+      claiming = ['scan', 'ticket', 'ticket-confirm'].includes(screen);
+    appContext.dom.footer.innerHTML = `<nav class="bottom-nav" aria-label="主要导航"><button data-action="discover" ${current('discover')}>${appContext.format.icon('compass')}发现</button><button class="nav-claim" ${claiming ? 'aria-current="page"' : `data-action="scan" ${root ? 'data-id="museum"' : ''}`} aria-label="现场盖章">${appContext.format.icon('scan')}<span>盖章</span></button><button data-action="passport" ${current('passport')}>${appContext.format.icon('passport')}护照</button></nav>`;
+    const slot = document.getElementById('page-actions');
+    if (slot) slot.innerHTML = pageActions();
+  }
+  function pageActions() {
     const v = appContext.catalog.byId(appContext.ui.selected),
       owned = !!appContext.data.records[v.id];
-    if (['passport', 'discover'].includes(appContext.ui.screen)) {
-      appContext.dom.footer.innerHTML = `<nav class="bottom-nav" aria-label="主要导航"><button data-action="discover" ${appContext.ui.screen === 'discover' ? 'aria-current="page" class="active"' : ''}>${appContext.format.icon('compass')}发现</button><button class="nav-claim" data-action="scan" data-id="museum" aria-label="现场盖章">${appContext.format.icon('scan')}<span>盖章</span></button><button data-action="passport" ${appContext.ui.screen === 'passport' ? 'aria-current="page" class="active"' : ''}>${appContext.format.icon('passport')}护照</button></nav>`;
-      return;
-    }
+    if (['passport', 'discover'].includes(appContext.ui.screen)) return '';
     if (appContext.ui.screen === 'venue') {
       const wanted = appContext.data.wanted.includes(v.id);
-      appContext.dom.footer.innerHTML = `<div class="page-actions two-column"><button class="heart-button ${wanted ? 'saved' : ''}" data-action="want" aria-label="${wanted ? '取消想去收藏' : '收藏为想去'}" aria-pressed="${wanted}">${appContext.format.icon('heart')}</button><button class="button" data-action="scan">${appContext.format.icon('scan')}${owned ? '再次到馆盖章' : '到馆领取纪念章'}</button></div>`;
-      return;
+      return `<div class="page-actions two-column"><button class="heart-button ${wanted ? 'saved' : ''}" data-action="want" aria-label="${wanted ? '取消想去收藏' : '收藏为想去'}" aria-pressed="${wanted}">${appContext.format.icon('heart')}</button><button class="button" data-action="scan">${appContext.format.icon('scan')}${owned ? '再次到馆盖章' : '到馆领取纪念章'}</button></div>`;
     }
     if (appContext.ui.screen === 'stamp') {
       const historic = v.period && v.period[1] < appContext.config.demoDate;
-      appContext.dom.footer.innerHTML = `<div class="page-actions"><button class="button" data-action="${owned ? 'share' : historic ? 'ticket-entry' : 'scan'}">${appContext.format.icon(owned ? 'share' : historic ? 'ticket' : 'scan')}${owned ? '分享这枚纪念' : historic ? '用票根补领这枚章' : '到馆领取这枚章'}</button></div>`;
-      return;
+      return `<div class="page-actions"><button class="button" data-action="${owned ? 'share' : historic ? 'ticket-entry' : 'scan'}">${appContext.format.icon(owned ? 'share' : historic ? 'ticket' : 'scan')}${owned ? '分享这枚纪念' : historic ? '用票根补领这枚章' : '到馆领取这枚章'}</button></div>`;
     }
     if (appContext.ui.screen === 'scan') {
-      appContext.dom.footer.innerHTML = /* HTML */ `<div class="page-actions">
-        <p class="demo-notice">交互演示 · 无需开启相机或 NFC</p>
+      return /* HTML */ `<div class="page-actions">
         <button
           class="button ${appContext.ui.claimBusy ? 'loading-dots' : ''}"
           data-action="collect"
@@ -50,25 +56,20 @@ export function createShellViews(appContext) {
           ${appContext.ui.claimBusy ? '正在收入护照…' : owned ? '模拟再次到访' : '模拟现场领取'}
         </button>
       </div>`;
-      return;
     }
     if (appContext.ui.screen === 'success') {
-      appContext.dom.footer.innerHTML = `<div class="page-actions success-footer"><button class="button" data-action="onsite-visit">查看这次到访${appContext.format.icon('arrow')}</button><button class="button secondary" data-action="edit-memory">${appContext.format.icon('edit')}给这一站留一句话</button></div>`;
-      return;
+      return `<div class="page-actions success-footer"><button class="button" data-action="onsite-visit">查看这次到访${appContext.format.icon('arrow')}</button><button class="button secondary" data-action="edit-memory">${appContext.format.icon('edit')}给这一站留一句话</button></div>`;
     }
     if (
       ['share', 'visit-share', 'share-footprints', 'share-album'].includes(appContext.ui.screen)
     ) {
-      appContext.dom.footer.innerHTML = `<div class="page-actions"><button class="button" data-action="download-card">${appContext.format.icon('download')}保存旅行卡</button></div>`;
-      return;
+      return `<div class="page-actions"><button class="button" data-action="download-card">${appContext.format.icon('download')}保存旅行卡</button></div>`;
     }
     if (appContext.ui.screen === 'visit') {
-      appContext.dom.footer.innerHTML = `<div class="page-actions"><button class="button" data-action="visit-share">${appContext.format.icon('share')}分享这次到访</button></div>`;
-      return;
+      return `<div class="page-actions"><button class="button" data-action="visit-share">${appContext.format.icon('share')}分享这次到访</button></div>`;
     }
     if (appContext.ui.screen === 'ticket') {
-      appContext.dom.footer.innerHTML = /* HTML */ `<div class="page-actions">
-        <p class="demo-notice">识别为交互演示 · 下一步可选择保存原图</p>
+      return /* HTML */ `<div class="page-actions">
         <button
           class="button ${appContext.ui.ticketBusy ? 'loading-dots' : ''}"
           data-action="recognize-ticket"
@@ -77,7 +78,6 @@ export function createShellViews(appContext) {
           ${appContext.ui.ticketBusy ? (appContext.ui.ticketBusy === 'image' ? '正在准备票根…' : '正在演示识别…') : appContext.ui.ticketDraft?.image ? '模拟识别票根' : '用示例票根体验'}${appContext.ui.ticketBusy ? '' : appContext.format.icon('arrow')}
         </button>
       </div>`;
-      return;
     }
     if (appContext.ui.screen === 'ticket-confirm') {
       const d = appContext.ui.ticketDraft,
@@ -91,7 +91,7 @@ export function createShellViews(appContext) {
           : rewards.length
             ? `确认收藏 ${rewards.length} 枚纪念章`
             : '保存这次到访';
-      appContext.dom.footer.innerHTML = /* HTML */ `<div class="page-actions">
+      return /* HTML */ `<div class="page-actions">
         <p class="demo-notice">
           ${viewOnly ? '到访与已领取的纪念章均已保留' : d.saveTicket ? '票根同时入册 · 默认仅自己可见' : '只保存到访信息与所选纪念章'}
         </p>
@@ -103,10 +103,10 @@ export function createShellViews(appContext) {
           ${appContext.ui.claimBusy ? '正在收藏这一页…' : label}${appContext.ui.claimBusy ? '' : appContext.format.icon('arrow')}
         </button>
       </div>`;
-      return;
     }
     if (appContext.ui.screen === 'ticket-success')
-      appContext.dom.footer.innerHTML = `<div class="page-actions success-footer"><button class="button" data-action="ticket-visit">查看这次到访${appContext.format.icon('arrow')}</button><button class="button secondary" data-action="passport">回到我的护照</button></div>`;
+      return `<div class="page-actions success-footer"><button class="button" data-action="ticket-visit">查看这次到访${appContext.format.icon('arrow')}</button><button class="button secondary" data-action="passport">回到我的护照</button></div>`;
+    return '';
   }
   function renderClaimModes() {
     const active = appContext.ui.screen === 'ticket' ? 'ticket' : appContext.ui.scanMode;

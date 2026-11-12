@@ -31,6 +31,7 @@ export function createSharingViews(appContext) {
       <p class="share-privacy">
         票根、照片与感想默认不加入分享。开启票根后，可先裁剪或遮挡票面信息。
       </p>
+      <div id="page-actions"></div>
     </section>`;
   }
   // The whole footprint or album on one card.
@@ -71,6 +72,7 @@ export function createSharingViews(appContext) {
       <p class="share-privacy">
         ${c.album ? '只包含纪念章与收藏编号。' : '只包含到访日期、场馆、城市与纪念章。'}票根、照片和感想不会加入分享。
       </p>
+      <div id="page-actions"></div>
     </section>`;
   }
   return {

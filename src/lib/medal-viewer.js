@@ -146,7 +146,10 @@ export class MedalViewer {
     this.side = side;
     this.stage.dataset.side = side;
     if (this.flipButton) {
-      this.flipButton.textContent = side === 'back' ? '翻回正面' : '翻到背面';
+      // The button is an icon; its name says which way it turns the medal.
+      const label = side === 'back' ? '翻回正面' : '翻到背面';
+      this.flipButton.setAttribute('aria-label', label);
+      this.flipButton.title = label;
       this.flipButton.setAttribute('aria-pressed', String(side === 'back'));
     }
   }

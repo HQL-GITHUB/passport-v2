@@ -346,6 +346,8 @@ img {
   margin-left: -12px;
 }
 .app-main {
+  /* Pages may size themselves to the room between the header and the navigation. */
+  container: main / size;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -745,13 +747,21 @@ img {
   font-size: 12px;
   min-height: 44px;
 }
+/* A page's own actions sit in its content; the navigation keeps the bottom of every page. */
+#page-actions {
+  align-self: stretch;
+}
 .page-actions {
-  padding: 12px 23px 10px;
-  border-top: 1px solid var(--line);
+  margin-top: 22px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: var(--paper);
+}
+/* Mid-page, the actions keep their distance from what follows. */
+.venue-page .page-actions,
+.stamp-page .page-actions,
+.scan-page .page-actions {
+  margin-bottom: 18px;
 }
 .page-actions.two-column {
   display: grid;
@@ -880,17 +890,9 @@ img {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 282px;
-  margin: 13px -23px 8px;
-  background: radial-gradient(ellipse at center, #f2f5fc 0%, var(--paper) 66%);
-}
-.stamp-showcase:before {
-  content: '';
-  position: absolute;
-  width: 234px;
-  height: 234px;
-  border: 1px solid #e8edf7;
-  border-radius: 50%;
+  /* Room for the halo and rings the stamp rests on. */
+  min-height: 304px;
+  margin: 6px -23px 8px;
 }
 .stamp-zoom {
   width: 232px;
@@ -903,7 +905,7 @@ img {
 }
 .stamp-zoom .medal-shadow {
   position: absolute;
-  inset: calc(100% + 6px) 20% auto;
+  inset: calc(100% + 9px) 28% auto;
   width: auto;
   margin: 0;
 }
@@ -1061,14 +1063,23 @@ img {
   text-align: center;
   color: #6d7690;
 }
-.scan-page {
+.scan-page,
+.ticket-page {
   padding-top: 8px;
 }
+/* The claim pages open on the method switch; the title under it names what is being claimed. */
 .scan-title {
-  font-size: 29px;
-  line-height: 1.55;
-  letter-spacing: -1px;
+  font-size: 23px;
+  line-height: 1.4;
+  letter-spacing: -0.6px;
   font-weight: 600;
+  margin-top: 19px;
+}
+.scan-subtitle {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 2px;
 }
 .scan-switch {
   display: grid;
@@ -1076,7 +1087,6 @@ img {
   background: var(--soft);
   padding: 4px;
   border-radius: 10px;
-  margin-top: 25px;
   gap: 4px;
 }
 .scan-switch button {
@@ -1099,19 +1109,22 @@ img {
   box-shadow: 0 2px 6px #212e4510;
 }
 .scan-area {
-  height: 250px;
+  /* The one part of the page that gives way on a short screen; see "Pages that fit the screen". */
+  flex: 1 1 250px;
+  min-height: 140px;
+  max-height: 250px;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  margin-top: 19px;
+  margin-top: 15px;
   border-radius: 16px;
   background: #f3f5fa;
   overflow: hidden;
 }
 .scan-brackets {
   position: absolute;
-  inset: 27px;
+  inset: clamp(12px, 10.8%, 27px) 27px;
   border: 1px solid #d8e0f3;
   border-radius: 16px;
 }
@@ -1137,7 +1150,9 @@ img {
   border-radius: 0 0 15px 0;
 }
 .scan-area .badge-art {
-  width: 167px;
+  flex: none;
+  width: auto;
+  height: min(167px, 67%);
   opacity: 0.88;
   filter: drop-shadow(0 9px 7px #253a6015);
 }
@@ -1157,8 +1172,8 @@ img {
 .scan-area.nfc:after {
   content: '';
   position: absolute;
-  width: 195px;
-  height: 195px;
+  height: min(195px, 78%);
+  aspect-ratio: 1;
   border: 1px solid #2455e834;
   border-radius: 50%;
 }
@@ -1265,6 +1280,50 @@ img {
 .stamp-seat {
   border: 1px dashed #c5cbd6;
 }
+/* Where the stamp rests on the white page: a faint halo in the stamp's own colour and two fine rings, like the ground pattern of a passport page. */
+.stamp-ground {
+  --ground: var(--glow, var(--rim));
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.stamp-ground:before,
+.stamp-ground:after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+.stamp-ground:before {
+  inset: -27%;
+  background: radial-gradient(
+    circle closest-side,
+    color-mix(in srgb, var(--ground) 30%, transparent) 62%,
+    color-mix(in srgb, var(--ground) 10%, transparent) 76%,
+    transparent 90%
+  );
+}
+.stamp-ground:after {
+  inset: -12px;
+  border: 1px solid color-mix(in srgb, var(--ground) 38%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--ground) 20%, transparent);
+  outline-offset: 13px;
+}
+/* On that ground the shadow is a contact shadow: close under the stamp, narrow, and tinted by it. */
+.success-art .medal-shadow,
+.stamp-zoom .medal-shadow {
+  height: 10px;
+  background: color-mix(in srgb, var(--glow, var(--rim)) 45%, #1b243a);
+  filter: blur(7px);
+  opacity: 0.3;
+}
+.success-art .medal-shadow {
+  width: 44%;
+  margin-top: 9px;
+}
+.success-art .medal-flip {
+  bottom: 15px;
+}
 .stamp-ring {
   border: 3px solid var(--rim);
 }
@@ -1304,10 +1363,53 @@ img {
   animation-duration: 0.75s;
   animation-timing-function: ease-in-out;
 }
+.ceremony:not(.settled) [data-ceremony='ground'] {
+  animation-name: ground-in;
+  animation-duration: 0.7s;
+}
 .success-place {
   font-size: 17px;
   font-weight: 550;
   margin-top: 9px;
+}
+/* On-site claim: the stamp leads, its nameplate sits under it, and the closing line comes last. */
+.page.onsite-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Room above the stamp for its halo and rings on a screen too short to centre the page. */
+  padding-top: 42px;
+  padding-bottom: 22px;
+}
+.onsite-success .success-art {
+  margin-top: 0;
+}
+.onsite-success .success-place {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin-top: 10px;
+}
+.success-moment {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.success-moment b,
+.success-moment strong {
+  display: inline-block;
+  font: 14px/1.5 var(--serif);
+  letter-spacing: 0.6px;
+  color: var(--ink);
+}
+.success-page .page-title.success-line {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: 0.4px;
+  margin-top: 14px;
 }
 .success-place-sub {
   font-size: 10px;
@@ -1865,6 +1967,8 @@ img {
 /* Where each stamp's circle sits inside its atlas tile, so the disc turns around the stamp's own centre. */
 .medal-museum {
   --rim: #9f9b9b;
+  /* The rim is a neutral grey; the ground under the stamp takes the blue of its waves instead. */
+  --glow: #8c9fc6;
   --art-width: 113.79%;
   --art-left: -8.35%;
   --art-top: -7.08%;
@@ -1889,6 +1993,7 @@ img {
 }
 .medal-edition {
   --rim: #b08d5c;
+  --glow: #b08d5c;
 }
 .medal-edge {
   /* Keep the rim's centre aligned with the faces when WebKit sorts the 3D layers. */
@@ -1954,6 +2059,9 @@ img {
     color-mix(in srgb, var(--rim) 86%, #fff)
   );
   box-shadow: inset 0 0 0 5px color-mix(in srgb, var(--rim) 80%, #fff);
+  /* The engraving is set for a disc of 232px or more; on a smaller one it shrinks with the disc.
+     Container units measure the face inside its padding, 68% of the disc. */
+  container-type: inline-size;
 }
 .medal-back:before {
   content: '';
@@ -1965,33 +2073,45 @@ img {
 }
 .medal-back small {
   font-size: 11px;
+  font-size: min(11px, 6.97cqw);
   letter-spacing: 5px;
+  letter-spacing: min(5px, 3.17cqw);
   margin-right: -5px;
+  margin-right: max(-5px, -3.17cqw);
   opacity: 0.8;
 }
 .medal-back strong {
   font-size: 20px;
+  font-size: min(20px, 12.68cqw);
   line-height: 1.5;
   font-weight: 600;
   margin-top: 8px;
+  margin-top: min(8px, 5.07cqw);
   overflow-wrap: anywhere;
 }
 .medal-back > span:not(.medal-sheen) {
   font-size: 12px;
+  font-size: min(12px, 7.61cqw);
   line-height: 1.7;
 }
 .medal-back b {
   font: 21px/1.3 var(--serif);
+  font-size: min(21px, 13.31cqw);
   letter-spacing: 0.5px;
   margin-top: 10px;
+  margin-top: min(10px, 6.34cqw);
 }
 /* The collector's own number, set apart like the serial struck on a medal. */
 .medal-back em {
   font: 15px/1.4 var(--serif);
+  font-size: min(15px, 9.51cqw);
   font-style: normal;
   letter-spacing: 1.6px;
+  letter-spacing: min(1.6px, 1.01cqw);
   margin-top: 8px;
+  margin-top: min(8px, 5.07cqw);
   padding-top: 8px;
+  padding-top: min(8px, 5.07cqw);
   border-top: 1px solid color-mix(in srgb, currentColor 32%, transparent);
 }
 .medal-rim {
@@ -2015,14 +2135,115 @@ img {
   color: #7d8593;
   margin-top: 1px;
 }
+/* The collector's number is the stamp's own: set large and widely spaced between two fine rules, like a serial struck on a plate, in the colour of the stamp it is cut into. */
 .issue-plate {
-  display: inline-block;
-  margin-top: 9px;
-  padding: 4px 15px 3px;
-  border: 1px solid #d9dce4;
-  border-radius: 999px;
-  font: 15px/1.5 var(--serif);
-  letter-spacing: 1.3px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 7px;
+  font: 29px/1.3 var(--serif);
+  letter-spacing: 3.2px;
+  color: color-mix(in srgb, var(--glow, var(--rim)) 46%, var(--ink));
+}
+.issue-plate:before,
+.issue-plate:after {
+  content: '';
+  align-self: center;
+  width: 30px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, currentColor);
+  opacity: 0.55;
+}
+.issue-plate:after {
+  background: linear-gradient(to left, transparent, currentColor);
+}
+.issue-plate small {
+  font-size: 13px;
+  letter-spacing: 1.4px;
+  opacity: 0.75;
+}
+.issue-plate small:empty {
+  display: none;
+}
+.issue-plate b {
+  font-weight: 400;
+  /* The tracking after the last digit would push the number off centre. */
+  margin-right: -3.2px;
+}
+/* The collector's own row of stamps; the new one takes the next place in it. */
+.success-shelf {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 11px 18px 8px;
+  border-radius: 14px;
+  background: var(--soft);
+}
+.shelf-item {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 30px;
+}
+.shelf-item .badge-art {
+  filter: drop-shadow(0 2px 2px #24385918);
+}
+.shelf-item i {
+  font: 10px/1.2 var(--serif);
+  font-style: normal;
+  letter-spacing: 0.5px;
+  color: #9aa1ad;
+}
+.shelf-item.shelf-current {
+  position: relative;
+  width: 42px;
+}
+.shelf-current i {
+  font-size: 12px;
+  color: var(--blue);
+}
+/* The place waiting for a new stamp, and the ring thrown off where a stamp lands or is marked. */
+.shelf-current:before,
+.shelf-current:after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.shelf-current:before {
+  border: 1px dashed #b3bac7;
+}
+.shelf-current:after {
+  border: 2px solid var(--blue);
+}
+.ceremony:not(.settled) [data-entry='drop'] .shelf-current:before {
+  animation: seat-clear 0.2s var(--land) both;
+}
+.ceremony:not(.settled) [data-entry] .shelf-current:after {
+  animation: ring-spread 0.6s ease-out var(--land) forwards;
+}
+.ceremony:not(.settled) [data-ceremony='shelf'] {
+  animation-name: shelf-drop;
+  animation-duration: 0.7s;
+  animation-timing-function: linear;
+}
+.shelf-more {
+  align-self: center;
+  padding-bottom: 12px;
+  color: #9aa1ad;
+}
+.success-shelf .badge-edition:after {
+  display: none;
+}
+.badge-kind.new {
+  font-size: 11px;
+  color: var(--blue);
 }
 .issue-list {
   list-style: none;
@@ -2089,12 +2310,34 @@ img {
   opacity: 0.2;
   transform: scaleX(var(--shadow, 1));
 }
+/* The flip control sits at the medal's lower right, in the corner the disc leaves free. */
+.zoom-medal {
+  position: relative;
+  width: min(292px, 100%);
+  margin: 0 auto;
+}
 .medal-flip {
-  display: block;
-  margin: 4px auto 0;
-  min-height: 44px;
-  padding: 0 16px;
-  font-size: 13px;
+  position: absolute;
+  right: -6px;
+  /* Level with the foot of the disc; the shadow under it takes the rest of the stage. */
+  bottom: 30px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+.medal-flip svg {
+  width: 34px;
+  height: 34px;
+  padding: 9px;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    0 2px 6px #212e4512;
+}
+.medal-flip[aria-pressed='true'] svg {
   color: var(--blue);
 }
 .medal-hint {
@@ -2248,6 +2491,40 @@ img {
   100% {
     opacity: 0;
     background-position: -30% 0;
+  }
+}
+/* A small stamp falling into its place in the collector's row, from the direction of the large one. */
+@keyframes shelf-drop {
+  0% {
+    opacity: 0;
+    translate: 0 -170%;
+    scale: 2.1;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.55);
+  }
+  18% {
+    opacity: 1;
+  }
+  60% {
+    translate: 0 0;
+    scale: 0.88;
+    animation-timing-function: ease-out;
+  }
+  80% {
+    scale: 1.07;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+@keyframes ground-in {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
   }
 }
 @keyframes rise-in {
@@ -2569,29 +2846,23 @@ img {
   }
   .stamp-showcase {
     margin-inline: -19px;
-    min-height: 255px;
+    min-height: 280px;
   }
   .stamp-zoom {
     width: 208px;
   }
-  .stamp-showcase:before {
-    width: 210px;
-    height: 210px;
-  }
   .scan-area {
-    height: 225px;
+    flex-basis: 225px;
+    max-height: 225px;
   }
   .scan-title {
-    font-size: 27px;
+    font-size: 21px;
   }
   .success-art {
     width: 244px;
   }
   .success-page .page-title {
     font-size: 27px;
-  }
-  .page-actions {
-    padding-inline: 19px;
   }
   .venue-page {
     padding-inline: 0;
@@ -2637,6 +2908,47 @@ img {
 .stamp-page.unowned .stamp-zoom .medal-stage {
   filter: grayscale(0.85) opacity(0.62);
 }
+/* Not collected yet: the ground is there, without the stamp's colour. */
+.stamp-page.unowned .stamp-ground {
+  --ground: #a9b0bc;
+  opacity: 0.7;
+}
+/* The album's empty slots: stamps still to collect, dimmed under the collected ones. */
+.album-pending {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.album-pending:first-child {
+  margin-top: 0;
+  border-top: 0;
+}
+.album-pending h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+.album-pending p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.badge-card.unowned .badge-frame {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.badge-card.unowned .badge-art {
+  filter: grayscale(0.85) opacity(0.5);
+}
+.badge-card.unowned h3 {
+  color: var(--muted);
+}
+.badge-pending {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--blue);
+  margin-top: 1px;
+}
 /* Limited stamps: how much of the edition is already out. */
 .edition-meter {
   border: 1px solid var(--line);
@@ -2678,4 +2990,111 @@ img {
 }
 .stamp-page.unowned .edition-meter {
   margin-bottom: 14px;
+}
+/* Pages that fit the screen. The scan page and the on-site claim page show everything without
+   scrolling wherever they can. Each gives way in order as the room between the header and the
+   navigation gets shorter: first its largest part shrinks, then the spacing tightens, then the
+   least needed lines go. Below the last step, or where container queries are unsupported, the
+   page simply scrolls as before. */
+.page.scan-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+/* In a column the margins around the action no longer collapse into the place row's. */
+.scan-page .scan-place {
+  margin-top: 7px;
+}
+.page.onsite-success {
+  justify-content: flex-start;
+  /* Everything on the page except the stamp, and the smallest the stamp may get. */
+  --rest: 455px;
+  --least: 200px;
+}
+/* Centred while there is room; once there is none the page starts at the top and scrolls. */
+.onsite-success > :first-child {
+  margin-top: auto;
+}
+.onsite-success > :last-child {
+  margin-bottom: auto;
+}
+.onsite-success .success-art {
+  width: 244px;
+  width: clamp(var(--least), calc(100cqh - var(--rest)), 244px);
+}
+@container main (max-height: 652px) {
+  .onsite-success .success-line {
+    display: none;
+  }
+  .page.onsite-success {
+    padding-top: 30px;
+    padding-bottom: 14px;
+    --rest: 387px;
+    --least: 150px;
+  }
+  .onsite-success .success-shelf {
+    margin-top: 10px;
+  }
+  .onsite-success .page-actions {
+    margin-top: 16px;
+  }
+}
+@container main (max-height: 545px) {
+  .scan-page .scan-title {
+    margin-top: 12px;
+  }
+  .scan-page .scan-area,
+  .scan-page .scan-help {
+    margin-top: 10px;
+  }
+  .scan-page .page-actions {
+    margin-top: 14px;
+    margin-bottom: 12px;
+  }
+  .scan-page .scan-place {
+    margin-top: 0;
+    padding-block: 8px;
+  }
+  .page.scan-page {
+    padding-bottom: 12px;
+  }
+}
+@container main (max-height: 545px) {
+  .page.onsite-success {
+    --rest: 366px;
+    --least: 140px;
+  }
+  .onsite-success .issue-plate {
+    font-size: 25px;
+  }
+  .onsite-success .success-shelf {
+    padding: 7px 14px 5px;
+  }
+  .onsite-success .shelf-item {
+    width: 26px;
+  }
+  .onsite-success .shelf-item.shelf-current {
+    width: 34px;
+  }
+}
+@container main (max-height: 485px) {
+  .scan-page .scan-help small,
+  .scan-page .scan-place p {
+    display: none;
+  }
+  .scan-page .scan-area {
+    min-height: 112px;
+  }
+  .onsite-success .button.secondary {
+    display: none;
+  }
+  .page.onsite-success {
+    --rest: 319px;
+    --least: 120px;
+  }
+  /* Beside a stamp this small the flip control steps out, so it does not cover the artwork. */
+  .onsite-success .medal-flip {
+    right: -30px;
+    bottom: 6px;
+  }
 }
