@@ -33,6 +33,23 @@ export function createRenderer(appContext) {
           locked: () => !!stage.closest('.ceremony:not(.settled)'),
         })
       : null;
+    const book = appContext.dom.main.querySelector('.passport-book'),
+      still = matchMedia('(prefers-reduced-motion: reduce)').matches,
+      // Moving between the album and the tickets turns pages without rendering; any other way
+      // in finds the passport closed, and its cover opens.
+      closed = !appContext.runtime.pageBook;
+    appContext.runtime.pageBook?.destroy();
+    appContext.runtime.pageBook = book
+      ? new appContext.PageBook(book, {
+          animate: !still,
+          cover: closed,
+          // The first time the book is opened, its page lifts to show that it turns.
+          intro: !appContext.runtime.bookShown,
+          enabled: () => !appContext.runtime.modalState,
+          onTurn: appContext.views.bookTurned,
+        })
+      : null;
+    appContext.runtime.bookShown ||= !!book;
     appContext.views.renderFooter();
     appContext.dom.app.dataset.screen = appContext.ui.screen;
     document.title = `${

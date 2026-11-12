@@ -9,7 +9,7 @@ test('mobile forms have readable focus sizes and the confirmation stays within t
     await page.setViewportSize({ width, height: 844 });
     await page.goto('/#/discover/museum');
     await expect(page.getByRole('searchbox')).toHaveCSS('font-size', '16px');
-    await page.goto('/#/visit/landscape/2026-10-03');
+    await page.goto('/#/visit/landscape/2026-10-31');
     await page.locator('.memory-block .visit-add').click();
     await expect(page.locator('#memory-input')).toHaveCSS('font-size', '16px');
     await page.getByRole('button', { name: '关闭', exact: true }).click();
@@ -57,13 +57,68 @@ test('the scan page and the claim page fit the screen without scrolling, down to
     // The stamp, its number, its place in the collector's row and the way on are always there.
     for (const part of ['.success-art', '.issue-plate', '.success-shelf', '.success-moment'])
       await expect(page.locator(part)).toBeInViewport({ ratio: 1 });
-    await expect(page.getByRole('button', { name: '查看这次到访', exact: false })).toBeInViewport({
+    await expect(page.getByRole('button', { name: '分享这一刻', exact: true })).toBeInViewport({
       ratio: 1,
     });
     expect(await overflow()).toBe(0);
     // The closing line is the first thing to go when the screen is short.
     await expect(page.locator('.success-line')).toBeVisible({ visible: height >= 844 });
     await page.screenshot({ path: testInfo.outputPath(`claim-${width}x${height}.png`) });
+  }
+});
+
+test('the passport book fits the screen and turns under a finger, down to a small phone', async ({
+  page,
+}, testInfo) => {
+  const fits = () =>
+      page
+        .locator('#app-main')
+        .evaluate((el) => el.scrollHeight <= el.clientHeight && el.scrollWidth <= el.clientWidth),
+    status = page.locator('.book-status'),
+    cdp = await page.context().newCDPSession(page);
+  for (const [width, height] of [
+    [390, 844],
+    [375, 667],
+    [320, 568],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.goto('/');
+    await page.getByRole('button', { name: '章册 4/5', exact: true }).click();
+    const stage = page.locator('.book-stage'),
+      open = page.locator('.book-page:not([inert])');
+    // Four stamps with their names, dates and numbers, all on the page.
+    for (const part of await open
+      .locator('.badge-card h3, .badge-card .badge-date, .badge-card .badge-issue')
+      .all())
+      await expect(part).toBeInViewport({ ratio: 1 });
+    expect(await fits()).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`album-${width}x${height}.png`) });
+    // A swipe towards the spine turns the page; a second one reaches the tickets.
+    const box = await stage.boundingBox(),
+      touch = (type, across) =>
+        cdp.send('Input.dispatchTouchEvent', {
+          type,
+          touchPoints:
+            across === undefined
+              ? []
+              : [
+                  {
+                    x: Math.round(box.x + box.width * across),
+                    y: Math.round(box.y + box.height / 2),
+                  },
+                ],
+        });
+    for (const expected of ['章册 第 2 页，共 2 页', '票根 第 1 页，共 2 页']) {
+      await touch('touchStart', 0.85);
+      for (const across of [0.75, 0.6, 0.45, 0.3]) await touch('touchMove', across);
+      await touch('touchEnd');
+      await expect(status).toHaveText(expected);
+    }
+    await expect(open.locator('.ticket-card')).toHaveCount(2);
+    for (const part of await open.locator('.ticket-mount, .ticket-card > b, .privacy').all())
+      await expect(part).toBeInViewport({ ratio: 1 });
+    expect(await fits()).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`tickets-${width}x${height}.png`) });
   }
 });
 

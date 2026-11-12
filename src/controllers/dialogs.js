@@ -45,12 +45,24 @@ ${appContext.format.safe(visit.note)}</textarea>
     } else if (kind === 'ticket-view') {
       label = '那天的票根';
       extra = 'full-ticket-modal';
-      const id = appContext.ui.viewingTicket;
+      const id = appContext.ui.viewingTicket,
+        t = appContext.data.tickets[id],
+        // Opened from the passport's ticket wallet, the ticket names its visit and leads to it.
+        wallet = appContext.ui.screen === 'passport';
       body = /* HTML */ `<div class="full-ticket-preview">${appContext.views.ticketVisual(id)}</div>
         <p class="modal-sub">
-          ${appContext.data.tickets[id].kind === 'sample' ? '示例票根' : '保存的原图'} ·
-          仅自己可见<br />移除票根不会影响到访记录与徽章。
-        </p>`;
+          ${
+            wallet
+              ? `${appContext.format.safe(appContext.data.visits[appContext.domain.key(t.venueId, t.visitedAt)]?.name || t.name)} · ${appContext.format.date(t.visitedAt)}<br />`
+              : ''
+          }${t.kind === 'sample' ? '示例票根' : '保存的原图'}
+          · 仅自己可见${wallet ? '' : '<br />移除票根不会影响到访记录与徽章。'}
+        </p>
+        ${
+          wallet
+            ? `<button class="button" data-action="ticket-open-visit">查看这次到访${appContext.format.icon('arrow')}</button>`
+            : ''
+        }`;
     } else if (kind === 'ticket-remove') {
       label = '移除这张票根？';
       body =

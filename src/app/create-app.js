@@ -11,6 +11,7 @@ import {
 import { TicketMedia } from '../storage/ticket-media.js';
 import { TicketEditor } from '../lib/ticket-editor.js';
 import { MedalViewer } from '../lib/medal-viewer.js';
+import { PageBook } from '../lib/page-flip.js';
 import * as images from '../lib/images.js';
 import { createPresentation } from '../lib/presentation.js';
 import { createUiState, createRuntimeState } from '../state/state.js';
@@ -53,6 +54,7 @@ export function createApp() {
     media: new TicketMedia(),
     TicketEditor,
     MedalViewer,
+    PageBook,
     images,
     assets: { atlas, hero },
     ui: createUiState(),
@@ -101,6 +103,7 @@ export function createApp() {
       clearTimeout(appContext.runtime.toastTimer);
       appContext.ceremony.finish();
       appContext.runtime.pageMedal?.destroy();
+      appContext.runtime.pageBook?.destroy();
       appContext.runtime.claimToken++;
       appContext.runtime.ticketToken++;
       appContext.dialogs.closeModal(false);

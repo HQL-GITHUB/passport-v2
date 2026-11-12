@@ -34,19 +34,41 @@ export function createSharingViews(appContext) {
       <div id="page-actions"></div>
     </section>`;
   }
-  // The whole footprint or album on one card.
+  // The whole footprint or album on one card, under the passport's data page.
   function renderJournalShare() {
     const c = appContext.selectors.journalShare();
     let year = '';
     return /* HTML */ `<section class="page share-page screen-enter">
       <div class="share-paper journal-share-paper">
-        <div class="share-top"><span>CULTURAL TRAVEL JOURNAL</span><span>${c.span}</span></div>
-        <h1 class="share-headline">
-          ${c.album ? '每一枚，<br />都是一次到访。' : '一路走来，<br />有迹可循。'}
-        </h1>
-        <div class="share-stats">
-          ${c.stats.map(([count, label]) => `<div><strong>${String(count).padStart(2, '0')}</strong><span>${label}</span></div>`).join('')}
+        <div class="passport-id">
+          <div class="passport-id-top"><span>PASSPORT</span><span>文化旅行护照</span></div>
+          <div class="passport-id-body">
+            <div class="passport-id-photo">
+              ${c.id.stamp ? appContext.format.art(c.id.stamp) : ''}
+            </div>
+            <div class="passport-id-fields">
+              <dl>
+                <div>
+                  <dt>启用日期</dt>
+                  <dd class="numeral">${appContext.format.date(c.id.since)}</dd>
+                </div>
+                <div>
+                  <dt>最近一站</dt>
+                  <dd>${appContext.format.safe(c.id.latest)}</dd>
+                </div>
+              </dl>
+              <div class="passport-id-stats">
+                ${c.stats.map(([count, label]) => `<div><b>${String(count).padStart(2, '0')}</b><span>${label}</span></div>`).join('')}
+              </div>
+            </div>
+          </div>
+          <p class="passport-id-mrz" aria-hidden="true">
+            ${appContext.format.safe(c.id.mrz.padEnd(64, '<'))}
+          </p>
         </div>
+        <h1 class="share-headline">
+          ${c.album ? '每一枚，都是一次到访。' : '一路走来，有迹可循。'}
+        </h1>
         ${
           c.album
             ? `<div class="share-album">${c.stamps.map((s) => `<div>${appContext.format.art(s)}<small>${s.stamp}</small><small class="share-issue">${appContext.format.issue(appContext.data.records[s.id], s)}</small></div>`).join('')}</div>`

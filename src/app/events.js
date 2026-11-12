@@ -52,6 +52,9 @@ export function bindEvents(appContext) {
     }
     if (action === 'preview-album' || action === 'open-album') {
       appContext.ui.collection = 'collected';
+      // From a claim the album opens on the page that holds the stamp.
+      if (action === 'open-album')
+        appContext.ui.stampPage = appContext.views.stampPageOf(appContext.ui.selected);
       appContext.navigation.navigate('passport');
       return;
     }
@@ -68,6 +71,11 @@ export function bindEvents(appContext) {
     if (action === 'view-ticket') {
       appContext.ui.viewingTicket = button.dataset.ticketId;
       appContext.dialogs.openModal('ticket-view');
+      return;
+    }
+    if (action === 'ticket-open-visit') {
+      const t = appContext.data.tickets[appContext.ui.viewingTicket];
+      appContext.navigation.openVisit(appContext.domain.key(t.venueId, t.visitedAt));
       return;
     }
     if (action === 'remove-ticket-dialog') {
@@ -91,15 +99,6 @@ export function bindEvents(appContext) {
     }
     if (action === 'ticket-visit') {
       appContext.navigation.openVisit(appContext.ui.ticketResult.visitKey);
-      return;
-    }
-    if (action === 'onsite-visit') {
-      appContext.navigation.openVisit(
-        appContext.domain.key(
-          appContext.catalog.venueOf(appContext.catalog.byId(appContext.ui.selected)).id,
-          appContext.config.demoDate,
-        ),
-      );
       return;
     }
     if (action === 'visit-share') {
@@ -229,14 +228,28 @@ export function bindEvents(appContext) {
         button.childNodes[0].textContent = '体验首次使用';
         appContext.media.load(appContext.data.tickets).then(() => appContext.render(true));
       }
-      appContext.ui.collection = 'footprints';
+      appContext.ui.collection = 'collected';
+      appContext.ui.stampPage = appContext.ui.ticketPage = 0;
       appContext.ui.visitKey = null;
       appContext.navigation.navigate('passport');
       return;
     }
     if (action === 'collection') {
-      appContext.ui.collection = button.dataset.value;
-      appContext.render(true);
+      const value = button.dataset.value,
+        book = appContext.runtime.pageBook;
+      // The album and the tickets are bookmarks in the same book: between them the pages turn.
+      // The bookmark of the open section goes back to its first page.
+      if (book && appContext.views.inBook(value)) {
+        if (value === appContext.ui.collection)
+          appContext.ui[value === 'tickets' ? 'ticketPage' : 'stampPage'] = 0;
+        book.goTo(appContext.views.bookIndex(value));
+        return;
+      }
+      // The tabs stay on screen while scrolling, so each tab opens where it was last left.
+      appContext.ui.collection = value;
+      appContext.render();
+      appContext.dom.main.scrollTop =
+        appContext.runtime.scrollPositions[`passport/${button.dataset.value}`] || 0;
       return;
     }
     if (action === 'toggle-layout') {
@@ -315,7 +328,9 @@ export function bindEvents(appContext) {
         ? appContext.data.wanted.filter((v) => v !== appContext.ui.selected)
         : [...appContext.data.wanted, appContext.ui.selected];
       appContext.storage.persist();
-      appContext.views.renderFooter();
+      button.classList.toggle('saved', !wanted);
+      button.setAttribute('aria-pressed', String(!wanted));
+      button.setAttribute('aria-label', wanted ? '收藏为想去' : '取消想去收藏');
       appContext.feedback.toast(wanted ? '已从想去中移除' : '已加入想去，留给下一次出发');
       return;
     }

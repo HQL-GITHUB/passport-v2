@@ -7,9 +7,11 @@ export const createDemoData = () => ({
       note: '光从弧形墙面落下来，这一刻很安静。',
       photo: '',
     },
+    // The newest visit holds only a stamp, so the footprints open on a one-line visit followed by
+    // a full card: both forms are in view at once.
     landscape: {
-      firstAt: '2026-10-03',
-      visits: ['2026-10-03'],
+      firstAt: '2026-10-31',
+      visits: ['2026-10-31'],
       note: '',
       photo: '',
     },

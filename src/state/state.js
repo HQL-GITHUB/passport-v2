@@ -2,7 +2,10 @@ export function createUiState() {
   return {
     screen: 'passport',
     selected: 'museum',
-    collection: 'footprints',
+    collection: 'collected',
+    // The page each section of the passport book is open on.
+    stampPage: 0,
+    ticketPage: 0,
     timeline: false,
     city: '全部城市',
     category: 'all',
@@ -37,5 +40,6 @@ export function createRuntimeState() {
     ticketToken: 0,
     cardBusy: false,
     scrollPositions: {},
+    bookShown: false,
   };
 }

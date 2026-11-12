@@ -4,6 +4,8 @@ export function createNavigation(appContext) {
     'screen',
     'selected',
     'collection',
+    'stampPage',
+    'ticketPage',
     'city',
     'category',
     'query',

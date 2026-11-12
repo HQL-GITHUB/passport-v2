@@ -3,7 +3,16 @@ export function createShellViews(appContext) {
   function renderHeader() {
     const owned = !!appContext.data.records[appContext.ui.selected];
     if (['passport', 'discover'].includes(appContext.ui.screen)) {
-      appContext.dom.header.innerHTML = `<div class="app-brand">${appContext.format.icon('passport', 'brand-icon')}旅行护照</div>${appContext.ui.screen === 'discover' ? `<button class="city-button" data-action="choose-city">${appContext.format.icon('pin')}${appContext.format.safe(appContext.ui.city)}${appContext.format.icon('chevron')}</button>` : `<button class="ticket-home-entry" data-action="ticket-entry" data-id="museum">${appContext.format.icon('ticket')}添加票根</button>`}`;
+      // On the passport the header shares the open tab: the footprints or the album, once there
+      // is something in them.
+      const tab = appContext.ui.collection,
+        share =
+          tab === 'footprints' && Object.keys(appContext.data.visits).length
+            ? '分享我的足迹'
+            : tab === 'collected' && Object.keys(appContext.data.records).length
+              ? '分享我的章册'
+              : '';
+      appContext.dom.header.innerHTML = `<div class="app-brand">${appContext.format.icon('passport', 'brand-icon')}旅行护照</div>${appContext.ui.screen === 'discover' ? `<button class="city-button" data-action="choose-city">${appContext.format.icon('pin')}${appContext.format.safe(appContext.ui.city)}${appContext.format.icon('chevron')}</button>` : `<div class="header-actions">${share ? `<button class="collection-share" data-action="share-collection" aria-label="${share}">${appContext.format.icon('share')}</button>` : ''}<button class="ticket-home-entry" data-action="ticket-entry" data-id="museum">${appContext.format.icon('ticket')}添加票根</button></div>`}`;
       return;
     }
     const titles = {
@@ -39,8 +48,7 @@ export function createShellViews(appContext) {
       owned = !!appContext.data.records[v.id];
     if (['passport', 'discover'].includes(appContext.ui.screen)) return '';
     if (appContext.ui.screen === 'venue') {
-      const wanted = appContext.data.wanted.includes(v.id);
-      return `<div class="page-actions two-column"><button class="heart-button ${wanted ? 'saved' : ''}" data-action="want" aria-label="${wanted ? '取消想去收藏' : '收藏为想去'}" aria-pressed="${wanted}">${appContext.format.icon('heart')}</button><button class="button" data-action="scan">${appContext.format.icon('scan')}${owned ? '再次到馆盖章' : '到馆领取纪念章'}</button></div>`;
+      return `<div class="page-actions"><button class="button" data-action="scan">${appContext.format.icon('scan')}${owned ? '再次到馆盖章' : '到馆领取纪念章'}</button></div>`;
     }
     if (appContext.ui.screen === 'stamp') {
       const historic = v.period && v.period[1] < appContext.config.demoDate;
@@ -58,7 +66,7 @@ export function createShellViews(appContext) {
       </div>`;
     }
     if (appContext.ui.screen === 'success') {
-      return `<div class="page-actions success-footer"><button class="button" data-action="onsite-visit">查看这次到访${appContext.format.icon('arrow')}</button><button class="button secondary" data-action="edit-memory">${appContext.format.icon('edit')}给这一站留一句话</button></div>`;
+      return `<div class="page-actions success-footer"><button class="button" data-action="share">${appContext.format.icon('share')}分享这一刻</button><button class="button secondary" data-action="edit-memory">${appContext.format.icon('edit')}记录此刻的心情</button></div>`;
     }
     if (
       ['share', 'visit-share', 'share-footprints', 'share-album'].includes(appContext.ui.screen)

@@ -95,9 +95,13 @@ test('replacing demo state uses the new state in every module and restores origi
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1040 });
+  // The passport opens on the album; the footprints are a tab away.
+  const footprints = () => page.getByRole('button', { name: /^足迹 \d+$/ }).click();
   await page.goto('/');
+  await footprints();
   await expect(page.locator('.footprint-card')).toHaveCount(4);
   await page.getByRole('button', { name: '体验首次使用', exact: false }).click();
+  await footprints();
   await expect(page.locator('.footprint-card')).toHaveCount(0);
   await page.getByRole('button', { name: '添加第一张票根', exact: false }).click();
   await page.getByRole('button', { name: '用示例票根体验', exact: false }).click();
@@ -105,6 +109,7 @@ test('replacing demo state uses the new state in every module and restores origi
   await page.getByRole('button', { name: '查看这次到访', exact: false }).click();
   await expect(page.locator('.visit-stamp-grid > button')).toHaveCount(2);
   await page.getByRole('button', { name: '返回已有收藏', exact: false }).click();
+  await footprints();
   await expect(page.locator('.footprint-card')).toHaveCount(4);
   expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), key)).toBeNull();
 });
@@ -117,6 +122,7 @@ test('the single-file export works offline without loading remote resources', as
   });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(pathToFileURL(path.join(root, 'dist/standalone/旅行护照.html')).href);
+  await page.getByRole('button', { name: '足迹 4', exact: true }).click();
   await expect(page.locator('.footprint-card')).toHaveCount(4);
   for (const width of [320, 390, 768]) {
     await page.setViewportSize({ width, height: 844 });
@@ -135,7 +141,11 @@ test('the single-file export works offline without loading remote resources', as
       return image.naturalWidth;
     });
   expect(artwork).toBeGreaterThan(0);
-  await page.locator('.footprint-card').first().getByRole('button').click();
+  await page
+    .locator('.footprint-card')
+    .filter({ hasText: '白屿美术馆' })
+    .getByRole('button')
+    .click();
   await expect(page.locator('.visit-name')).toHaveText('白屿美术馆');
   expect(remoteRequests).toEqual([]);
   expect(errors).toEqual([]);

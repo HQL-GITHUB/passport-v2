@@ -54,6 +54,16 @@ export function createQueries(appContext) {
   function savedTickets(v) {
     return (v?.ticketIds || []).filter((id) => appContext.data.tickets[id]?.saved);
   }
+  // Every saved ticket with the visit it belongs to, newest visit first.
+  function ticketRows() {
+    return appContext.selectors
+      .visitRows()
+      .flatMap((visit) =>
+        appContext.selectors
+          .savedTickets(visit)
+          .map((id) => ({ id, ticket: appContext.data.tickets[id], visit })),
+      );
+  }
   function ticketVenue(d) {
     const previous = appContext.data.tickets[d.id];
     if (previous?.venueId.startsWith('custom-'))
@@ -127,15 +137,23 @@ export function createQueries(appContext) {
     const rows = appContext.selectors.visitRows(),
       stamps = appContext.selectors.collected(),
       album = appContext.ui.screen === 'share-album',
-      years = [...new Set(rows.map((v) => v.day.slice(0, 4)))].sort(),
+      cities = new Set(rows.map((v) => v.city)).size,
+      since = rows.at(-1)?.day || '',
+      pad = (n) => String(n).padStart(2, '0'),
       shown = album ? stamps.slice(0, 12) : rows.slice(0, 10);
     return {
       album,
-      span: years.length > 1 ? `${years[0]} – ${years.at(-1)}` : years[0] || '',
+      // The passport's data page at the head of the card. The machine-readable line is decoration.
+      id: {
+        since,
+        latest: rows[0] ? `${rows[0].name} · ${rows[0].city}` : '',
+        stamp: stamps[0] || null,
+        mrz: `P<CTP<<${since.replaceAll('-', '')}<<V${pad(rows.length)}<S${pad(stamps.length)}<C${pad(cities)}`,
+      },
       stats: [
         [rows.length, '次到访'],
         [stamps.length, '枚纪念章'],
-        [new Set(rows.map((v) => v.city)).size, '座城市'],
+        [cities, '座城市'],
       ],
       stamps: album ? shown : [],
       visits: album
@@ -153,6 +171,7 @@ export function createQueries(appContext) {
     visitForStamp,
     currentVisit,
     savedTickets,
+    ticketRows,
     ticketVenue,
     getShareContext,
     filteredVenues,

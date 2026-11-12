@@ -90,23 +90,41 @@ export function createDiscoveryViews(appContext) {
   }
   function renderVenue() {
     const v = appContext.catalog.byId(appContext.ui.selected),
-      owned = !!appContext.data.records[v.id];
+      owned = !!appContext.data.records[v.id],
+      wanted = appContext.data.wanted.includes(v.id);
+    // Saving the place for later belongs to the venue, so it sits by its name. The stamp and the
+    // way to claim it are one panel: what can be collected here, and the button that collects it.
     return /* HTML */ `<section class="page venue-page screen-enter">
       ${v.id === 'museum' ? `<img class="venue-photo" src="${appContext.assets.hero}" alt="概念博物馆建筑庭院">` : `<div class="venue-poster" data-word="${v.word}">${appContext.format.art(v)}</div>`}
       <div class="venue-inner">
-        <p class="venue-category">${v.city} / ${v.type}</p>
-        <h1 class="venue-title">${v.name}</h1>
+        <div class="venue-heading">
+          <div>
+            <p class="venue-category">${v.city} / ${v.type}</p>
+            <h1 class="venue-title">${v.name}</h1>
+          </div>
+          <button
+            class="heart-button ${wanted ? 'saved' : ''}"
+            data-action="want"
+            aria-label="${wanted ? '取消想去收藏' : '收藏为想去'}"
+            aria-pressed="${wanted}"
+          >
+            ${appContext.format.icon('heart')}想去
+          </button>
+        </div>
         <p class="venue-intro">${v.intro}</p>
-        <button class="venue-chapter" data-action="stamp">
-          ${appContext.format.art(v)}<span style="flex:1"
-            ><small>这次到访，可以收藏</small>
-            <h3>${v.stamp}</h3>
-            <p>
-              ${v.kind} · ${owned ? '已在你的护照里' : v.limit ? `限量 ${v.limit} 枚` : '现场领取'}
-            </p></span
-          >${appContext.format.icon('chevron')}
-        </button>
-        <div id="page-actions"></div>
+        <div class="venue-stamp">
+          <button class="venue-chapter" data-action="stamp">
+            ${appContext.format.art(v)}<span style="flex:1"
+              ><small>这次到访，可以收藏</small>
+              <h3>${v.stamp}</h3>
+              <p>
+                ${v.kind} ·
+                ${owned ? '已在你的护照里' : v.limit ? `限量 ${v.limit} 枚` : '现场领取'}
+              </p></span
+            >${appContext.format.icon('chevron')}
+          </button>
+          <div id="page-actions"></div>
+        </div>
         <div class="info-row">
           ${appContext.format.icon('book')}
           <div>正在展出：${v.exhibit}<small>留一点时间，慢慢看一场展。</small></div>

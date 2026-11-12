@@ -1,25 +1,13 @@
 /* Visit memories: the ticket, collectibles and personal journal form one page. */
-.memory-passport .passport-stats {
-  margin-top: 18px;
-  margin-bottom: 7px;
-  padding-top: 16px;
-  padding-bottom: 19px;
-}
-.memory-tabs {
-  gap: 27px;
-}
-.memory-tabs button {
-  min-height: 44px;
-}
-.footprint-list {
-  padding-top: 6px;
-}
 .footprint-year {
   font: 25px var(--serif);
   display: flex;
   align-items: baseline;
   gap: 8px;
   margin: 17px 0 13px;
+}
+.footprint-year:first-child {
+  margin-top: 8px;
 }
 .footprint-year > span {
   font: 12px var(--font);
@@ -179,6 +167,10 @@
   margin-top: 15px;
   overflow: hidden;
   isolation: isolate;
+}
+/* The ticket names the place, so it leads the card. */
+.footprint-card.printed .visit-collage {
+  margin-top: 0;
 }
 .collage-ticket {
   width: 76%;
@@ -810,9 +802,6 @@
   margin-top: 14px;
 }
 @media (max-width: 360px) {
-  .memory-tabs {
-    gap: 24px;
-  }
   .footprint-open {
     padding: 13px;
   }
@@ -935,40 +924,795 @@
 .footprint-card.compact .footprint-stamp b {
   margin-left: 0;
 }
-/* Share entry beside the passport tabs, and the overview card it opens. */
-.collection-switch .collection-share {
-  margin-left: auto;
+/* The passport book: the album and the tickets are the pages of one book lying open inside the
+   passport. It takes the room between the tabs and the navigation, so a page never scrolls; its
+   pages keep a passport's proportions while there is height for them. */
+.page.passport-page.book-open {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 8px;
+  /* A page in mid-turn stands taller than the book; it must not make the screen scroll. */
+  overflow: clip;
+}
+.book-open #collection-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 8px;
+}
+.passport-book {
+  -webkit-user-select: none;
+  user-select: none;
+  /* The inside of the cover: a grey lining, darker where it runs into the gutter. */
+  --lining:
+    linear-gradient(270deg, #1d2a442e, #1d2a4400 16px),
+    repeating-linear-gradient(135deg, #ffffff59 0 1px, #0000 1px 7px), #d9dee6;
+}
+/* A page turning towards the reader passes in front of the tabs. */
+.passport-book.turning {
+  position: relative;
+  z-index: 4;
+}
+.book-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.5;
+  min-height: 300px;
+  max-height: 470px;
+  max-height: calc(100cqh - 132px);
+  touch-action: pan-y pinch-zoom;
+}
+/* The back cover shows as a dark rim around the pages. Open, the book lies on its front cover
+   too: that board runs out to the left of the gutter, off the screen, and shows as the same rim
+   above and below what lies on it. */
+.book-cover {
+  position: absolute;
+  inset: 0;
+  border-radius: 0 12px 12px 0;
+  background: var(--ink);
+  box-shadow:
+    0 18px 24px -18px #1b243a8c,
+    0 1px 3px #1b243a29;
+}
+.book-cover:before {
+  content: '';
+  position: absolute;
+  inset: 0 100% 0 -100%;
+  border-radius: 12px 0 0 12px;
+  background: var(--ink);
+  box-shadow: inherit;
+}
+/* Closed, the book is the cover alone. */
+.covered .book-cover {
+  border-radius: 5px 12px 12px 5px;
+}
+.covered .book-cover:before,
+.covered .book-left {
+  visibility: hidden;
+}
+/* The pages still to come, seen edge-on along the fore edge. */
+.book-cover:after {
+  content: '';
+  position: absolute;
+  inset: 8px 4px 8px auto;
+  width: 5px;
+  border-radius: 0 3px 3px 0;
+  background: repeating-linear-gradient(90deg, #fff 0 1px, #c9cfd9 1px 2px);
+}
+.book-leaves {
+  position: absolute;
+  inset: 5px 9px 5px 0;
+  /* Seen from straight above the spine, and from far enough that a lifted page hardly grows. */
+  perspective: 2800px;
+  perspective-origin: left center;
+}
+/* What lies to the left of the gutter, as far as the screen shows it. On the first page that is
+   the inside of the cover; once a page has been turned, it is the back of that page: the same
+   paper as the page on the right, mirrored, so the two run down into the gutter together. */
+.book-left {
+  position: absolute;
+  inset: 0 100% 0 -100%;
+  border-radius: 8px 2px 2px 8px;
+  background: var(--lining);
+}
+.passport-book:not([data-turned='0']) .book-left {
+  border-radius: 2px 8px 8px 2px;
+  transform: scaleX(-1);
+}
+.book-page {
+  container: leaf / size;
+  position: absolute;
+  inset: 0;
+  z-index: var(--n);
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px 8px 19px;
+  border-radius: 2px 8px 8px 2px;
+  overflow: hidden;
+}
+/* White paper with a faint security print; the first band is the shadow of the gutter. Both
+   sides of a page are this paper. */
+.book-page,
+.bend-paper,
+.passport-book:not([data-turned='0']) .book-left {
+  background:
+    linear-gradient(90deg, #1d2a441c, #1d2a4400 15px),
+    repeating-radial-gradient(circle at 24% 30%, #3d5aa00b 0 1px, #0000 1px 8px),
+    repeating-radial-gradient(circle at 78% 72%, #3d5aa00b 0 1px, #0000 1px 8px), #fff;
+}
+.book-page.is-off {
+  visibility: hidden;
+}
+/* The shadow of whatever is above, the turning page or the opening cover, until it has left. */
+.book-page:before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(90deg, #0e162838, #0e16280f 60%, #0e162800);
+  opacity: var(--under, 0);
+}
+/* The shadow a bending page throws along its lifted edge. */
+.book-page:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: var(--cast, none);
+}
+/* A page in mid-turn is shown by a stand-in that bends: copies of the page behind strip-wide
+   windows, each strip hinged on the one before it. The strips run along the fold, which leans
+   towards the corner that leads: the whole set is turned by that lean about the spine's end, and
+   each copy is turned back, so the page itself stays where it lies. Only the faces may fade or
+   clip; anything of the kind on the hinges themselves would flatten the fold. */
+.book-bend {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform-style: preserve-3d;
+}
+.bend-strip {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+/* Each face reaches a hair under the next strip, so no seam shows between them. */
+.bend-front,
+.bend-back {
+  position: absolute;
+  inset: 0 -0.7px 0 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+/* Seen from behind, a page is the same paper without the print. */
+.bend-back {
+  transform: rotateY(180deg);
+}
+.bend-mirror {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(-1);
+}
+/* The page and its blank back, set where the page lies: each strip looks at its own part. */
+.book-page.book-copy,
+.bend-paper {
+  position: absolute;
+  inset: auto;
+}
+.book-page.book-copy {
+  z-index: auto;
+  visibility: visible;
+  --under: 0;
+}
+.bend-paper {
+  border-radius: 2px 8px 8px 2px;
+  overflow: hidden;
+}
+/* The light on the bend, laid over each side as one wash across all the strips: darker where the
+   sheet turns away from the light, a touch brighter where it rises to meet it. */
+.bend-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+/* The front cover. Closed, it lies over the pages; it swings open on the spine and comes down
+   to the left of the gutter, where its inside stays in view. */
+.book-front-wrap {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  perspective: 2800px;
+  perspective-origin: left center;
+}
+.covered .book-front-wrap {
+  display: block;
+}
+.book-front {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: rotateY(var(--turn, 0deg));
+  transform-style: preserve-3d;
+}
+.front-out,
+.front-in {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+/* The face of the cover: dark grained board, foil-stamped. A gilt rule runs round it with a
+   notch at each corner; the hinge shows as a crease beside the spine; a soft sheen lies across. */
+.front-out {
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px 12px 12px 5px;
+  overflow: hidden;
+  background:
+    linear-gradient(112deg, #fff0 34%, #ffffff10 45%, #fff0 58%),
+    linear-gradient(
+      90deg,
+      #080a0fb3 0,
+      #080a0f00 9px,
+      #ffffff14 13px,
+      #080a0f47 15px,
+      #080a0f00 23px
+    ),
+    radial-gradient(#ffffff0d 0.6px, #0000 1px) 0 0 / 3px 3px,
+    radial-gradient(120% 85% at 32% 18%, #2c3445, #1c212c 58%, #141821);
+  color: #cdb376;
+}
+/* The rule, with its corners cut in quarter circles. */
+.front-out:before,
+.front-out:after {
+  content: '';
+  position: absolute;
+  inset: 15px 15px 15px 27px;
+  pointer-events: none;
+}
+.front-out:before {
+  border: 1px solid #cdb37694;
+  -webkit-mask:
+    radial-gradient(circle at 0 0, #0000 9px, #000 9.5px) 0 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0, #0000 9px, #000 9.5px) 100% 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%, #0000 9px, #000 9.5px) 0 100% / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 9px, #000 9.5px) 100% 100% / 51% 51% no-repeat;
+  mask:
+    radial-gradient(circle at 0 0, #0000 9px, #000 9.5px) 0 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0, #0000 9px, #000 9.5px) 100% 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%, #0000 9px, #000 9.5px) 0 100% / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 9px, #000 9.5px) 100% 100% / 51% 51% no-repeat;
+}
+.front-out:after {
+  background:
+    radial-gradient(circle at 0 0, #0000 8.5px, #cdb37694 9px 10px, #0000 10.5px) 0 0 / 11px 11px
+      no-repeat,
+    radial-gradient(circle at 100% 0, #0000 8.5px, #cdb37694 9px 10px, #0000 10.5px) 100% 0 / 11px
+      11px no-repeat,
+    radial-gradient(circle at 0 100%, #0000 8.5px, #cdb37694 9px 10px, #0000 10.5px) 0 100% / 11px
+      11px no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 8.5px, #cdb37694 9px 10px, #0000 10.5px) 100% 100% /
+      11px 11px no-repeat;
+}
+/* Foil lettering: the gold runs light and dark across the letters. */
+.front-out b,
+.front-out i {
+  background: linear-gradient(120deg, #eadbab, #b8985a 42%, #f3e6bd 58%, #a5854a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.front-out b {
+  margin: 7px -11px 0 0;
+  font-size: 23px;
+  font-size: clamp(19px, 7cqw, 25px);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 11px;
+}
+.front-out i {
+  margin-right: -3.4px;
+  font-size: 8px;
+  font-style: normal;
+  line-height: 1.6;
+  letter-spacing: 3.4px;
+}
+.cover-emblem {
+  width: 132px;
+  width: min(40cqw, 34cqh);
+  height: auto;
+  margin: 20px 0 16px;
+  margin: clamp(10px, 5cqh, 26px) 0 clamp(8px, 4cqh, 20px);
+  fill: none;
+}
+/* The mark of an electronic passport, at the foot of the cover. */
+.cover-chip {
+  position: absolute;
+  bottom: 30px;
+  bottom: clamp(24px, 7cqh, 38px);
+  width: 19px;
+  height: 12px;
+  border: 1.4px solid #cdb376b8;
+  border-radius: 2px;
+  background:
+    radial-gradient(circle, #cdb376b8 0 2.3px, #0000 2.8px),
+    linear-gradient(#cdb376b8, #cdb376b8) center / 100% 1.4px no-repeat;
+}
+/* Inside, the board is lined as far as the pages reach; the cover's own edge shows around it. */
+.front-in {
+  border-radius: 12px 0 0 12px;
+  background: var(--ink);
+  transform: rotateY(180deg);
+}
+.front-in:after {
+  content: '';
+  position: absolute;
+  inset: 5px 0 5px 9px;
+  border-radius: 8px 2px 2px 8px;
+  background: var(--lining);
+}
+.leaf-head,
+.leaf-foot {
+  flex-shrink: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--muted);
+}
+.leaf-head span {
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--ink);
+}
+.leaf-head i {
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: 2.4px;
+  color: #9aa3b3;
+}
+.leaf-foot b {
+  font: 13px/20px var(--serif);
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: #8a93a3;
+}
+.leaf-foot .privacy {
+  min-width: 0;
+  margin: 0;
+  line-height: 20px;
+  white-space: nowrap;
+}
+/* A page of the album: four places, two by two. The stamps size themselves to the page. */
+.stamp-slots {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template: 1fr 1fr / 1fr 1fr;
+  gap: 4px 10px;
+}
+.stamp-slots .badge-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+.stamp-slots .badge-frame {
+  width: min(42cqw, calc((100cqh - 170px) / 2));
+  padding: 0;
+  border-radius: 50%;
+  background: none;
+}
+.stamp-slots .badge-card:hover .badge-frame {
+  background: none;
+}
+/* Stamped by hand: no two sit quite straight. */
+.stamp-slots .badge-card:nth-child(1) .badge-art {
+  rotate: -5deg;
+}
+.stamp-slots .badge-card:nth-child(2) .badge-art {
+  rotate: 3deg;
+}
+.stamp-slots .badge-card:nth-child(3) .badge-art {
+  rotate: 4deg;
+}
+.stamp-slots .badge-card:nth-child(4) .badge-art {
+  rotate: -3deg;
+}
+.stamp-slots .badge-kind {
+  top: 0;
+  left: 0;
+}
+.stamp-slots .badge-card h3 {
+  max-width: 100%;
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stamp-slots .badge-issue,
+.stamp-slots .badge-pending {
+  margin-top: 0;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+/* The number comes first; the day the stamp was collected sits under it, quieter. */
+.stamp-slots .badge-issue {
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: #5c6676;
+}
+.stamp-slots .badge-date {
+  font: 11px/1.5 var(--serif);
+  letter-spacing: 0.4px;
+  color: #9299a6;
+  white-space: nowrap;
+}
+/* A place still empty: a dashed ring with the stamp it is waiting for, dimmed. */
+.stamp-slots .badge-card.unowned .badge-frame {
+  box-shadow: none;
+  outline: 1px dashed #c3cad6;
+  outline-offset: -1px;
+}
+.stamp-slots .badge-card.unowned .badge-art {
+  scale: 0.84;
+}
+@container leaf (max-height: 360px) {
+  .stamp-slots .badge-edition:after {
+    border-width: 1px;
+    padding: 1px 4px;
+    font-size: 7px;
+  }
+}
+/* A page of tickets: two to a page, each tucked in by its corners. The page's height decides how
+   large a ticket is shown. */
+.ticket-slots {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 4px;
+  --ticket-zoom: 0.42;
+  --ticket-w: 62%;
+  --ticket-h: 84px;
+  --ticket-badge: 30px;
+}
+@container leaf (min-height: 340px) {
+  .ticket-slots {
+    --ticket-zoom: 0.5;
+    --ticket-w: 66%;
+    --ticket-h: 100px;
+    --ticket-badge: 34px;
+  }
+}
+@container leaf (min-height: 400px) {
+  .ticket-slots {
+    --ticket-zoom: 0.62;
+    --ticket-w: 72%;
+    --ticket-h: 124px;
+    --ticket-badge: 40px;
+  }
+}
+@container leaf (min-height: 450px) {
+  .ticket-slots {
+    --ticket-zoom: 0.74;
+    --ticket-w: 78%;
+    --ticket-h: 148px;
+    --ticket-badge: 46px;
+  }
+}
+.ticket-card {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  align-items: baseline;
+  column-gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  text-align: left;
+}
+.ticket-mount {
+  flex: none;
+  position: relative;
+  width: var(--ticket-w);
+  margin-bottom: 8px;
+  rotate: -1.6deg;
+}
+/* The date and the venue share the line under the ticket. */
+.ticket-card:after {
+  content: '';
+  order: 1;
+  flex-basis: 100%;
+}
+.ticket-card > b,
+.ticket-card > strong {
+  order: 2;
+  min-width: 0;
+}
+.ticket-card:nth-child(even) .ticket-mount {
+  rotate: 1.4deg;
+}
+/* An imported original keeps its own proportions. */
+.ticket-mount.original {
+  width: auto;
+  max-width: 86%;
+}
+.ticket-mount .sample-ticket {
+  zoom: var(--ticket-zoom);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px #dfe4ec,
+    0 9px 16px #223b6421;
+}
+/* On white paper the ticket's notches are cut edges, not grey dots. */
+.ticket-mount .sample-ticket:before,
+.ticket-mount .sample-ticket:after {
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px #dfe4ec;
+}
+.ticket-mount .saved-ticket-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: var(--ticket-h);
+  object-fit: contain;
+  padding: 3px;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px #dfe4ec,
+    0 5px 10px #223b6421;
+  -webkit-user-drag: none;
+}
+.ticket-mount .missing-ticket {
+  display: grid;
+  place-items: center;
+  height: var(--ticket-h);
+  padding: 0 16px;
+  border-radius: 3px;
+}
+/* The four slits in the page that hold the ticket. */
+.ticket-mount:after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  pointer-events: none;
+  --slit: #fff calc(50% - 1px), #d3d9e3 calc(50% - 1px) 50%, #0000 50%;
+  background:
+    linear-gradient(135deg, var(--slit)) top left,
+    linear-gradient(225deg, var(--slit)) top right,
+    linear-gradient(315deg, var(--slit)) bottom right,
+    linear-gradient(45deg, var(--slit)) bottom left;
+  background-size: 15px 15px;
+  background-repeat: no-repeat;
+}
+.ticket-thumb-badges {
+  position: absolute;
+  right: -13px;
+  bottom: -7px;
+  z-index: 1;
+  display: flex;
+  flex-direction: row-reverse;
+}
+.ticket-thumb-badges .badge-art {
+  width: var(--ticket-badge);
+  filter: drop-shadow(0 3px 3px #292a3026);
+}
+.ticket-thumb-badges .badge-art + .badge-art {
+  margin-right: -11px;
+}
+.ticket-card > b {
+  font: 14px/1.5 var(--serif);
+  font-weight: 400;
+  letter-spacing: 0.4px;
+}
+.ticket-card > strong {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The place kept for the next ticket. */
+.ticket-add {
+  place-self: center;
   display: flex;
   align-items: center;
-  gap: 5px;
-  min-height: 44px;
-  padding: 0 0 4px 8px;
+  justify-content: center;
+  gap: 6px;
+  width: var(--ticket-w);
+  height: var(--ticket-h);
+  border: 1px dashed #c3cad6;
+  border-radius: 6px;
   font-size: 12px;
   color: var(--blue);
 }
-.collection-share svg {
+.ticket-add svg {
   width: 15px;
   height: 15px;
 }
-.share-stats {
+.ticket-leaf .empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 4px;
+}
+.ticket-leaf .empty-state .empty-art {
+  width: 56px;
+  margin-bottom: 8px;
+}
+/* Under the book: step a page either way; the dots show the place, tickets set slightly apart. */
+.book-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 44px;
+  margin-top: 4px;
+}
+.book-pager button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--ink);
+}
+.book-pager button:disabled {
+  color: #cbd0da;
+  opacity: 1;
+  cursor: default;
+}
+.book-pager svg {
+  width: 18px;
+  height: 18px;
+}
+.book-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.book-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: #d5dae3;
+  transition:
+    width 0.2s,
+    background 0.2s;
+}
+.book-dots i.active {
+  width: 18px;
+  background: var(--blue);
+}
+.book-dots .collected + .tickets {
+  margin-left: 8px;
+}
+/* The first mark is the cover: a small closed book. */
+.book-dots .cover {
+  width: 5px;
+  height: 7px;
+  margin-right: 3px;
+  border-radius: 1px 2px 2px 1px;
+  background: #b3bac7;
+}
+.book-dots .cover.active {
+  width: 5px;
+  background: var(--ink);
+}
+/* The overview share card opens with the passport's data page: the newest stamp sits where the
+   photo would be, and the line of chevrons underneath is decoration. */
+.passport-id {
+  margin: 16px 16px 0;
+  padding: 14px 16px 10px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+}
+.passport-id-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 8px;
+  letter-spacing: 1.8px;
+  color: #9aa3b5;
+}
+.passport-id-body {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+}
+.passport-id-photo {
+  flex-shrink: 0;
+  width: 78px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #ffffff26;
+  border-radius: 6px;
+  background: #ffffff0d;
+}
+.passport-id-photo .badge-art {
+  width: 66px;
+}
+.passport-id-fields {
+  flex: 1;
+  min-width: 0;
+}
+.passport-id dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+.passport-id dt,
+.passport-id-stats span {
+  font-size: 8px;
+  letter-spacing: 0.6px;
+  color: #9aa3b5;
+}
+.passport-id dd {
+  margin: 1px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.passport-id dd.numeral {
+  font: 14px/1.4 var(--serif);
+  letter-spacing: 0.5px;
+}
+.passport-id-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  margin: 16px 20px 0;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e3e8f1;
+  gap: 6px;
+  margin-top: 9px;
 }
-.share-stats > div {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-}
-.share-stats strong {
-  font: 21px/1 var(--serif);
+.passport-id-stats b {
+  display: block;
+  font: 17px/1.25 var(--serif);
   font-weight: 400;
 }
-.share-stats span {
-  font-size: 9px;
-  color: var(--muted);
+.passport-id-stats span {
+  display: block;
+  line-height: 1.5;
+}
+.passport-id-mrz {
+  margin-top: 11px;
+  padding-top: 8px;
+  border-top: 1px dashed #ffffff1f;
+  font:
+    8px/1.4 ui-monospace,
+    Consolas,
+    'Courier New',
+    monospace;
+  letter-spacing: 1.5px;
+  color: #7f8aa0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.journal-share-paper .share-headline {
+  font-size: 16px;
+  letter-spacing: 0;
+  padding-top: 17px;
 }
 .share-journal {
   padding: 4px 20px 0;
@@ -1019,7 +1763,9 @@
   margin-right: -6px;
 }
 .share-stop-badges .badge-edition:after,
-.share-album .badge-edition:after {
+.share-album .badge-edition:after,
+.ticket-thumb-badges .badge-edition:after,
+.passport-id-photo .badge-edition:after {
   display: none;
 }
 .share-album {

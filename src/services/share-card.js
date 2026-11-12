@@ -75,7 +75,7 @@ export function createShareCardService(appContext) {
       await loadNumerals();
       const canvas = document.createElement('canvas');
       canvas.width = 1080;
-      canvas.height = 590 + body + (c.more > 0 ? 70 : 0) + 190;
+      canvas.height = 740 + body + (c.more > 0 ? 70 : 0) + 190;
       const ctx = canvas.getContext('2d'),
         // Long venue names end in an ellipsis instead of running into the stamps.
         fit = (text, width) => {
@@ -87,33 +87,66 @@ export function createShareCardService(appContext) {
       ctx.fillStyle = '#fafbfe';
       ctx.fillRect(0, 0, 1080, canvas.height);
       ctx.textBaseline = 'top';
-      ctx.fillStyle = '#7a88a1';
-      ctx.font = `22px ${sans}`;
-      ctx.fillText('CULTURAL TRAVEL JOURNAL', 90, 75);
-      ctx.textAlign = 'right';
-      ctx.fillText(c.span, 990, 75);
-      ctx.textAlign = 'left';
+      // The passport's data page: the newest stamp sits where the photo would be.
       ctx.fillStyle = '#20242c';
-      ctx.font = `500 84px ${sans}`;
-      ctx.fillText(c.album ? '每一枚，' : '一路走来，', 85, 160);
-      ctx.fillText(c.album ? '都是一次到访。' : '有迹可循。', 85, 272);
-      c.stats.forEach(([count, label], i) => {
-        const x = 90 + i * 300,
-          number = String(count).padStart(2, '0');
-        ctx.fillStyle = '#20242c';
-        ctx.font = `64px ${numerals}`;
-        ctx.fillText(number, x, 420);
-        const w = ctx.measureText(number).width;
-        ctx.fillStyle = '#626c7b';
-        ctx.font = `26px ${sans}`;
-        ctx.fillText(label, x + w + 14, 452);
+      ctx.beginPath();
+      ctx.roundRect(90, 80, 900, 470, 24);
+      ctx.fill();
+      ctx.fillStyle = '#9aa3b5';
+      ctx.font = `22px ${sans}`;
+      ctx.fillText('PASSPORT', 140, 120);
+      ctx.textAlign = 'right';
+      ctx.fillText('文化旅行护照', 940, 120);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffffff0d';
+      ctx.strokeStyle = '#ffffff26';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(140, 178, 236, 280, 16);
+      ctx.fill();
+      ctx.stroke();
+      if (c.id.stamp) ctx.drawImage(badgeTile(atlas, c.id.stamp), 158, 218, 200, 200);
+      [
+        ['启用日期', appContext.format.date(c.id.since), `38px ${numerals}`],
+        ['最近一站', c.id.latest, `500 32px ${sans}`],
+      ].forEach(([label, value, font], i) => {
+        const top = 178 + i * 96;
+        ctx.fillStyle = '#9aa3b5';
+        ctx.font = `21px ${sans}`;
+        ctx.fillText(label, 424, top);
+        ctx.fillStyle = '#fff';
+        ctx.font = font;
+        ctx.fillText(fit(value, 516), 424, top + 32);
       });
+      c.stats.forEach(([count, label], i) => {
+        const x = 424 + i * 172;
+        ctx.fillStyle = '#fff';
+        ctx.font = `46px ${numerals}`;
+        ctx.fillText(String(count).padStart(2, '0'), x, 372);
+        ctx.fillStyle = '#9aa3b5';
+        ctx.font = `21px ${sans}`;
+        ctx.fillText(label, x, 430);
+      });
+      ctx.strokeStyle = '#ffffff1f';
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(140, 484);
+      ctx.lineTo(940, 484);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#7f8aa0';
+      ctx.font = '21px Consolas, "Courier New", monospace';
+      ctx.fillText(c.id.mrz.padEnd(Math.floor(800 / ctx.measureText('<').width), '<'), 140, 504);
+      ctx.fillStyle = '#20242c';
+      ctx.font = `500 48px ${sans}`;
+      ctx.fillText(c.album ? '每一枚，都是一次到访。' : '一路走来，有迹可循。', 88, 612);
       ctx.strokeStyle = '#e0e6f1';
       ctx.beginPath();
-      ctx.moveTo(90, 530);
-      ctx.lineTo(990, 530);
+      ctx.moveTo(90, 704);
+      ctx.lineTo(990, 704);
       ctx.stroke();
-      let y = 590;
+      let y = 740;
       if (c.album) {
         const gap = 40,
           left = (1080 - columns * size - (columns - 1) * gap) / 2;

@@ -2,46 +2,38 @@
 export function createPassportViews(appContext) {
   function renderPassport() {
     const rows = appContext.selectors.visitRows(),
-      list = appContext.selectors.collected(),
-      cities = new Set(rows.map((v) => v.city)).size;
-    return /* HTML */ `<section class="page passport-page memory-passport screen-enter">
-      <p class="eyebrow">YOUR CULTURAL JOURNAL</p>
-      <h1 class="page-title">我的旅行护照</h1>
-      <p class="subtitle">一张票根，一枚纪念，一次相遇。</p>
-      <div class="passport-stats">
-        <div><strong>${String(rows.length).padStart(2, '0')}</strong><span>次到访</span></div>
-        <div><strong>${String(list.length).padStart(2, '0')}</strong><span>枚纪念章</span></div>
-        <div><strong>${String(cities).padStart(2, '0')}</strong><span>座城市</span></div>
-      </div>
-      <div class="collection-switch memory-tabs" role="group" aria-label="护照内容">
-        ${[
-          ['footprints', '足迹', rows.length],
-          ['collected', '章册', `${list.length}/${appContext.catalog.stamps.length}`],
-          ['wanted', '想去', appContext.data.wanted.length],
-        ]
-          .map(
-            ([value, label, count]) =>
-              `<button data-action="collection" data-value="${value}" class="${appContext.ui.collection === value ? 'active' : ''}" aria-pressed="${appContext.ui.collection === value}">${label}<span class="count">${count}</span></button>`,
-          )
-          .join('')}
-        ${
-          (appContext.ui.collection === 'footprints' && rows.length) ||
-          (appContext.ui.collection === 'collected' && list.length)
-            ? `<button class="collection-share" data-action="share-collection" aria-label="${appContext.ui.collection === 'footprints' ? '分享我的足迹' : '分享我的章册'}">${appContext.format.icon('share')}分享</button>`
-            : ''
-        }
+      list = appContext.selectors.collected();
+    // The tabs are the passport's figures: each carries its count above its name and stays in
+    // reach while the page scrolls. The two bookmarks of the book come first, and the passport
+    // opens on the album. The header already names the page, so the title is not shown; sharing
+    // the open tab sits in the header too.
+    return /* HTML */ `<section
+      class="page passport-page memory-passport screen-enter ${inBook() ? 'book-open' : ''}"
+    >
+      <h1 class="sr-only">我的旅行护照</h1>
+      <div class="collection-switch memory-tabs">
+        <div class="collection-tabs" role="group" aria-label="护照内容">
+          ${[
+            ['collected', '章册', `${list.length}/${appContext.catalog.stamps.length}`],
+            ['tickets', '票根', appContext.selectors.ticketRows().length],
+            ['footprints', '足迹', rows.length],
+            ['wanted', '想去', appContext.data.wanted.length],
+          ]
+            .map(
+              ([value, label, count]) =>
+                `<button data-action="collection" data-value="${value}" class="${appContext.ui.collection === value ? 'active' : ''}" aria-pressed="${appContext.ui.collection === value}">${label}<span class="count">${count}</span></button>`,
+            )
+            .join('')}
+        </div>
       </div>
       <div id="collection-content">${appContext.views.renderCollection()}</div>
-      <p class="foot-hint">让走过的地方，都有一页可翻。</p>
     </section>`;
   }
   function renderCollection() {
     if (appContext.ui.collection === 'footprints') return appContext.views.renderFootprints();
-    const wanted = appContext.ui.collection === 'wanted',
-      list = wanted
-        ? appContext.catalog.venues.filter((v) => appContext.data.wanted.includes(v.id))
-        : appContext.selectors.collected();
-    if (wanted && !list.length)
+    if (inBook()) return renderBook();
+    const list = appContext.catalog.venues.filter((v) => appContext.data.wanted.includes(v.id));
+    if (!list.length)
       return /* HTML */ `<div class="empty-state">
         <div class="empty-art">${appContext.format.art(appContext.catalog.venues[0])}</div>
         <h3>下一站，留给你的好奇心</h3>
@@ -50,57 +42,229 @@ export function createPassportViews(appContext) {
           发现目的地${appContext.format.icon('arrow')}
         </button>
       </div>`;
-    const grid = `<div class="badge-grid">${list
+    return `<div class="badge-grid">${list
       .map(
         (v) =>
-          /* HTML */ `<button
-            class="badge-card"
-            data-action="${wanted ? 'venue' : 'stamp'}"
-            data-id="${v.id}"
-          >
-            <div class="badge-frame">
-              ${!wanted && appContext.data.records[v.id].firstAt === appContext.config.demoDate ? '<span class="badge-kind new">新</span>' : ''}${appContext.format.art(v)}
-            </div>
+          /* HTML */ `<button class="badge-card" data-action="venue" data-id="${v.id}">
+            <div class="badge-frame">${appContext.format.art(v)}</div>
             <h3>${v.stamp}</h3>
-            <p class="badge-meta">
-              ${v.name} ·
-              ${wanted ? '想去' : appContext.format.displayVisit(appContext.format.firstVisit(appContext.data.records[v.id]))}
-            </p>
-            ${wanted ? '' : `<p class="badge-issue">${appContext.format.issue(appContext.data.records[v.id], v)}</p>`}
+            <p class="badge-meta">${v.name} · 想去</p>
           </button>`,
       )
       .join('')}</div>`;
-    return wanted ? grid : (list.length ? grid : '') + pendingStamps(list.length);
   }
-  // The stamps still to collect, as dimmed slots under the album. Each opens the stamp's own page,
-  // which says how to get it: on site, or with a ticket once its exhibition has ended.
-  function pendingStamps(owned) {
-    const list = appContext.selectors.uncollected();
-    if (!list.length) return '';
-    return /* HTML */ `<div class="album-pending">
-        <h3>${owned ? `还有 ${list.length} 枚，等你出发` : '第一枚纪念章，等你出发'}</h3>
-        <p>${owned ? '点开一枚，看看怎样把它收入章册。' : '参观一座喜欢的馆，把纪念收入章册。'}</p>
+  // The album and the tickets are the two sections of one book, opened inside the passport: a page
+  // holds four stamps or two tickets, and the tabs are its bookmarks.
+  const sections = { collected: '章册', tickets: '票根' };
+  function inBook(section = appContext.ui.collection) {
+    return Object.hasOwn(sections, section);
+  }
+  function albumStamps() {
+    return [...appContext.selectors.collected(), ...appContext.selectors.uncollected()];
+  }
+  function bookPages() {
+    const pages = (list, size) =>
+        Array.from({ length: Math.ceil(list.length / size) }, (_, n) =>
+          list.slice(n * size, (n + 1) * size),
+        ),
+      tickets = appContext.selectors.ticketRows();
+    return {
+      collected: pages(albumStamps(), 4),
+      // After the last ticket there is always a place for the next one.
+      tickets: pages([...tickets, null], 2),
+    };
+  }
+  // The page a section opens on, counted through the whole book. Each section keeps its own place.
+  function bookIndex(section = appContext.ui.collection) {
+    const pages = bookPages();
+    appContext.ui.stampPage = Math.min(appContext.ui.stampPage, pages.collected.length - 1);
+    appContext.ui.ticketPage = Math.min(appContext.ui.ticketPage, pages.tickets.length - 1);
+    return section === 'tickets'
+      ? pages.collected.length + appContext.ui.ticketPage
+      : appContext.ui.stampPage;
+  }
+  function stampPageOf(id) {
+    return Math.floor(
+      Math.max(
+        0,
+        albumStamps().findIndex((v) => v.id === id),
+      ) / 4,
+    );
+  }
+  // A page was turned: the tab of its section takes over, and the header shares that section.
+  function bookTurned(leaf) {
+    const section = leaf.dataset.section,
+      changed = section !== appContext.ui.collection;
+    appContext.ui.collection = section;
+    appContext.ui[section === 'tickets' ? 'ticketPage' : 'stampPage'] = Number(leaf.dataset.local);
+    if (!changed) return;
+    for (const tab of appContext.dom.main.querySelectorAll('[data-action="collection"]')) {
+      const active = tab.dataset.value === section;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-pressed', String(active));
+    }
+    appContext.views.renderHeader();
+  }
+  // Stamped on the cover in foil: a globe inside a compass, ringed like a seal.
+  const coverEmblem = /* HTML */ `<svg class="cover-emblem" viewBox="0 0 120 120">
+    <defs>
+      <linearGradient id="cover-foil" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#eadbab" />
+        <stop offset=".45" stop-color="#b8985a" />
+        <stop offset=".62" stop-color="#f3e6bd" />
+        <stop offset="1" stop-color="#a5854a" />
+      </linearGradient>
+    </defs>
+    <g stroke="url(#cover-foil)">
+      <circle cx="60" cy="60" r="56" stroke-width="1" />
+      <circle
+        cx="60"
+        cy="60"
+        r="51"
+        stroke-width="2.4"
+        stroke-dasharray=".9 3.55"
+        stroke-linecap="butt"
+      />
+      <circle cx="60" cy="60" r="45.5" stroke-width=".7" />
+      <circle cx="60" cy="60" r="27" stroke-width="1.1" />
+      <ellipse cx="60" cy="60" rx="11" ry="27" stroke-width=".8" />
+      <ellipse cx="60" cy="60" rx="20.5" ry="27" stroke-width=".6" />
+      <path d="M33 60h54M36.4 47h47.2M36.4 73h47.2" stroke-width=".8" />
+    </g>
+    <g fill="url(#cover-foil)" stroke="none">
+      <path d="m60 14 3.2 15h-6.4ZM60 106l3.2-15h-6.4ZM14 60l15-3.2v6.4ZM106 60l-15-3.2v6.4Z" />
+      <circle cx="33.5" cy="33.5" r="1.4" />
+      <circle cx="86.5" cy="33.5" r="1.4" />
+      <circle cx="33.5" cy="86.5" r="1.4" />
+      <circle cx="86.5" cy="86.5" r="1.4" />
+    </g>
+  </svg>`;
+  function renderBook() {
+    const pages = bookPages(),
+      leaves = [
+        ...pages.collected.map((items, local) => ['collected', local, items]),
+        ...pages.tickets.map((items, local) => ['tickets', local, items]),
+      ],
+      owned = appContext.selectors.collected().length,
+      pending = appContext.selectors.uncollected().length;
+    return /* HTML */ `<div class="passport-book" data-page="${bookIndex()}">
+      <div class="book-stage">
+        <div class="book-cover" aria-hidden="true"></div>
+        <div class="book-leaves">
+          <div class="book-left" aria-hidden="true"></div>
+          ${leaves
+            .map(([section, local, items], n) => {
+              const album = section === 'collected',
+                // The first page with an empty slot says how many are still to come.
+                note =
+                  album && pending && local === Math.floor(owned / 4)
+                    ? `<span class="album-pending">${owned ? `还有 ${pending} 枚，等你出发` : '第一枚纪念章，等你出发'}</span>`
+                    : album
+                      ? '<span></span>'
+                      : `<span class="privacy">${appContext.format.icon('lock')}票根仅自己可见，原图只保存在本机</span>`;
+              return /* HTML */ `<div
+                class="book-page ${album ? 'stamp-leaf' : 'ticket-leaf'}"
+                style="--n:${leaves.length - n}"
+                role="group"
+                aria-label="${sections[section]} 第 ${local + 1} 页，共 ${pages[section].length} 页"
+                data-section="${section}"
+                data-local="${local}"
+              >
+                <div class="leaf-head">
+                  <span>${album ? '纪念章' : '票根'}</span
+                  ><i aria-hidden="true">${album ? 'STAMPS' : 'TICKETS'}</i>
+                </div>
+                ${
+                  album
+                    ? `<div class="stamp-slots">${items.map(stampSlot).join('')}</div>`
+                    : appContext.selectors.ticketRows().length
+                      ? `<div class="ticket-slots">${items.map(ticketSlot).join('')}</div>`
+                      : emptyTickets()
+                }
+                <div class="leaf-foot">${note}<b>${String(n + 1).padStart(2, '0')}</b></div>
+              </div>`;
+            })
+            .join('')}
+        </div>
+        <div class="book-front-wrap" aria-hidden="true">
+          <div class="book-front">
+            <div class="front-out">
+              <i>CULTURAL TRAVEL</i>
+              <b>旅行护照</b>
+              ${coverEmblem}
+              <i>PASSPORT</i>
+              <span class="cover-chip"></span>
+            </div>
+            <div class="front-in"></div>
+          </div>
+        </div>
       </div>
-      <div class="badge-grid">
-        ${list
-          .map((v) => {
-            const e = appContext.selectors.edition(v),
-              ended = v.period && v.period[1] < appContext.config.demoDate;
-            return /* HTML */ `<button
-              class="badge-card unowned"
-              data-action="stamp"
-              data-id="${v.id}"
-            >
-              <div class="badge-frame">${appContext.format.art(v)}</div>
-              <h3>${v.stamp}</h3>
-              <p class="badge-meta">${v.name} · ${v.city}</p>
-              <p class="badge-pending">
-                ${ended ? '可用票根补领' : !e ? '到馆领取' : e.left > 0 ? `限量 · 还剩 ${e.left.toLocaleString('en-US')} 枚` : '已全部发行完毕'}
-              </p>
-            </button>`;
-          })
-          .join('')}
-      </div>`;
+      <div class="book-pager">
+        <button data-book-step="-1" aria-label="上一页">${appContext.format.icon('back')}</button>
+        <span class="book-dots" aria-hidden="true"
+          ><i class="cover"></i
+          >${leaves.map(([section]) => `<i class="${section}"></i>`).join('')}</span
+        >
+        <button data-book-step="1" aria-label="下一页">${appContext.format.icon('chevron')}</button>
+        <span class="sr-only book-status" role="status"></span>
+      </div>
+    </div>`;
+  }
+  // A place in the album. A collected stamp sits on the page with its number and, under it, the
+  // day it was collected; one still to collect is a dimmed slot that opens the stamp's own page, which says how
+  // to get it: on site, or with a ticket once its exhibition has ended.
+  function stampSlot(v) {
+    const record = appContext.data.records[v.id];
+    if (record)
+      return /* HTML */ `<button class="badge-card" data-action="stamp" data-id="${v.id}">
+        <div class="badge-frame">
+          ${record.firstAt === appContext.config.demoDate ? '<span class="badge-kind new">新</span>' : ''}${appContext.format.art(v)}
+        </div>
+        <h3>${v.stamp}</h3>
+        <p class="badge-issue">${appContext.format.issue(record, v)}</p>
+        <p class="badge-date">${appContext.format.date(record.firstAt)}</p>
+      </button>`;
+    const e = appContext.selectors.edition(v),
+      ended = v.period && v.period[1] < appContext.config.demoDate;
+    return /* HTML */ `<button class="badge-card unowned" data-action="stamp" data-id="${v.id}">
+      <div class="badge-frame">${appContext.format.art(v)}</div>
+      <h3>${v.stamp}</h3>
+      <p class="badge-pending">
+        ${ended ? '可用票根补领' : !e ? '到馆领取' : e.left > 0 ? `限量 · 还剩 ${e.left.toLocaleString('en-US')} 枚` : '已全部发行完毕'}
+      </p>
+    </button>`;
+  }
+  function emptyTickets() {
+    return /* HTML */ `<div class="empty-state">
+      <div class="empty-art">${appContext.format.icon('ticket')}</div>
+      <h3>去过的票根，都夹在这里。</h3>
+      <p>拍下纸质票根，或导入电子票截图。原图只保存在本机。</p>
+      <button class="button" data-action="ticket-entry" data-id="museum">
+        添加第一张票根${appContext.format.icon('arrow')}
+      </button>
+    </div>`;
+  }
+  // A saved ticket tucked into the page by its corners, newest visit first. It opens at full size;
+  // the stamps it was redeemed for sit on its corner.
+  function ticketSlot(row) {
+    if (!row)
+      return /* HTML */ `<button class="ticket-add" data-action="ticket-entry" data-id="museum">
+        ${appContext.format.icon('ticket')}再添一张票根
+      </button>`;
+    const { id, ticket, visit } = row;
+    return /* HTML */ `<button class="ticket-card" data-action="view-ticket" data-ticket-id="${id}">
+      <span class="ticket-mount ${ticket.kind === 'image' ? 'original' : ''}">
+        ${appContext.views.ticketVisual(id)}
+        <span class="ticket-thumb-badges">
+          ${ticket.redeemed
+            .slice(0, 2)
+            .map((s) => appContext.format.art(appContext.catalog.byId(s)))
+            .join('')}
+        </span>
+      </span>
+      <b>${appContext.format.date(visit.day)}</b>
+      <strong>${appContext.format.safe(visit.name)}</strong>
+    </button>`;
   }
   function renderFootprints() {
     const rows = appContext.selectors.visitRows();
@@ -144,6 +308,9 @@ export function createPassportViews(appContext) {
     const tickets = appContext.selectors.savedTickets(v),
       badges = v.stampIds.map(appContext.catalog.byId),
       rich = tickets.length > 0 || !!v.photo,
+      // A printed ticket already names the venue and the exhibition, so the card does not repeat
+      // them above it. An imported photo of a ticket, or a visit photo, still gets the heading.
+      printed = tickets.length > 0 && appContext.data.tickets[tickets[0]].kind === 'sample',
       note = v.note?.trim(),
       name = appContext.format.safe(v.name),
       exhibit = appContext.format.safe(v.exhibit || '一次与文化的相遇');
@@ -152,16 +319,20 @@ export function createPassportViews(appContext) {
         <b>${appContext.format.dateShort(v.day)}</b>${appContext.format.safe(v.city)}
       </p>
       <article
-        class="footprint-card ${rich ? '' : 'compact'} ${appContext.ui.highlightVisit === v.key ? 'visit-highlight' : ''}"
+        class="footprint-card ${rich ? (printed ? 'printed' : '') : 'compact'} ${appContext.ui.highlightVisit === v.key ? 'visit-highlight' : ''}"
       >
         <button class="footprint-open" data-action="open-visit" data-key="${v.key}">
           ${
             rich
-              ? /* HTML */ `<div class="footprint-head">
-                    <h2>${name}</h2>
-                    ${appContext.format.icon('chevron')}
-                  </div>
-                  <p class="footprint-exhibit">${exhibit}</p>
+              ? /* HTML */ `${
+                    printed
+                      ? ''
+                      : /* HTML */ `<div class="footprint-head">
+                            <h2>${name}</h2>
+                            ${appContext.format.icon('chevron')}
+                          </div>
+                          <p class="footprint-exhibit">${exhibit}</p>`
+                  }
                   <div class="visit-collage ${tickets.length ? 'with-ticket' : 'with-photo'}">
                     ${tickets.length ? `<div class="collage-ticket">${appContext.views.ticketVisual(tickets[0])}</div>` : `<img class="collage-photo" src="${appContext.format.safe(v.photo)}" alt="这次参观的照片">`}
                     <div class="collage-badges">
@@ -201,5 +372,9 @@ export function createPassportViews(appContext) {
     renderPassport,
     renderCollection,
     renderFootprints,
+    inBook,
+    bookIndex,
+    stampPageOf,
+    bookTurned,
   };
 }

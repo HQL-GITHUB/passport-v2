@@ -479,64 +479,76 @@ img {
 .badge-modern {
   background-position: 100% 100%;
 }
-.passport-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  padding: 19px 0 20px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid var(--line);
-}
-.passport-stats > div {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 7px;
-  border-right: 1px solid var(--line);
-}
-.passport-stats > div:first-child {
-  justify-content: flex-start;
-  padding-left: 4px;
-}
-.passport-stats > div:last-child {
-  border: 0;
-}
-.passport-stats strong {
-  font: 27px/1 var(--serif);
-  letter-spacing: -1px;
-  font-weight: 400;
-}
-.passport-stats span {
-  font-size: 10px;
-  color: var(--muted);
+/* The passport opens straight on its tabs. Each tab is one of the passport's figures, the count
+   above its name, and the row stays under the header while the page scrolls. */
+.page.passport-page {
+  padding-top: 0;
 }
 .collection-switch {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding-top: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin-inline: -23px;
+  padding: 2px 23px 6px;
+  background: var(--paper);
 }
-.collection-switch button {
-  padding: 7px 0 11px;
-  font-size: 13px;
-  position: relative;
-  color: var(--muted);
-}
-.collection-switch button.active {
-  color: var(--ink);
-  font-weight: 600;
-}
-.collection-switch button.active:after {
+/* The page fades out under the tabs instead of meeting a hard edge. */
+.collection-switch:after {
   content: '';
   position: absolute;
-  width: 16px;
-  height: 2px;
-  background: var(--blue);
-  left: 0;
-  bottom: 2px;
+  inset: 100% 0 auto;
+  height: 10px;
+  background: linear-gradient(var(--paper), #fff0);
+  pointer-events: none;
 }
-.collection-switch .count {
-  font: 10px var(--serif);
-  margin-left: 3px;
+.collection-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--soft);
+}
+.collection-tabs button {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 50px;
+  padding: 5px 0;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.collection-tabs button.active {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 2px 6px #212e4510;
+}
+.collection-tabs .count {
+  font: 19px/1.15 var(--serif);
+  font-weight: 400;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+.collection-share {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  min-height: 44px;
+  color: var(--blue);
+}
+.collection-share svg {
+  width: 17px;
+  height: 17px;
+}
+#collection-content > .badge-grid:first-child {
+  padding-top: 6px;
 }
 .collection-switch .view-switch {
   margin-left: auto;
@@ -758,29 +770,40 @@ img {
   gap: 8px;
 }
 /* Mid-page, the actions keep their distance from what follows. */
-.venue-page .page-actions,
 .stamp-page .page-actions,
 .scan-page .page-actions {
   margin-bottom: 18px;
 }
-.page-actions.two-column {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 10px;
-}
-.page-actions .heart-button {
+/* Saving a venue for later: a small pill beside its name. */
+.heart-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 13px 0 11px;
+  border-radius: 18px;
   background: var(--soft);
-  border-radius: 11px;
-  min-height: 49px;
-  display: grid;
-  place-items: center;
+  font-size: 12px;
+  color: var(--muted);
+  position: relative;
+}
+/* The pill stays small; its touch area does not. */
+.heart-button:before {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+.heart-button svg {
+  width: 15px;
+  height: 15px;
 }
 .heart-button.saved {
   color: var(--blue);
   background: var(--blue-soft);
 }
 .heart-button.saved svg {
-  fill: var(--blue-soft);
+  fill: currentColor;
 }
 .subtle-label {
   display: inline-flex;
@@ -1650,15 +1673,31 @@ img {
   line-height: 1.9;
   margin-top: 12px;
 }
+.venue-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.venue-heading .heart-button {
+  margin-bottom: 3px;
+}
+/* The stamp to collect here and the button that collects it, as one panel. */
+.venue-stamp {
+  margin: 22px 0 8px;
+  padding: 0 13px 13px;
+  border-radius: 12px;
+  background: #f6f7fa;
+}
+.venue-stamp .page-actions {
+  margin-top: 0;
+}
 .venue-chapter {
-  margin-top: 23px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  background: #f6f7fa;
-  padding: 13px;
-  border-radius: 10px;
+  padding: 13px 0;
   text-align: left;
   width: 100%;
 }
@@ -2570,15 +2609,6 @@ img {
 .eyebrow {
   font-size: 11px;
 }
-.passport-stats span {
-  font-size: 12px;
-}
-.collection-switch button {
-  font-size: 14px;
-}
-.collection-switch .count {
-  font-size: 12px;
-}
 .badge-card h3 {
   font-size: 14px;
 }
@@ -2808,6 +2838,10 @@ img {
   .page {
     padding-inline: 19px;
   }
+  .collection-switch {
+    margin-inline: -19px;
+    padding-inline: 19px;
+  }
   .page-title {
     font-size: 25px;
   }
@@ -2913,26 +2947,7 @@ img {
   --ground: #a9b0bc;
   opacity: 0.7;
 }
-/* The album's empty slots: stamps still to collect, dimmed under the collected ones. */
-.album-pending {
-  margin-top: 26px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-}
-.album-pending:first-child {
-  margin-top: 0;
-  border-top: 0;
-}
-.album-pending h3 {
-  font-size: 14px;
-  font-weight: 600;
-}
-.album-pending p {
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--muted);
-  margin-top: 3px;
-}
+/* The album's empty slots: stamps still to collect, dimmed after the collected ones. */
 .badge-card.unowned .badge-frame {
   background: none;
   box-shadow: inset 0 0 0 1px var(--line);
