@@ -1,0 +1,805 @@
+/* Claiming on site: the scan page, the page of a new stamp, and the ceremony between them. */
+.scan-page,
+.ticket-page {
+  padding-top: 8px;
+}
+/* The claim pages open on the method switch; the title under it names what is being claimed. */
+.scan-title {
+  font-size: 23px;
+  line-height: 1.4;
+  letter-spacing: -0.6px;
+  font-weight: 600;
+  margin-top: 19px;
+}
+.scan-subtitle {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.scan-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--soft);
+  padding: 4px;
+  border-radius: 10px;
+  gap: 4px;
+}
+.scan-switch button {
+  border-radius: 7px;
+  min-height: 39px;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+.scan-switch button svg {
+  width: 16px;
+  height: 16px;
+}
+.scan-switch button.active {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 2px 6px var(--shade-1);
+}
+.scan-area {
+  /* The one part of the page that gives way on a short screen; see "Pages that fit the screen". */
+  flex: 1 1 250px;
+  min-height: 140px;
+  max-height: 250px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-top: 15px;
+  border-radius: 16px;
+  background: var(--soft);
+  overflow: hidden;
+}
+.scan-brackets {
+  position: absolute;
+  inset: clamp(12px, 10.8%, 27px) 27px;
+  border: 1px solid var(--accent-line);
+  border-radius: 16px;
+}
+.scan-brackets:before,
+.scan-brackets:after {
+  content: '';
+  position: absolute;
+  width: 27px;
+  height: 27px;
+  border-color: var(--accent);
+  border-style: solid;
+}
+.scan-brackets:before {
+  top: -1px;
+  left: -1px;
+  border-width: 3px 0 0 3px;
+  border-radius: 15px 0 0 0;
+}
+.scan-brackets:after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 3px 3px 0;
+  border-radius: 0 0 15px 0;
+}
+.scan-area .badge-art {
+  flex: none;
+  width: auto;
+  height: min(167px, 67%);
+  opacity: 0.88;
+  filter: drop-shadow(0 9px 7px var(--shade-2));
+}
+.scan-area .scan-line {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  height: 1px;
+  top: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent);
+  opacity: 0.5;
+}
+.scan-area.nfc .scan-line {
+  display: none;
+}
+.scan-area.nfc:after {
+  content: '';
+  position: absolute;
+  height: min(195px, 78%);
+  aspect-ratio: 1;
+  border: 1px solid var(--accent-glow);
+  border-radius: 50%;
+}
+.scan-help {
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.8;
+  margin-top: 17px;
+}
+.scan-help small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.scan-place {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  margin-top: 25px;
+}
+.scan-place > svg {
+  color: var(--accent);
+  width: 18px;
+}
+.scan-place strong {
+  font-size: 13px;
+  display: block;
+  font-weight: 550;
+}
+.scan-place p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.8;
+}
+.scan-place > button {
+  margin-left: auto;
+  font-size: 12px;
+  min-height: 44px;
+  color: var(--link);
+  min-width: 44px;
+}
+.demo-notice {
+  text-align: center;
+  color: var(--faint);
+  font-size: 12px;
+  margin-bottom: 9px;
+  line-height: 1.8;
+}
+.success-page {
+  /* The passport of the claim ceremony is laid over the page. */
+  position: relative;
+  text-align: center;
+  padding-top: 15px;
+}
+.success-check {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--owned-soft);
+  color: var(--owned);
+  margin: 0 auto 12px;
+}
+.success-check svg {
+  width: 17px;
+  height: 17px;
+}
+.success-page .page-title {
+  font-size: 29px;
+  line-height: 1.5;
+  margin-top: 0;
+}
+.success-sub {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.success-art {
+  width: 244px;
+  max-width: 100%;
+  margin: 18px auto 6px;
+  position: relative;
+}
+/* On the page a sideways drag turns the stamp and a vertical one still scrolls. */
+.success-art .medal-stage,
+.stamp-zoom .medal-stage {
+  width: 100%;
+  margin: 0;
+  touch-action: pan-y;
+}
+/* Where the stamp is about to land, the ring it throws off on impact, and the light that crosses it after. */
+.stamp-seat,
+.stamp-ring {
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.stamp-seat {
+  border: 1px dashed var(--edge);
+}
+/* Where the stamp rests on the white page: a faint halo in the stamp's own colour and two fine rings, like the ground pattern of a passport page. */
+.stamp-ground {
+  --ground: var(--glow, var(--rim));
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.stamp-ground:before,
+.stamp-ground:after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+.stamp-ground:before {
+  inset: -27%;
+  background: radial-gradient(
+    circle closest-side,
+    color-mix(in srgb, var(--ground) 30%, transparent) 62%,
+    color-mix(in srgb, var(--ground) 10%, transparent) 76%,
+    transparent 90%
+  );
+}
+.stamp-ground:after {
+  inset: -12px;
+  border: 1px solid color-mix(in srgb, var(--ground) 38%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--ground) 20%, transparent);
+  outline-offset: 13px;
+}
+/* On that ground the shadow is a contact shadow: close under the stamp, narrow, and tinted by it. */
+.success-art .medal-shadow,
+.stamp-zoom .medal-shadow {
+  height: 10px;
+  background: color-mix(in srgb, var(--glow, var(--rim)) 45%, var(--shadow));
+  filter: blur(7px);
+  opacity: 0.3;
+}
+.success-art .medal-shadow {
+  width: 44%;
+  margin-top: 9px;
+}
+.success-art .medal-flip {
+  bottom: 15px;
+}
+.stamp-ring {
+  border: 3px solid var(--rim);
+}
+.stamp-sheen {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, #fff0 42%, #ffffffb3 50%, #fff0 58%) 130% 0 / 260% 100%
+    no-repeat;
+}
+/* Claim ceremony: ui/ceremony.js cues each element with a start time; the resting styles are the final frame. */
+.ceremony:not(.settled) [data-ceremony] {
+  animation: 0.42s ease-out var(--at, 0ms) both rise-in;
+}
+.ceremony:not(.settled) [data-ceremony='stamp'] {
+  animation-name: stamp-drop;
+  animation-duration: 0.62s;
+  animation-timing-function: linear;
+}
+.ceremony:not(.settled) [data-ceremony='ticket'] {
+  animation-name: ticket-slide;
+  animation-duration: 0.5s;
+}
+.ceremony:not(.settled) [data-ceremony='seat'] {
+  animation-name: seat-clear;
+  animation-duration: 0.2s;
+}
+.ceremony:not(.settled) [data-ceremony='ring'] {
+  animation-name: ring-spread;
+  animation-duration: 0.65s;
+  /* Unlike the rest, the ring must stay hidden until its cue. */
+  animation-fill-mode: forwards;
+}
+.ceremony:not(.settled) [data-ceremony='sheen'] {
+  animation-name: sheen-pass;
+  animation-duration: 0.75s;
+  animation-timing-function: ease-in-out;
+}
+.ceremony:not(.settled) [data-ceremony='ground'] {
+  animation-name: ground-in;
+  animation-duration: 0.7s;
+}
+/* A new stamp is first pressed into the passport, which lies over the page: the place that waits
+   for it lights up, the stamp comes down with its shadow and leaves its print, and the passport
+   then gives the stamp up to the page and goes. */
+.ceremony:not(.settled) [data-ceremony='pulse'] {
+  animation-name: seat-pulse;
+  animation-duration: 0.5s;
+}
+.ceremony:not(.settled) [data-ceremony='die'],
+.ceremony:not(.settled) [data-ceremony='shadow'] {
+  animation-name: die-drop;
+  animation-duration: 0.62s;
+  animation-timing-function: linear;
+}
+.ceremony:not(.settled) [data-ceremony='shadow'] {
+  animation-name: die-shadow;
+}
+.ceremony:not(.settled) [data-ceremony='arrive'] {
+  animation-name: arrive;
+  animation-duration: 0.14s;
+  animation-timing-function: linear;
+}
+.ceremony:not(.settled) [data-ceremony='leave'] {
+  animation-name: book-leave;
+  animation-duration: 0.56s;
+  animation-timing-function: cubic-bezier(0.5, 0, 0.8, 0.6);
+}
+/* The button in the navigation takes the passport with a nod. */
+.bottom-nav .received svg {
+  animation: nav-receive 0.42s ease-out;
+}
+.ceremony:not(.settled) .claim-paper[data-ceremony] {
+  animation-duration: 0.4s;
+}
+.ceremony:not(.settled) .claim-die[data-lift='rise'] {
+  animation: 0.52s cubic-bezier(0.45, 0, 0.2, 1) forwards die-lift;
+}
+.ceremony:not(.settled) .claim-die[data-lift='stay'] {
+  animation: 0.3s ease-in forwards seat-clear;
+}
+/* A page that turns is shown by copies of itself: what the ceremony has already brought onto it
+   is simply there. */
+.ceremony:not(.settled) .book-copy [data-ceremony] {
+  animation: none;
+}
+.success-place {
+  font-size: 17px;
+  font-weight: 550;
+  margin-top: 9px;
+}
+/* On-site claim: the stamp leads, its nameplate sits under it, and the closing line comes last. */
+.page.onsite-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Room above the stamp for its halo and rings on a screen too short to centre the page. */
+  padding-top: 42px;
+  padding-bottom: 22px;
+}
+.onsite-success .success-art {
+  margin-top: 0;
+}
+.onsite-success .success-place {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin-top: 10px;
+}
+.success-moment {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.success-moment b,
+.success-moment strong {
+  display: inline-block;
+  font: 14px/1.5 var(--serif);
+  letter-spacing: 0.6px;
+  color: var(--ink);
+}
+.success-page .page-title.success-line {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: 0.4px;
+  margin-top: 14px;
+}
+.success-place-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.success-footer .button.secondary {
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 12px;
+  min-height: 39px;
+  padding: 7px;
+}
+/* The collector's own row of stamps; the new one takes the next place in it. */
+.success-shelf {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 11px 18px 8px;
+  border-radius: 14px;
+  background: var(--soft);
+}
+.shelf-item {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 30px;
+}
+.shelf-item .badge-art {
+  filter: drop-shadow(0 2px 2px var(--shade-2));
+}
+.shelf-item i {
+  font: 10px/1.2 var(--serif);
+  font-style: normal;
+  letter-spacing: 0.5px;
+  color: var(--faint);
+}
+.shelf-item.shelf-current {
+  position: relative;
+  width: 42px;
+}
+.shelf-current i {
+  font-size: 12px;
+  color: var(--accent);
+}
+/* The ring thrown off where the stamp's place in the row is marked. */
+.shelf-current:after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 1;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.ceremony:not(.settled) .shelf-current:after {
+  animation: ring-spread 0.6s ease-out var(--land) forwards;
+}
+.shelf-more {
+  align-self: center;
+  padding-bottom: 12px;
+  color: var(--faint);
+}
+.success-shelf .badge-edition:after {
+  display: none;
+}
+.claim-progress .scan-line {
+  animation: scan-pass 1s ease-in-out infinite;
+}
+/* Individual transform properties, so a stamp that already sits at an angle keeps it while it drops. */
+@keyframes stamp-drop {
+  0% {
+    opacity: 0;
+    translate: 0 -30%;
+    scale: 1.5;
+    rotate: -12deg;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.55);
+  }
+  14% {
+    opacity: 1;
+  }
+  55% {
+    translate: 0 0;
+    scale: 0.94;
+    rotate: 0deg;
+    animation-timing-function: ease-out;
+  }
+  78% {
+    scale: 1.025;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+@keyframes ticket-slide {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes seat-clear {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ring-spread {
+  from {
+    opacity: 0.75;
+    scale: 0.94;
+  }
+  to {
+    opacity: 0;
+    scale: 1.34;
+  }
+}
+@keyframes sheen-pass {
+  0% {
+    opacity: 0;
+    background-position: 130% 0;
+  }
+  20%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    background-position: -30% 0;
+  }
+}
+/* The place in the passport that waits for the stamp, lighting up once before the stamp comes. */
+@keyframes seat-pulse {
+  0% {
+    opacity: 0;
+    scale: 1.2;
+  }
+  40% {
+    opacity: 0.85;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 1;
+  }
+}
+/* The stamp coming down on that place, from higher up than on the page, to the lean it lies at. */
+@keyframes die-drop {
+  0% {
+    opacity: 0;
+    translate: 0 -40%;
+    scale: 1.9;
+    rotate: calc(var(--lean) - 14deg);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.55);
+  }
+  14% {
+    opacity: 1;
+  }
+  55% {
+    translate: 0 0;
+    scale: 0.93;
+    rotate: var(--lean);
+    animation-timing-function: ease-out;
+  }
+  78% {
+    scale: 1.03;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    rotate: var(--lean);
+  }
+}
+/* Its shadow on the page: wide and faint while the stamp is high, close and dark as it lands. */
+@keyframes die-shadow {
+  0% {
+    opacity: 0;
+    translate: 0 14%;
+    scale: 1.7;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.55);
+  }
+  55% {
+    opacity: 0.6;
+    translate: 0 3%;
+    scale: 1.04;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 3%;
+    scale: 1.04;
+  }
+}
+/* The stamp rising out of the passport to where the page shows it; ui/ceremony.js measures the way. */
+@keyframes die-lift {
+  0% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    rotate: var(--lean);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--dx) var(--dy);
+    scale: var(--grow);
+    rotate: 0deg;
+  }
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* The passport put away into its button in the navigation; ui/ceremony.js measures the way. It
+   shrinks first and travels after, so it is small by the time it reaches the navigation. Only
+   from where it moves: until then the passport lies as it is. */
+@keyframes book-leave {
+  45% {
+    translate: calc(var(--away-x) * 0.28) calc(var(--away-y) * 0.28);
+    scale: calc(var(--shrink) + 0.3);
+    animation-timing-function: cubic-bezier(0.3, 0.3, 0.4, 1);
+  }
+  85% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    translate: var(--away-x) var(--away-y);
+    scale: var(--shrink);
+  }
+}
+@keyframes nav-receive {
+  35% {
+    scale: 1.3;
+    color: var(--accent);
+  }
+}
+@keyframes book-press {
+  30% {
+    scale: 0.988;
+  }
+}
+@keyframes ground-in {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 7px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes scan-pass {
+  0%,
+  100% {
+    top: 30%;
+  }
+  50% {
+    top: 70%;
+  }
+}
+@media (max-width: 360px) {
+  .scan-area {
+    flex-basis: 225px;
+    max-height: 225px;
+  }
+  .scan-title {
+    font-size: 21px;
+  }
+  .success-art {
+    width: 244px;
+  }
+  .success-page .page-title {
+    font-size: 27px;
+  }
+}
+/* Pages that fit the screen. The scan page and the on-site claim page show everything without
+   scrolling wherever they can. Each gives way in order as the room between the header and the
+   navigation gets shorter: first its largest part shrinks, then the spacing tightens, then the
+   least needed lines go. Below the last step, or where container queries are unsupported, the
+   page simply scrolls as before. */
+.page.scan-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+/* In a column the margins around the action no longer collapse into the place row's. */
+.scan-page .scan-place {
+  margin-top: 7px;
+}
+.page.onsite-success {
+  justify-content: flex-start;
+  /* Everything on the page except the stamp, and the smallest the stamp may get. */
+  --rest: 455px;
+  --least: 200px;
+}
+/* Centred while there is room; once there is none the page starts at the top and scrolls. */
+.onsite-success > :first-child {
+  margin-top: auto;
+}
+.onsite-success > :last-child {
+  margin-bottom: auto;
+}
+.onsite-success .success-art {
+  width: 244px;
+  width: clamp(var(--least), calc(100cqh - var(--rest)), 244px);
+}
+@container main (max-height: 652px) {
+  .onsite-success .success-line {
+    display: none;
+  }
+  .page.onsite-success {
+    padding-top: 30px;
+    padding-bottom: 14px;
+    --rest: 387px;
+    --least: 150px;
+  }
+  .onsite-success .success-shelf {
+    margin-top: 10px;
+  }
+  .onsite-success .page-actions {
+    margin-top: 16px;
+  }
+}
+@container main (max-height: 545px) {
+  .scan-page .scan-title {
+    margin-top: 12px;
+  }
+  .scan-page .scan-area,
+  .scan-page .scan-help {
+    margin-top: 10px;
+  }
+  .scan-page .page-actions {
+    margin-top: 14px;
+    margin-bottom: 12px;
+  }
+  .scan-page .scan-place {
+    margin-top: 0;
+    padding-block: 8px;
+  }
+  .page.scan-page {
+    padding-bottom: 12px;
+  }
+}
+@container main (max-height: 545px) {
+  .page.onsite-success {
+    --rest: 366px;
+    --least: 140px;
+  }
+  .onsite-success .issue-plate {
+    font-size: 25px;
+  }
+  .onsite-success .success-shelf {
+    padding: 7px 14px 5px;
+  }
+  .onsite-success .shelf-item {
+    width: 26px;
+  }
+  .onsite-success .shelf-item.shelf-current {
+    width: 34px;
+  }
+}
+@container main (max-height: 485px) {
+  .scan-page .scan-help small,
+  .scan-page .scan-place p {
+    display: none;
+  }
+  .scan-page .scan-area {
+    min-height: 112px;
+  }
+  .onsite-success .button.secondary {
+    display: none;
+  }
+  .page.onsite-success {
+    --rest: 319px;
+    --least: 120px;
+  }
+  /* Beside a stamp this small the flip control steps out, so it does not cover the artwork. */
+  .onsite-success .medal-flip {
+    right: -30px;
+    bottom: 6px;
+  }
+}

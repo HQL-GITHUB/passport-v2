@@ -1,0 +1,460 @@
+/* Discovering: the search, the featured row, the destinations and a venue's page. */
+.search-box {
+  background: var(--soft);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border-radius: 12px;
+  margin-top: 20px;
+  min-height: 43px;
+}
+.search-box svg {
+  width: 17px;
+  color: var(--faint);
+}
+.search-box input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  width: 100%;
+  font-size: 16px;
+  min-height: 43px;
+  color: var(--ink);
+  min-width: 0;
+}
+/* The box has a button of its own to clear it; the browser's is put away. */
+.search-box input::-webkit-search-cancel-button {
+  display: none;
+}
+.search-box .icon-button {
+  width: 30px;
+  height: 36px;
+  min-width: 30px;
+}
+.city-button {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--muted);
+  min-height: 44px;
+}
+.city-button svg {
+  width: 13px;
+  height: 13px;
+}
+/* The discover page opens on its search box; the line in the box is the page's greeting. */
+.discover-page {
+  --gutter: 23px;
+}
+.page.discover-page {
+  padding-top: 2px;
+}
+/* The page keeps one rhythm: 24px between its parts, 12px or 16px inside one; and two corners:
+   12px on a box, a card or a photograph, a full round on a pill or a mark. */
+.discover-page .search-box {
+  margin-top: 0;
+}
+/* A photograph fades in once it has arrived. One already seen is simply there. */
+.discover-page img[data-fade] {
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+.discover-page img[data-fade].shown {
+  opacity: 1;
+}
+/* Under it the featured venues pass by, one photograph at a time. The row runs to both edges
+   of the screen, so the next photograph shows at the margin. */
+.discover-hero {
+  margin: 16px calc(-1 * var(--gutter)) 0;
+}
+.hero-track {
+  display: flex;
+  gap: 10px;
+  padding-left: var(--gutter);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--gutter);
+  scrollbar-width: none;
+}
+.hero-track::-webkit-scrollbar {
+  display: none;
+}
+/* The space after the last slide. Padding at the end of a scrolling row is not kept everywhere. */
+.hero-track:after {
+  content: '';
+  flex: 0 0 calc(var(--gutter) - 10px);
+}
+.hero-slide {
+  position: relative;
+  flex: 0 0 calc(100% - var(--gutter));
+  height: 213px;
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  text-align: left;
+  color: white;
+  background: var(--line-strong);
+}
+.hero-slide:focus-visible {
+  outline-offset: -3px;
+}
+.hero-slide img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Only the foot of the photograph is darkened, under the words; a soft shadow on the words
+   themselves keeps them readable over a bright one. */
+.hero-slide:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#10152200 42%, #10152247 68%, #101522a6);
+}
+.hero-copy {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 16px;
+  z-index: 1;
+  text-shadow: 0 1px 8px #10152266;
+}
+.hero-copy strong {
+  display: block;
+  font: 600 24px/1.4 var(--song);
+  letter-spacing: 1px;
+}
+.hero-copy span {
+  display: block;
+  font-size: 12px;
+  margin-top: 6px;
+  opacity: 0.92;
+}
+/* The same marks as under the passport book. Each is pressed on a larger place than it shows. */
+.hero-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+.hero-dots button {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border-radius: 3px;
+  background: var(--idle);
+  transition:
+    width 0.2s,
+    background 0.2s;
+}
+.hero-dots button:after {
+  content: '';
+  position: absolute;
+  inset: -12px -3px;
+}
+.hero-dots button[aria-current='true'] {
+  width: 18px;
+  background: var(--accent);
+}
+.discover-page .row {
+  margin-top: 24px;
+}
+/* The categories narrow the list, so they sit under its title. */
+.category-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.category-tabs button {
+  position: relative;
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 16px;
+  font-size: 12px;
+  background: var(--soft);
+  color: var(--muted);
+}
+/* Each is pressed on a taller place than it shows. */
+.category-tabs button:after {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
+.category-tabs button.active {
+  background: var(--ink);
+  color: var(--on-fill);
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.section-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+/* The destinations, two to a row, each a card of its own: the venue's photograph with its stamp
+   on the corner, as a seal, and the venue's name under it. A venue without a photograph shows
+   the stamp itself. The cards of a row are as tall as the tallest, whatever their words. */
+.venue-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.venue-list .empty-state {
+  grid-column: 1 / -1;
+}
+.venue-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.venue-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  border-radius: 11px 11px 0 0;
+  background: var(--soft);
+}
+.venue-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+/* The stamp: alone in the middle of the picture, or on the corner of a photograph. */
+.venue-seal {
+  position: relative;
+  width: 58%;
+  --tick: 22px;
+}
+.venue-thumb.has-photo .venue-seal {
+  position: absolute;
+  right: 10px;
+  bottom: -10px;
+  width: 31%;
+  filter: drop-shadow(0 3px 5px var(--shade-4));
+  --tick: 18px;
+}
+/* A stamp already collected carries a tick, set on its rim at the lower right. */
+.venue-status {
+  position: absolute;
+  right: calc(14.6% - var(--tick) / 2);
+  bottom: calc(14.6% - var(--tick) / 2);
+  display: grid;
+  place-items: center;
+  width: var(--tick);
+  height: var(--tick);
+  border-radius: 50%;
+  background: var(--owned);
+  color: var(--on-fill);
+  box-shadow: 0 0 0 2px var(--paper);
+}
+.venue-status svg {
+  width: 60%;
+  height: 60%;
+  stroke-width: 2.8;
+}
+/* The copy starts below the seal, so a long name never runs under it. */
+.venue-copy {
+  padding: 14px 12px 13px;
+  min-width: 0;
+}
+.venue-copy h3 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.venue-copy p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 3px;
+}
+.venue-page {
+  padding: 0 0 24px;
+}
+.venue-photo {
+  width: 100%;
+  height: 222px;
+  object-fit: cover;
+}
+.venue-poster {
+  height: 222px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--soft);
+  position: relative;
+  overflow: hidden;
+}
+.venue-poster .badge-art {
+  width: 198px;
+  position: relative;
+  z-index: 1;
+}
+.venue-poster:before {
+  content: attr(data-word);
+  font-size: 130px;
+  font-weight: 600;
+  position: absolute;
+  letter-spacing: 5px;
+  color: var(--line-strong);
+  left: -15px;
+  top: 10px;
+}
+.venue-inner {
+  padding: 22px 23px 0;
+}
+.venue-category {
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+.venue-title {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: -0.6px;
+  margin-top: 6px;
+}
+.venue-intro {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.9;
+  margin-top: 12px;
+}
+.venue-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.venue-heading .heart-button {
+  margin-bottom: 3px;
+}
+/* The stamp to collect here and the button that collects it, as one panel. */
+.venue-stamp {
+  margin: 22px 0 8px;
+  padding: 0 13px 13px;
+  border-radius: 12px;
+  background: var(--soft);
+}
+.venue-stamp .page-actions {
+  margin-top: 0;
+}
+.venue-chapter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 0;
+  text-align: left;
+  width: 100%;
+}
+.venue-chapter .badge-art {
+  width: 65px;
+  flex-shrink: 0;
+}
+.venue-chapter small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.venue-chapter h3 {
+  font-size: 12px;
+  font-weight: 550;
+  margin-top: 5px;
+}
+.venue-chapter p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.venue-chapter > svg {
+  width: 15px;
+  color: var(--accent);
+}
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.info-row > svg {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--faint);
+}
+.info-row > div {
+  flex: 1;
+  line-height: 1.8;
+}
+.info-row small {
+  font-size: 12px;
+  color: var(--muted);
+  display: block;
+  margin-top: 3px;
+}
+.info-row button {
+  font-size: 12px;
+  color: var(--link);
+  min-height: 44px;
+  align-self: center;
+}
+.guide-map {
+  width: 100%;
+  height: 180px;
+  background: var(--soft);
+  border-radius: 10px;
+  margin-top: 14px;
+}
+.guide-map text {
+  font-family: var(--font);
+  font-size: 11px;
+  fill: var(--subtle);
+  stroke: none;
+}
+.guide-map .guide-label {
+  fill: var(--accent);
+  font-weight: 600;
+}
+.guide-description {
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--subtle);
+  margin-top: 17px;
+}
+@media (max-width: 360px) {
+  .venue-inner {
+    padding-inline: 19px;
+  }
+  .discover-page {
+    --gutter: 19px;
+  }
+}
+.venue-disclaimer {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 14px;
+}

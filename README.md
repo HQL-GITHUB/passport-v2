@@ -48,11 +48,11 @@ passport-v2/
 ├─ index.html                 # HTML 外壳、图标与桌面评审侧栏
 ├─ src/
 │  ├─ main.js                 # 应用入口与样式加载
-│  ├─ config.js               # 演示日期、路由、存储键
-│  ├─ app/                    # 应用组装、事件分发、导航、渲染调度
-│  ├─ actions/                # 按钮动作表，按功能分组
+│  ├─ config.js               # 演示日期、存储键
+│  ├─ app/                    # 应用组装、页面表、事件分发、导航、渲染调度
+│  ├─ actions/                # 按钮动作表与字段表，按功能分组
 │  ├─ api/                    # 后端接口；当前为保存在本机的演示实现
-│  ├─ assets/                 # 纪念章插画、建筑图片与数字字体
+│  ├─ assets/                 # 随应用发布的图片（WebP）与数字字体
 │  ├─ data/                   # 演示内容：场馆、纪念章、收藏家与初始记录
 │  ├─ domain/                 # 目录查询、领取规则、到访合并与旧记录迁移
 │  ├─ state/                  # 界面状态、数据仓库和数据查询
@@ -60,10 +60,11 @@ passport-v2/
 │  ├─ controllers/            # 领取、记忆编辑、发布、弹窗与搜索交互
 │  ├─ views/                  # 各页面的 HTML 渲染函数
 │  ├─ services/               # 分享卡绘制与文件导出
-│  ├─ lib/                    # 展示工具、图片工具、票根裁剪遮挡
-│  ├─ ui/                     # 轻提示等通用反馈
-│  └─ styles/                 # 设计变量、基础样式、票根与到访样式
-├─ scripts/                   # 离线构建与浏览器测试服务器管理
+│  ├─ lib/                    # 翻页、徽章查看、轮播、票根裁剪遮挡，及图片与展示工具
+│  ├─ ui/                     # 轻提示与领取仪式
+│  └─ styles/                 # 设计变量与按功能划分的样式，index.css 决定导入顺序
+├─ assets-src/                # 插画与照片的 PNG 原图，不进入构建
+├─ scripts/                   # 离线构建、浏览器测试服务器管理、由原图生成 WebP
 ├─ tests/
 │  ├─ unit/                   # Node.js 原生测试，无需浏览器
 │  └─ e2e/                    # Playwright 浏览器测试
@@ -136,9 +137,11 @@ npm run test:e2e
 ## 后续开发入口
 
 - 增加或修改场馆、纪念章：`src/data/catalog.js`。
-- 调整页面布局：`src/views/` 与 `src/styles/`。
+- 调整页面布局：`src/views/` 与 `src/styles/` 中对应功能的文件。
+- 增加页面：在 `src/app/screens.js` 的页面表里加一行，并在 `src/views/` 写出它的渲染函数。
 - 修改示意地图与场馆在图上的位置：`src/views/map.js` 与 `src/data/catalog.js` 的 `at` 字段。
-- 增加按钮动作：`src/actions/` 中对应功能的动作表。
+- 增加按钮动作或输入框的响应：`src/actions/` 中对应功能的动作表、字段表。
+- 增加或替换插画与照片：把 PNG 原图放进 `assets-src/`，执行 `python scripts/optimize-images.py`（需要 Pillow）生成 `src/assets/` 里的 WebP。
 - 修改领取与票根入册的交互流程：`src/controllers/claims.js`。
 - 修改领取规则、编号与票根识别（演示中由本机后端决定）：`src/api/local.js` 与 `src/domain/claims.js`。
 - 修改到访归档、数据迁移：`src/domain/visits.js`。

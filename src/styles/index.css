@@ -1,8 +1,18 @@
-/* Preserve cascade order between the original shell, ticket flow and memory pages. */
+/* The order is the cascade's: a later file can override an earlier one. */
 @import './tokens.css';
 @import './base.css';
+@import './review.css';
+@import './shell.css';
+@import './components.css';
+@import './stamps.css';
+@import './passport.css';
+@import './claim.css';
+@import './discovery.css';
+@import './sharing.css';
+@import './phone.css';
 @import './tickets.css';
 @import './memories.css';
+@import './passport-book.css';
 @import './collectors.css';
 @import './map.css';
 @import './square.css';

@@ -1,0 +1,318 @@
+/* The passport's home: its tabs and the cards of the album. */
+.passport-ticket {
+  background: var(--soft);
+  min-height: 185px;
+  border-radius: 14px;
+  position: relative;
+  margin-top: 23px;
+  overflow: hidden;
+  padding: 21px;
+  display: flex;
+  align-items: center;
+}
+.passport-ticket:before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: var(--idle);
+}
+.passport-ticket:after {
+  content: 'CULTURAL PASSPORT';
+  position: absolute;
+  left: 21px;
+  bottom: 15px;
+  font: 8px var(--font);
+  letter-spacing: 1.8px;
+  color: var(--faint);
+}
+.ticket-copy {
+  position: relative;
+  z-index: 1;
+  width: 52%;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ticket-kicker {
+  font-size: 8px;
+  letter-spacing: 1.4px;
+  color: var(--faint);
+}
+.ticket-heading {
+  font-size: 23px;
+  font-weight: 550;
+  line-height: 1.55;
+  letter-spacing: -0.6px;
+  margin-top: 6px;
+}
+.ticket-year {
+  font: 11px var(--serif);
+  color: var(--muted);
+  margin-top: 9px;
+  letter-spacing: 2px;
+}
+.ticket-art {
+  position: absolute;
+  right: 1px;
+  top: 7px;
+  width: 179px;
+  transform: rotate(9deg);
+  filter: drop-shadow(0 9px 8px var(--shade-2));
+}
+/* The passport opens straight on its tabs. Each tab is one of the passport's figures, the count
+   above its name, and the row stays under the header while the page scrolls. */
+.page.passport-page {
+  padding-top: 0;
+}
+.collection-switch {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin-inline: -23px;
+  padding: 2px 23px 6px;
+  background: var(--paper);
+}
+/* The page fades out under the tabs instead of meeting a hard edge. */
+.collection-switch:after {
+  content: '';
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 10px;
+  background: linear-gradient(var(--paper), #fff0);
+  pointer-events: none;
+}
+.collection-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--soft);
+}
+.collection-tabs button {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 50px;
+  padding: 5px 0;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.collection-tabs button.active {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 2px 6px var(--shade-1);
+}
+.collection-tabs .count {
+  font: 19px/1.15 var(--serif);
+  font-weight: 400;
+}
+.collection-share {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  min-height: 44px;
+  color: var(--link);
+}
+.collection-share svg {
+  width: 17px;
+  height: 17px;
+}
+.collection-switch .view-switch {
+  margin-left: auto;
+  width: 34px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.view-switch svg {
+  width: 17px;
+  height: 17px;
+}
+.badge-card {
+  width: 100%;
+  text-align: center;
+  min-width: 0;
+  padding: 0;
+}
+.badge-card .badge-frame {
+  background: var(--wash);
+  border-radius: 12px;
+  padding: 9px;
+  position: relative;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+.badge-card:hover .badge-frame {
+  background: var(--sunken);
+  transform: translateY(-2px);
+}
+.badge-card .badge-art {
+  filter: drop-shadow(0 6px 4px var(--shade-1));
+}
+.badge-kind {
+  position: absolute;
+  top: 8px;
+  left: 9px;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  background: var(--veil);
+  padding: 2px 5px;
+  border-radius: 4px;
+  z-index: 1;
+}
+.badge-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+  margin-top: 9px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.badge-card .badge-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+  line-height: 1.7;
+}
+.next-stop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 0 2px;
+  margin-top: 23px;
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+.next-stop .badge-art {
+  width: 52px;
+  flex-shrink: 0;
+}
+.next-stop .next-copy {
+  flex: 1;
+  min-width: 0;
+}
+.next-stop small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.next-stop strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 550;
+  margin-top: 4px;
+  line-height: 1.7;
+}
+.next-stop svg {
+  width: 17px;
+  color: var(--accent);
+}
+.foot-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--faint);
+  margin-top: 25px;
+  letter-spacing: 0.5px;
+}
+.timeline {
+  padding-top: 13px;
+}
+.timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.timeline-item .badge-art {
+  width: 78px;
+  flex-shrink: 0;
+}
+.timeline-copy {
+  flex: 1;
+}
+.timeline-copy h3 {
+  font-size: 13px;
+  font-weight: 550;
+}
+.timeline-copy p {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.timeline-date {
+  font: 11px var(--serif);
+  color: var(--faint);
+}
+.badge-kind.new {
+  font-size: 11px;
+  color: var(--accent);
+}
+@media (max-width: 360px) {
+  .collection-switch {
+    margin-inline: -19px;
+    padding-inline: 19px;
+  }
+  .passport-ticket {
+    padding: 17px;
+    min-height: 175px;
+  }
+  .ticket-art {
+    width: 153px;
+    right: -2px;
+    top: 14px;
+  }
+  .ticket-heading {
+    font-size: 21px;
+  }
+  .ticket-copy {
+    width: 54%;
+  }
+  .passport-ticket:after {
+    left: 17px;
+    font-size: 7px;
+  }
+  .ticket-year {
+    font-size: 10px;
+  }
+  .badge-card .badge-frame {
+    padding: 6px;
+  }
+  .badge-kind {
+    font-size: 7px;
+    left: 6px;
+    top: 6px;
+  }
+}
+/* The album's empty slots: stamps still to collect, dimmed after the collected ones. */
+.badge-card.unowned .badge-frame {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.badge-card.unowned .badge-art {
+  filter: grayscale(0.85) opacity(0.5);
+}
+.badge-card.unowned h3 {
+  color: var(--muted);
+}
+.badge-pending {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--accent);
+  margin-top: 1px;
+}

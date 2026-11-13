@@ -44,3 +44,13 @@ export function createPassportActions(appContext) {
     'save-memory': () => appContext.memories.saveMemory(),
   };
 }
+
+/** What the fields of a visit's memory do as they change. */
+export function createPassportFields(appContext) {
+  return {
+    'memory-note'(input) {
+      document.getElementById('note-count').textContent = input.value.length;
+    },
+    'memory-photo': (input) => appContext.memories.preparePhoto(input.files[0]),
+  };
+}

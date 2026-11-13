@@ -1,0 +1,305 @@
+/* Travel cards: the card of one stamp or visit, and the overview of the whole passport. */
+.share-page {
+  padding-top: 1px;
+}
+.share-paper {
+  border: 1px solid #e8ebf2;
+  border-radius: 2px;
+  background: #fafbfe;
+  overflow: hidden;
+  box-shadow: 0 9px 25px #1d31550b;
+}
+.share-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 20px 0;
+  font-size: 8px;
+  color: #7987a1;
+  letter-spacing: 1.8px;
+}
+.share-headline {
+  font-size: 26px;
+  line-height: 1.5;
+  font-weight: 550;
+  letter-spacing: -1px;
+  padding: 15px 20px 0;
+}
+.share-paper .share-art {
+  width: 230px;
+  max-width: 80%;
+  margin: 13px auto 10px;
+  filter: drop-shadow(0 8px 8px #3c45651c);
+}
+.share-venue {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 550;
+}
+.share-date {
+  text-align: center;
+  font-size: 9px;
+  color: #7f899a;
+  letter-spacing: 1px;
+  margin-top: 6px;
+}
+.share-paper .share-note {
+  font-size: 12px;
+  line-height: 1.9;
+  text-align: center;
+  padding: 18px 24px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.share-paper .share-photo {
+  margin: 16px auto 0;
+  width: calc(100% - 40px);
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+.share-paper-footer {
+  margin: 24px 20px 0;
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #e3e8f1;
+  gap: 5px;
+}
+.share-paper-footer strong {
+  font-size: 10px;
+  font-weight: 600;
+  color: #1c212c;
+}
+.share-paper-footer span {
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: #8f98a7;
+}
+.share-options {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.share-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+  min-height: 44px;
+}
+.share-options input {
+  accent-color: var(--accent);
+  width: 15px;
+  height: 15px;
+}
+.share-privacy {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 5px;
+}
+@media (max-width: 360px) {
+  .share-top {
+    font-size: 7px;
+    padding-inline: 16px;
+  }
+  .share-headline {
+    padding-inline: 16px;
+    font-size: 25px;
+  }
+}
+/* The overview share card opens with the passport's data page: the newest stamp sits where the
+   photo would be, and the line of chevrons underneath is decoration. */
+.passport-id {
+  margin: 16px 16px 0;
+  padding: 14px 16px 10px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+}
+.passport-id-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 8px;
+  letter-spacing: 1.8px;
+  color: #9aa3b5;
+}
+.passport-id-body {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+}
+.passport-id-photo {
+  flex-shrink: 0;
+  width: 78px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #ffffff26;
+  border-radius: 6px;
+  background: #ffffff0d;
+}
+.passport-id-photo .badge-art {
+  width: 66px;
+}
+.passport-id-fields {
+  flex: 1;
+  min-width: 0;
+}
+.passport-id dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+.passport-id dt,
+.passport-id-stats span {
+  font-size: 8px;
+  letter-spacing: 0.6px;
+  color: #9aa3b5;
+}
+.passport-id dd {
+  margin: 1px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.passport-id dd.numeral {
+  font: 14px/1.4 var(--serif);
+  letter-spacing: 0.5px;
+}
+.passport-id-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 9px;
+}
+.passport-id-stats b {
+  display: block;
+  font: 17px/1.25 var(--serif);
+  font-weight: 400;
+}
+.passport-id-stats span {
+  display: block;
+  line-height: 1.5;
+}
+.passport-id-mrz {
+  margin-top: 11px;
+  padding-top: 8px;
+  border-top: 1px dashed #ffffff1f;
+  font:
+    8px/1.4 ui-monospace,
+    Consolas,
+    'Courier New',
+    monospace;
+  letter-spacing: 1.5px;
+  color: #7f8aa0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.journal-share-paper .share-headline {
+  font-size: 16px;
+  letter-spacing: 0;
+  padding-top: 17px;
+}
+.share-journal {
+  padding: 4px 20px 0;
+}
+.share-year {
+  font: 18px/1.4 var(--serif);
+  margin-top: 14px;
+}
+.share-stop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+}
+.share-stop > b {
+  flex-shrink: 0;
+  width: 44px;
+  font: 14px var(--serif);
+  font-weight: 400;
+}
+.share-stop > span:not(.share-stop-badges) {
+  flex: 1;
+  min-width: 0;
+}
+.share-stop strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.share-stop small {
+  display: block;
+  font-size: 9px;
+  color: #7f899a;
+}
+.share-stop-badges {
+  display: flex;
+  flex-direction: row-reverse;
+  flex-shrink: 0;
+}
+.share-stop-badges .badge-art {
+  width: 36px;
+}
+.share-stop-badges .badge-art + .badge-art {
+  margin-right: -6px;
+}
+.share-stop-badges .badge-edition:after,
+.share-album .badge-edition:after,
+.ticket-thumb-badges .badge-edition:after,
+.passport-id-photo .badge-edition:after {
+  display: none;
+}
+.share-album {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 10px;
+  padding: 18px 20px 0;
+  text-align: center;
+}
+.share-album small {
+  display: block;
+  font-size: 9px;
+  line-height: 1.6;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+.share-album small.share-issue {
+  font: 9px/1.6 var(--serif);
+  letter-spacing: 0.3px;
+  color: #5f6b80;
+  margin-top: 0;
+}
+.share-more {
+  text-align: center;
+  font-size: 9px;
+  color: #7f899a;
+  margin-top: 12px;
+}
+.journal-share-paper .share-paper-footer {
+  margin-top: 18px;
+}
+.share-album small.share-issue {
+  white-space: nowrap;
+}
+@media (max-width: 360px) {
+  .share-album {
+    gap: 12px 6px;
+    padding-inline: 14px;
+  }
+  .share-album small.share-issue {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+}

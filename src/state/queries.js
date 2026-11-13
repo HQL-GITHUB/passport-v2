@@ -4,18 +4,18 @@ export function createQueries(appContext) {
   // names, or the one of the open visit if the catalogue knows it. Otherwise none.
   function venue() {
     const { screen, selected, visitKey } = appContext.ui,
-      { config, catalog } = appContext;
-    if (config.stampScreens.includes(screen)) return catalog.venueOf(catalog.stamp(selected));
-    if (config.visitScreens.includes(screen))
-      return catalog.venue(appContext.data.visits[visitKey]?.venueId);
+      { catalog } = appContext,
+      about = appContext.screens.about(screen);
+    if (about === 'stamp') return catalog.venueOf(catalog.stamp(selected));
+    if (about === 'visit') return catalog.venue(appContext.data.visits[visitKey]?.venueId);
     return catalog.venue(selected);
   }
   // The stamp the page in view is about: the one its address names, or the one every visitor of
   // the venue it names can collect.
   function stamp() {
     const { screen, selected } = appContext.ui,
-      { config, catalog } = appContext;
-    return config.stampScreens.includes(screen)
+      { catalog } = appContext;
+    return appContext.screens.about(screen) === 'stamp'
       ? catalog.stamp(selected)
       : catalog.stampOf(catalog.venue(selected));
   }

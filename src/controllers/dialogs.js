@@ -24,6 +24,7 @@ export function createDialogController(appContext) {
         <label class="field-label" for="memory-input">这次参观，什么让你停下脚步？</label
         ><textarea
           id="memory-input"
+          data-input="memory-note"
           class="memory-textarea"
           maxlength="120"
           placeholder="一句话，留住当时的心情。"
@@ -33,6 +34,7 @@ ${appContext.format.safe(visit.note)}</textarea>
         <label class="photo-upload"
           >${appContext.format.icon('photo')}添加一张参观照片<input
             id="photo-input"
+            data-change="memory-photo"
             type="file"
             accept="image/jpeg,image/png,image/webp"
         /></label>
@@ -84,7 +86,7 @@ ${appContext.format.safe(visit.note)}</textarea>
       body = /* HTML */ `<p class="modal-sub">
           鼠标或手指拖动框选，可遮挡姓名、订单号或二维码。原图保持完整。
         </p>
-        ${c.tickets.length > 1 ? `<label class="field-label" for="share-ticket-select">选择这次到访的票根</label><select id="share-ticket-select">${c.tickets.map((id, i) => `<option value="${id}">票根 ${i + 1} · ${appContext.data.tickets[id].kind === 'sample' ? '示例票根' : '原图'}</option>`).join('')}</select>` : ''}
+        ${c.tickets.length > 1 ? `<label class="field-label" for="share-ticket-select">选择这次到访的票根</label><select id="share-ticket-select" data-change="share-ticket">${c.tickets.map((id, i) => `<option value="${id}">票根 ${i + 1} · ${appContext.data.tickets[id].kind === 'sample' ? '示例票根' : '原图'}</option>`).join('')}</select>` : ''}
         <div class="ticket-editor-modes" role="group" aria-label="票根处理方式">
           <button data-action="editor-mode" data-value="mask" class="active" aria-pressed="true">
             遮挡信息</button
@@ -118,7 +120,7 @@ ${appContext.format.safe(visit.note)}</textarea>
     } else if (kind === 'visibility') {
       const shown = appContext.selectors.visibility(),
         row = (key, title, text, disabled = false) =>
-          `<label class="visibility-row"><span><strong>${title}</strong><small>${text}</small></span><input type="checkbox" role="switch" data-visibility="${key}" ${shown[key] ? 'checked' : ''} ${disabled ? 'disabled' : ''}></label>`;
+          `<label class="visibility-row"><span><strong>${title}</strong><small>${text}</small></span><input type="checkbox" role="switch" data-change="set-visibility" data-visibility="${key}" ${shown[key] ? 'checked' : ''} ${disabled ? 'disabled' : ''}></label>`;
       label = '公开设置';
       body = /* HTML */ `<p class="modal-sub">
           公开的部分，其他收藏家可以在你的护照里翻看。不打开的，只有你自己看得到。

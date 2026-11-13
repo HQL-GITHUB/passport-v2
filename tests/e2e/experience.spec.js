@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
 
-const fixture = fileURLToPath(new URL('../../src/assets/museum-courtyard.png', import.meta.url));
+const fixture = fileURLToPath(new URL('../../assets-src/museum-courtyard.png', import.meta.url));
 const back = (page) => page.getByRole('button', { name: '返回', exact: true }).click();
 const scrollPosition = (page) => page.locator('#app-main').evaluate((el) => el.scrollTop);
 

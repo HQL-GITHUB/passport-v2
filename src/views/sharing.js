@@ -25,7 +25,7 @@ export function createSharingViews(appContext) {
     return /* HTML */ `<section class="page share-page screen-enter">
       <div id="share-card-preview">${appContext.views.sharePaper()}</div>
       <div class="share-options">
-        ${c.tickets.length ? `<label><input type="checkbox" data-option="ticket" ${appContext.ui.includeTicket ? 'checked' : ''}>带上票根</label>` : ''}${c.note ? `<label><input type="checkbox" data-option="note" ${appContext.ui.includeNote ? 'checked' : ''}>带上我的感想</label>` : ''}${c.photo ? `<label><input type="checkbox" data-option="photo" ${appContext.ui.includePhoto ? 'checked' : ''}>带上我的照片</label>` : ''}
+        ${c.tickets.length ? `<label><input type="checkbox" data-change="share-option" data-option="ticket" ${appContext.ui.includeTicket ? 'checked' : ''}>带上票根</label>` : ''}${c.note ? `<label><input type="checkbox" data-change="share-option" data-option="note" ${appContext.ui.includeNote ? 'checked' : ''}>带上我的感想</label>` : ''}${c.photo ? `<label><input type="checkbox" data-change="share-option" data-option="photo" ${appContext.ui.includePhoto ? 'checked' : ''}>带上我的照片</label>` : ''}
       </div>
       ${appContext.ui.includeTicket ? '<button class="share-ticket-edit" data-action="share-edit-ticket">调整票根裁剪与遮挡</button>' : ''}
       <p class="share-privacy">

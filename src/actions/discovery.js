@@ -43,3 +43,13 @@ export function createDiscoveryActions(appContext) {
     },
   };
 }
+
+/** What the fields of the discover page do as they are typed in. */
+export function createDiscoveryFields(appContext) {
+  return {
+    search(input) {
+      appContext.ui.query = input.value;
+      appContext.discovery.updateSearch();
+    },
+  };
+}

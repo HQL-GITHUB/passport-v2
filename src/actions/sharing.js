@@ -48,3 +48,26 @@ export function createSharingActions(appContext) {
     },
   };
 }
+
+/** What the switches of a travel card and the ticket chosen for it do as they change. */
+export function createSharingFields(appContext) {
+  return {
+    'share-ticket': (select) => appContext.dialogs.setupTicketEditor(select.value),
+    'share-option'(input) {
+      if (input.dataset.option === 'ticket') {
+        if (input.checked) {
+          input.checked = appContext.ui.includeTicket;
+          appContext.dialogs.openModal('ticket-editor');
+        } else {
+          appContext.ui.includeTicket = false;
+          appContext.ui.shareTicket = '';
+          appContext.render(true);
+        }
+        return;
+      }
+      appContext.ui[input.dataset.option === 'note' ? 'includeNote' : 'includePhoto'] =
+        input.checked;
+      document.getElementById('share-card-preview').innerHTML = appContext.views.sharePaper();
+    },
+  };
+}

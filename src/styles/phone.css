@@ -1,0 +1,19 @@
+/* A page on a phone. Every page starts the same distance under the header, and keeps narrower
+   gutters on the smallest screens, whatever padding it gives itself; a venue's page runs to the
+   edges. This comes after the pages' own files because it overrides them. */
+@media (max-width: 540px) {
+  .page {
+    padding-top: 11px;
+  }
+  .venue-page {
+    padding-top: 0;
+  }
+}
+@media (max-width: 360px) {
+  .page {
+    padding-inline: 19px;
+  }
+  .venue-page {
+    padding-inline: 0;
+  }
+}

@@ -71,3 +71,55 @@ export function createClaimActions(appContext) {
     },
   };
 }
+
+/** What the fields of a ticket do as they change. */
+export function createClaimFields(appContext) {
+  // The ticket being entered, for as long as it can still be changed: one that is already in
+  // the passport cannot.
+  function draft() {
+    const d = appContext.ui.ticketDraft;
+    return d && !appContext.data.tickets[d.id] ? d : null;
+  }
+  return {
+    'ticket-image': (input) => appContext.claims.prepareTicketImage(input.files[0]),
+    'ticket-venue'(select) {
+      if (!draft() || appContext.ui.claimBusy) return;
+      draft().venueId = select.value;
+      appContext.claims.resetTicketSelection();
+      appContext.ui.ticketError = '';
+      appContext.render(true);
+    },
+    'ticket-date'(input) {
+      if (!draft() || appContext.ui.claimBusy) return;
+      draft().visitedAt = input.value;
+      appContext.claims.resetTicketSelection();
+      appContext.claims.updateTicketConfirmation();
+    },
+    // A venue of the visitor's own: its name, city and exhibition, each in the field of the
+    // ticket that `data-value` names.
+    'ticket-custom'(input) {
+      if (!draft()) return;
+      draft()[input.dataset.value] = input.value;
+      appContext.claims.updateTicketConfirmation();
+    },
+    'ticket-save'(input) {
+      if (!appContext.ui.ticketDraft) return;
+      appContext.ui.ticketDraft.saveTicket = input.checked;
+      appContext.views.renderFooter();
+    },
+    'ticket-reward'(input) {
+      const d = appContext.ui.ticketDraft,
+        id = input.dataset.ticketReward;
+      if (!d || appContext.ui.claimBusy) return;
+      if (
+        !appContext.selectors.ticketRewards(d).some((v) => v.id === id) ||
+        appContext.data.tickets[d.id]?.redeemed.includes(id)
+      )
+        return;
+      d.selected = input.checked
+        ? [...new Set([...d.selected, id])]
+        : d.selected.filter((value) => value !== id);
+      appContext.views.renderFooter();
+    },
+  };
+}

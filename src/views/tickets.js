@@ -15,12 +15,14 @@ export function createTicketViews(appContext) {
       </div>
       <input
         id="ticket-camera-input"
+        data-change="ticket-image"
         type="file"
         accept="image/jpeg,image/png,image/webp"
         capture="environment"
         hidden
       /><input
         id="ticket-album-input"
+        data-change="ticket-image"
         type="file"
         accept="image/jpeg,image/png,image/webp"
         hidden
@@ -50,14 +52,19 @@ export function createTicketViews(appContext) {
       ${r ? '<div class="ticket-duplicate-note">这张票根已有记录，可查看到访或补存原图。</div>' : ''}
       <div class="ticket-fields">
         <label for="ticket-venue"
-          >参观场馆<select id="ticket-venue" ${r || appContext.ui.claimBusy ? 'disabled' : ''}>
+          >参观场馆<select
+            id="ticket-venue"
+            data-change="ticket-venue"
+            ${r || appContext.ui.claimBusy ? 'disabled' : ''}
+          >
             ${appContext.catalog.venues.map((v) => `<option value="${v.id}" ${d.venueId === v.id ? 'selected' : ''}>${v.name} · ${v.city}</option>`).join('')}
             <option value="other" ${other ? 'selected' : ''}>其他场馆 · 仅记录到访</option>
           </select></label
-        >${other ? `<label for="ticket-custom-name">场馆名称<input id="ticket-custom-name" value="${appContext.format.safe(d.customName)}" maxlength="80" placeholder="填写这次去过的场馆" ${r || appContext.ui.claimBusy ? 'disabled' : ''}></label><label for="ticket-custom-city">所在城市<input id="ticket-custom-city" value="${appContext.format.safe(d.customCity)}" maxlength="40" placeholder="例如：苏州" ${r || appContext.ui.claimBusy ? 'disabled' : ''}></label><label for="ticket-custom-exhibit">展览或参观主题（选填）<input id="ticket-custom-exhibit" value="${appContext.format.safe(d.customExhibit)}" maxlength="100" placeholder="留住那次参观的名字" ${r || appContext.ui.claimBusy ? 'disabled' : ''}></label>` : ''}<label
+        >${other ? `<label for="ticket-custom-name">场馆名称<input id="ticket-custom-name" data-input="ticket-custom" data-value="customName" value="${appContext.format.safe(d.customName)}" maxlength="80" placeholder="填写这次去过的场馆" ${r || appContext.ui.claimBusy ? 'disabled' : ''}></label><label for="ticket-custom-city">所在城市<input id="ticket-custom-city" data-input="ticket-custom" data-value="customCity" value="${appContext.format.safe(d.customCity)}" maxlength="40" placeholder="例如：苏州" ${r || appContext.ui.claimBusy ? 'disabled' : ''}></label><label for="ticket-custom-exhibit">展览或参观主题（选填）<input id="ticket-custom-exhibit" data-input="ticket-custom" data-value="customExhibit" value="${appContext.format.safe(d.customExhibit)}" maxlength="100" placeholder="留住那次参观的名字" ${r || appContext.ui.claimBusy ? 'disabled' : ''}></label>` : ''}<label
           for="ticket-date"
           >参观日期<input
             id="ticket-date"
+            data-change="ticket-date"
             type="date"
             min="1900-01-01"
             max="${appContext.clock.today()}"
@@ -79,6 +86,7 @@ export function createTicketViews(appContext) {
       <label class="save-ticket-choice"
         ><input
           id="save-ticket-memory"
+          data-change="ticket-save"
           type="checkbox"
           ${d.saveTicket ? 'checked' : ''}
           ${r?.saved || appContext.ui.claimBusy ? 'disabled' : ''}
@@ -113,7 +121,7 @@ export function createTicketViews(appContext) {
       .map((v) => {
         const done = r?.redeemed.includes(v.id),
           owned = !!appContext.data.records[v.id];
-        return `<label class="ticket-reward ${done ? 'redeemed' : ''}"><input type="checkbox" data-ticket-reward="${v.id}" ${done || d.selected.includes(v.id) ? 'checked' : ''} ${done || appContext.ui.claimBusy ? 'disabled' : ''}>${appContext.format.art(v)}<span class="ticket-reward-copy"><strong>${v.title}</strong><small>${v.kind}${v.limit ? ` · 限量 ${v.limit} 枚` : ''}</small><span>${done ? '这张票根已领取' : owned ? '已有此章 · 补充这次到访' : '加入我的章册'}</span></span></label>`;
+        return `<label class="ticket-reward ${done ? 'redeemed' : ''}"><input type="checkbox" data-change="ticket-reward" data-ticket-reward="${v.id}" ${done || d.selected.includes(v.id) ? 'checked' : ''} ${done || appContext.ui.claimBusy ? 'disabled' : ''}>${appContext.format.art(v)}<span class="ticket-reward-copy"><strong>${v.title}</strong><small>${v.kind}${v.limit ? ` · 限量 ${v.limit} 枚` : ''}</small><span>${done ? '这张票根已领取' : owned ? '已有此章 · 补充这次到访' : '加入我的章册'}</span></span></label>`;
       })
       .join('');
   }

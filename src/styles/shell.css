@@ -1,0 +1,212 @@
+/* The frame of the app: the header, the scrolling main, a page and its own actions, and the
+   navigation. */
+.app {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--paper);
+}
+.app-header {
+  height: 57px;
+  flex-shrink: 0;
+  padding: 0 23px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--paper);
+}
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 1px;
+}
+.brand-icon {
+  color: var(--accent);
+  width: 22px;
+  height: 25px;
+}
+.header-caption {
+  font-size: 12px;
+  color: var(--muted);
+}
+.icon-button {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.icon-button:hover {
+  background: var(--soft);
+}
+.header-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 42px;
+  margin-left: -12px;
+  min-height: 44px;
+}
+.app-main {
+  /* Pages may size themselves to the room between the header and the navigation. */
+  container: main / size;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overscroll-behavior-x: none;
+  touch-action: pan-y pinch-zoom;
+  scrollbar-width: none;
+  outline: none;
+}
+.app-main::-webkit-scrollbar {
+  display: none;
+}
+.page {
+  padding: 9px 23px 26px;
+  min-height: 100%;
+}
+.eyebrow {
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 2px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.page-title {
+  font-size: 27px;
+  font-weight: 650;
+  letter-spacing: -0.8px;
+  line-height: 1.4;
+  margin-top: 8px;
+}
+.subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-top: 7px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+.app-footer {
+  flex-shrink: 0;
+  background: var(--paper);
+  /* The claim button stands above the bar, over the foot of the page. */
+  position: relative;
+  z-index: 1;
+}
+/* Five places, the claim button in the middle. */
+.bottom-nav {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  border-top: 1px solid var(--line);
+  padding: 8px 23px 5px;
+  min-height: 65px;
+}
+.bottom-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 47px;
+  font-size: 12px;
+  color: var(--subtle);
+}
+.bottom-nav button.active {
+  color: var(--accent);
+}
+.bottom-nav button svg {
+  width: 21px;
+  height: 21px;
+}
+/* The way to claim is a round button that rises out of the bar, ringed in the bar's own paper;
+   its name sits under it, in line with the other two. */
+.bottom-nav .nav-claim svg {
+  width: 46px;
+  height: 46px;
+  padding: 12px;
+  margin-top: -25px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-fill);
+  box-shadow:
+    0 0 0 4px var(--paper),
+    0 7px 14px var(--accent-glow);
+}
+.bottom-nav .nav-claim[aria-current] {
+  color: var(--accent);
+}
+/* A page's own actions sit in its content; the navigation keeps the bottom of every page. */
+#page-actions {
+  align-self: stretch;
+}
+.page-actions {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Mid-page, the actions keep their distance from what follows. */
+.stamp-page .page-actions,
+.scan-page .page-actions {
+  margin-bottom: 18px;
+}
+.screen-enter {
+  animation: screen-enter 0.25s ease-out;
+}
+@keyframes screen-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 540px) {
+  .app-header {
+    height: calc(59px + var(--safe-top));
+    padding-top: var(--safe-top);
+  }
+  .app-footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bottom-nav {
+    min-height: 70px;
+    padding-bottom: 9px;
+  }
+  .app-main {
+    scroll-padding-bottom: 15px;
+  }
+}
+@media (max-width: 360px) {
+  .app-header {
+    padding-inline: 19px;
+  }
+  .page-title {
+    font-size: 25px;
+  }
+}

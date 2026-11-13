@@ -3,7 +3,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { test, expect } from '@playwright/test';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const fixture = path.join(root, 'src/assets/museum-courtyard.png');
+const fixture = path.join(root, 'assets-src/museum-courtyard.png');
 const key = 'cultural-passport-prototype-v3';
 
 test('saved originals restore after reload and can be removed without deleting the visit or stamps', async ({

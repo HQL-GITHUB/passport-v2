@@ -37,8 +37,7 @@ export function createNavigation(appContext) {
     if (page.screen === 'post') return `post/${page.post}`;
     if (page.screen === 'collectors') return `collectors/${page.board}`;
     if (page.screen === 'collector') return `collector/${page.person}/${page.collectorTab}`;
-    if (['visit', 'visit-share', 'ticket-success'].includes(page.screen))
-      return `${page.screen}/${page.visitKey}`;
+    if (appContext.screens.about(page.screen) === 'visit') return `${page.screen}/${page.visitKey}`;
     return `${page.screen}/${page.selected}/${page.screen === 'stamp' ? page.visitDate || '' : ''}`;
   }
   function rememberScroll() {
@@ -60,8 +59,9 @@ export function createNavigation(appContext) {
   function subject(screen, id) {
     const { venue, stamp, stampOf } = appContext.catalog,
       fallback = appContext.selectors.defaultVenue();
-    if (appContext.config.venueScreens.includes(screen)) return (venue(id) || fallback).id;
-    if (appContext.config.stampScreens.includes(screen)) return (stamp(id) || stampOf(fallback)).id;
+    const about = appContext.screens.about(screen);
+    if (about === 'venue') return (venue(id) || fallback).id;
+    if (about === 'stamp') return (stamp(id) || stampOf(fallback)).id;
     return venue(id) || stamp(id) ? id : fallback.id;
   }
   function routeFromLocation() {
@@ -74,7 +74,7 @@ export function createNavigation(appContext) {
     try {
       parts = decodeURIComponent(location.hash.replace(/^#\/?/, '')).split('/');
     } catch {}
-    appContext.ui.screen = appContext.config.screens.includes(parts[0]) ? parts[0] : 'passport';
+    appContext.ui.screen = appContext.screens.known(parts[0]) ? parts[0] : 'passport';
     appContext.ui.selected = subject(appContext.ui.screen, parts[1]);
     // A post is addressed by its writer, its venue and the day of the visit.
     if (appContext.ui.screen === 'post') {
@@ -87,7 +87,7 @@ export function createNavigation(appContext) {
       if (appContext.selectors.person(parts[1])) appContext.ui.person = parts[1];
       else appContext.ui.screen = 'collectors';
     }
-    if (['visit', 'visit-share', 'ticket-success'].includes(appContext.ui.screen) && parts[2]) {
+    if (appContext.screens.about(appContext.ui.screen) === 'visit' && parts[2]) {
       const key = appContext.domain.key(parts[1], parts[2]);
       if (appContext.data.visits[key]) {
         appContext.ui.visitKey = key;
@@ -128,16 +128,15 @@ export function createNavigation(appContext) {
     history.replaceState({ ...history.state, passportNavigation: currentEntry }, '');
   }
   function navigate(screen, id = appContext.ui.selected, replace = false) {
-    if (!appContext.config.screens.includes(screen)) return;
+    if (!appContext.screens.known(screen)) return;
     rememberScroll();
     appContext.claims.cancel();
     appContext.ui.ticketBusy = false;
     appContext.ui.claimBusy = false;
     appContext.dialogs.closeModal(false);
-    if (!['ticket', 'ticket-confirm', 'ticket-success', 'scan'].includes(screen))
-      appContext.claims.clearTicketDraft();
+    if (!appContext.screens.keepsDraft(screen)) appContext.claims.clearTicketDraft();
     appContext.ui.screen = screen;
-    const memoryScreen = ['visit', 'visit-share', 'ticket-success'].includes(screen);
+    const memoryScreen = appContext.screens.about(screen) === 'visit';
     appContext.ui.selected = memoryScreen ? id : subject(screen, id);
     const day = memoryScreen
       ? screen === 'ticket-success'
@@ -179,8 +178,7 @@ export function createNavigation(appContext) {
     appContext.ui.ticketBusy = false;
     appContext.dialogs.closeModal(false);
     routeFromLocation();
-    if (!['ticket', 'ticket-confirm', 'ticket-success', 'scan'].includes(appContext.ui.screen))
-      appContext.claims.clearTicketDraft();
+    if (!appContext.screens.keepsDraft(appContext.ui.screen)) appContext.claims.clearTicketDraft();
     appContext.render();
     appContext.dom.main.scrollTop = currentEntry.scrollTop;
     appContext.dom.main.focus({ preventScroll: true });

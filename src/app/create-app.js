@@ -17,6 +17,7 @@ import { assets } from '../data/assets.js';
 import { createStore } from '../state/store.js';
 import { createQueries } from '../state/queries.js';
 import { createCommunityQueries } from '../state/community.js';
+import { createScreens } from '../app/screens.js';
 import { createNavigation } from '../app/navigation.js';
 import { createFeedback } from '../ui/feedback.js';
 import { createCeremony } from '../ui/ceremony.js';
@@ -95,6 +96,7 @@ export function createApp() {
   Object.assign((appContext.store ||= {}), createStore(appContext));
   Object.assign((appContext.selectors ||= {}), createQueries(appContext));
   Object.assign((appContext.selectors ||= {}), createCommunityQueries(appContext));
+  Object.assign((appContext.screens ||= {}), createScreens(appContext));
   Object.assign((appContext.navigation ||= {}), createNavigation(appContext));
   Object.assign((appContext.feedback ||= {}), createFeedback(appContext));
   Object.assign((appContext.ceremony ||= {}), createCeremony(appContext));

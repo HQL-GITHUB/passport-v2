@@ -1,0 +1,320 @@
+/* What the pages share: buttons, empty states, the toast, dialogs and their fields. */
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 49px;
+  padding: 12px 16px;
+  width: 100%;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 550;
+  background: var(--accent);
+  color: var(--on-fill);
+}
+.button svg {
+  width: 19px;
+  height: 19px;
+}
+.button.secondary {
+  background: var(--soft);
+  color: var(--ink);
+  font-weight: 400;
+}
+.button.outline {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 400;
+}
+.button.text {
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  min-height: 44px;
+}
+/* Text that is pressed has no colour apart from the text that is read, so it is set heavier; and
+   where no icon stands with it, a small chevron follows it. */
+.ticket-home-entry,
+.memory-header button,
+.scan-place > button,
+.info-row button,
+.map-summary button,
+.visit-section-heading > button,
+.footprint-meta > span:last-child,
+.share-ticket-edit {
+  font-weight: 500;
+}
+:is(
+    .memory-header button,
+    .scan-place > button,
+    .info-row button,
+    .map-summary button,
+    .share-ticket-edit
+  ):not(:has(svg)):after {
+  content: '';
+  display: inline-block;
+  width: 0.42em;
+  height: 0.42em;
+  margin: 0 0.1em 0 0.35em;
+  border: solid currentColor;
+  border-width: 1.4px 1.4px 0 0;
+  rotate: 45deg;
+  translate: 0 -0.12em;
+}
+/* Saving a venue for later: a small pill beside its name. */
+.heart-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 13px 0 11px;
+  border-radius: 18px;
+  background: var(--soft);
+  font-size: 12px;
+  color: var(--muted);
+  position: relative;
+}
+/* The pill stays small; its touch area does not. */
+.heart-button:before {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+.heart-button svg {
+  width: 15px;
+  height: 15px;
+}
+.heart-button.saved {
+  color: var(--want);
+  background: var(--want-soft);
+}
+.heart-button.saved svg {
+  fill: currentColor;
+}
+.subtle-label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--owned);
+  font-size: 12px;
+}
+.subtle-label svg {
+  width: 12px;
+  height: 12px;
+}
+.empty-state {
+  padding: 28px 10px 20px;
+  text-align: center;
+}
+.empty-state .empty-art {
+  width: 132px;
+  margin: 0 auto 15px;
+  opacity: 0.6;
+  filter: saturate(0.35);
+}
+.empty-state h3 {
+  font-size: 16px;
+  font-weight: 500;
+}
+.empty-state p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: 9px auto 18px;
+  max-width: 240px;
+}
+.empty-state .button {
+  width: auto;
+  display: inline-flex;
+  padding-inline: 22px;
+  font-size: 12px;
+  min-height: 43px;
+}
+.privacy {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 10px;
+  line-height: 1.8;
+}
+.privacy svg {
+  width: 11px;
+  height: 11px;
+}
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 40px);
+  background: color-mix(in srgb, var(--ink) 93%, transparent);
+  color: var(--on-fill);
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 11px 16px;
+  border-radius: 10px;
+  text-align: center;
+  z-index: 30;
+  box-shadow: 0 8px 20px var(--shade-2);
+}
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--scrim);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+}
+.modal {
+  width: min(410px, 100%);
+  max-height: calc(100svh - 48px);
+  overflow: auto;
+  background: var(--paper);
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 30px 100px var(--shade-4);
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+.modal-head h2 {
+  font-size: 19px;
+  font-weight: 600;
+}
+.modal-sub {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.modal .button {
+  margin-top: 16px;
+}
+.memory-textarea {
+  width: 100%;
+  min-height: 126px;
+  resize: vertical;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 16px;
+  color: var(--ink);
+  line-height: 1.8;
+  background: var(--wash);
+}
+.field-label {
+  font-size: 12px;
+  display: block;
+  margin: 12px 0 8px;
+}
+.character-count {
+  text-align: right;
+  color: var(--faint);
+  font-size: 12px;
+  margin-top: 5px;
+}
+.photo-upload {
+  border: 1px dashed var(--line-strong);
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  justify-content: center;
+  min-height: 65px;
+  border-radius: 10px;
+  color: var(--subtle);
+  font-size: 12px;
+  margin-top: 14px;
+  cursor: pointer;
+}
+.photo-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(100%);
+}
+.photo-edit-preview {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+.remove-photo {
+  font-size: 12px;
+  color: var(--faint);
+  min-height: 35px;
+}
+.modal-error {
+  font-size: 12px;
+  color: var(--danger);
+  line-height: 1.7;
+  margin-top: 8px;
+}
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.choice-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 46px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--soft);
+  font-size: 13px;
+}
+.choice-list button.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.loading-dots:after {
+  content: '';
+  width: 15px;
+  height: 15px;
+  border: 2px solid color-mix(in srgb, var(--on-fill) 40%, transparent);
+  border-top-color: var(--on-fill);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-left: 4px;
+}
+.photo-loading {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 540px) {
+  .modal-overlay {
+    padding: 14px;
+    align-items: flex-end;
+  }
+  .modal {
+    border-radius: 22px 22px 16px 16px;
+    width: 100%;
+    max-height: calc(100svh - 60px);
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+  }
+  .toast {
+    bottom: 106px;
+  }
+}

@@ -66,3 +66,24 @@ export function createCommunityActions(appContext) {
     visibility: () => appContext.dialogs.openModal('visibility'),
   };
 }
+
+/** What the switches of the visibility dialog do as they change. */
+export function createCommunityFields(appContext) {
+  return {
+    // Notes and photographs are shown with the visits they belong to, or not at all, so their
+    // switch follows the one of the footprints.
+    async 'set-visibility'(input) {
+      const shown = await appContext.social.setVisibility(input.dataset.visibility, input.checked);
+      if (!shown) {
+        input.checked = !input.checked;
+        return;
+      }
+      const memories = appContext.dom.modalRoot.querySelector('[data-visibility="memories"]');
+      if (memories) {
+        memories.checked = shown.memories;
+        memories.disabled = !shown.footprints;
+      }
+      appContext.render(true);
+    },
+  };
+}

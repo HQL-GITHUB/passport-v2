@@ -4,7 +4,9 @@
 
 `src/main.js` 加载样式并创建应用。`src/app/create-app.js` 是唯一组合根：创建配置、时钟、后端、界面状态、运行时状态与 DOM 引用，注册模块，再通过 `store.load()` 向后端取回目录、社区与护照数据，最后渲染首屏。数据到达之前按钮不响应；等待超过 400 毫秒显示加载提示，失败时显示重试。
 
-页面通过事件委托触发 `app/events.js` 中的分发逻辑：按钮的 `data-action` 对应 `actions/` 中按功能分组的一张动作表。动作只处理界面状态与跳转；需要改动数据时调用控制器，控制器通过 `store` 把命令发给后端。导航负责 hash 与返回行为，领域模块是不依赖 DOM 的纯规则，页面模块生成界面。
+页面通过事件委托触发 `app/events.js` 中的分发逻辑：按钮的 `data-action` 对应 `actions/` 中按功能分组的一张动作表；输入框、选择框与开关同理，`data-input`（每次键入）或 `data-change`（值改变）对应同一批文件里的字段表。动作只处理界面状态与跳转；需要改动数据时调用控制器，控制器通过 `store` 把命令发给后端。导航负责 hash 与返回行为，领域模块是不依赖 DOM 的纯规则，页面模块生成界面。
+
+有哪些页面写在 `app/screens.js` 的一张表里：每个页面由哪个函数渲染、地址里带的是什么 id、页头的标题与浏览器标签的标题，以及离开它时是否保留正在录入的票根。增加页面时在这张表里加一行，并写出对应的页面函数。
 
 `appContext` 按职责分组：
 
@@ -18,6 +20,7 @@
 | `runtime`                                                 | 计时器、弹窗状态、翻页与轮播实例等临时对象          |
 | `dom`、`assets`、`media`                                  | 挂载点、章面插画的资源地址、票根图片的地址          |
 | `domain`、`selectors`                                     | 纯规则，以及对当前数据的查询                        |
+| `screens`                                                 | 页面表：某个页面是否存在、讲的是什么、标题与内容    |
 | `navigation`、`claims`、`memories`、`social`、`discovery` | 交互控制器                                          |
 | `dialogs`、`views`、`render`                              | 弹窗、页面函数与渲染调度                            |
 | `sharing`、`images`、`format`、`feedback`                 | 导出、图片、展示工具及反馈                          |
@@ -77,7 +80,7 @@ community
 
 场馆与纪念章是两种对象，各有自己的 id，通过 `venue.stampId` 与 `stamp.venueId` 互相指向；演示数据里馆章与场馆恰好同名，代码不依赖这一点。`domain/catalog.js` 的 `createCatalog()` 提供 `venue(id)`、`stamp(id)`、`venueOf(stamp)`、`stampOf(venue)` 与 `stampsFor(ids)`，查不到时返回 `undefined`，不会用别的场馆顶替。
 
-每个页面的地址带一个 id，它是什么由页面决定（`config.js` 的 `venueScreens`、`stampScreens`、`visitScreens`）：场馆页、盖章页、票根页带场馆 id，章页、领取成功页、单章分享页带章 id，到访页带场馆与日期。页面通过 `selectors.venue()` 与 `selectors.stamp()` 取得当前的场馆与章。
+每个页面的地址带一个 id，它是什么由页面决定（`app/screens.js` 中各页面的 `about`）：场馆页、盖章页、票根页带场馆 id，章页、领取成功页、单章分享页带章 id，到访页带场馆与日期。页面通过 `selectors.venue()` 与 `selectors.stamp()` 取得当前的场馆与章。
 
 其他收藏家与广场动态由后端以 id 的形式返回；榜单、名次、收藏者名录与广场的信息流仍由 `state/community.js` 在读取时计算。
 
@@ -91,7 +94,26 @@ community
 
 `views/` 按页面分组，动态个人文本通过统一的 HTML 转义函数写入页面。图标定义保留在 `index.html`，插画通过 ES Module 资源导入交给 Vite 处理。
 
-样式按 `tokens → base → tickets → memories → collectors → map → square` 的顺序导入，保留现有界面的级联关系。修改颜色与字体从 `tokens.css` 开始，票根和到访页面分别在对应样式文件中调整。
+样式按功能分文件，由 `styles/index.css` 依次导入；后面的文件可以覆盖前面的，所以顺序就是级联关系：
+
+| 文件                                      | 内容                                         |
+| ----------------------------------------- | -------------------------------------------- |
+| `tokens.css`                              | 颜色、字体等设计变量                         |
+| `base.css`                                | 元素的基础样式                               |
+| `review.css`                              | 桌面评审侧栏与手机外框                       |
+| `shell.css`                               | 页头、主区、页面、页面操作区与底部导航       |
+| `components.css`                          | 按钮、空状态、轻提示、弹窗及其表单           |
+| `stamps.css`                              | 章面插画、可翻转的徽章、章页与编号           |
+| `passport.css`                            | 护照首页的标签与章册卡片                     |
+| `claim.css`                               | 现场领取：扫码页、领取成功页与领取仪式       |
+| `discovery.css`                           | 搜索、精选、目的地列表与场馆页               |
+| `sharing.css`                             | 旅行卡：单章、单次到访，以及足迹与章册的总览 |
+| `phone.css`                               | 手机上页面统一的上边距与窄屏留白             |
+| `tickets.css`、`memories.css`             | 票根入册；足迹、到访页与记忆                 |
+| `passport-book.css`                       | 护照册子：封面、翻页、章页与票根页           |
+| `collectors.css`、`map.css`、`square.css` | 收藏家、示意地图、广场                       |
+
+每个文件自带它的窄屏规则（文件末尾的 `@media`）。`phone.css` 是例外：手机上所有页面的上边距与留白会盖过各页面自己写的 `padding`，所以它排在各页面的文件之后，不能并回 `shell.css`。修改颜色与字体从 `tokens.css` 开始，其余在对应功能的文件中调整。
 
 ### 配色
 
@@ -108,7 +130,7 @@ community
 
 浅底、描边、光晕、投影等（`--accent-soft`、`--accent-line`、`--accent-ink`、`--owned-soft`、`--veil`、`--scrim`、`--shade-1` 到 `--shade-4` 等）由 `color-mix()` 从上面的颜色算出，写在同一个文件的第二段；换掉 `--accent`，它们跟着变。
 
-可以点的文字用 `--link`，默认就是 `--accent`。主色是黑色时它和正文分不开，所以这类文字另外加重一档字重，并带一个图标或在后面跟一个小箭头（规则在 `base.css` 的 `.button.text` 之后）。主题若想让文字链接有自己的颜色，覆盖 `--link` 一项即可。
+可以点的文字用 `--link`，默认就是 `--accent`。主色是黑色时它和正文分不开，所以这类文字另外加重一档字重，并带一个图标或在后面跟一个小箭头（规则在 `components.css` 的 `.button.text` 之后）。主题若想让文字链接有自己的颜色，覆盖 `--link` 一项即可。
 
 物件自己的颜色不在其中，留在各自的样式里：章缘与光晕、奖牌、护照封面与册子的纸张、示例票根、旅行卡（预览与 `services/share-card.js` 画出的图片用同一组色值）、地图插画。
 

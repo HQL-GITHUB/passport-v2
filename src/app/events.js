@@ -1,14 +1,15 @@
 import { createPageActions } from '../actions/pages.js';
-import { createPassportActions } from '../actions/passport.js';
-import { createDiscoveryActions } from '../actions/discovery.js';
-import { createClaimActions } from '../actions/claims.js';
-import { createSharingActions } from '../actions/sharing.js';
-import { createCommunityActions } from '../actions/community.js';
+import { createPassportActions, createPassportFields } from '../actions/passport.js';
+import { createDiscoveryActions, createDiscoveryFields } from '../actions/discovery.js';
+import { createClaimActions, createClaimFields } from '../actions/claims.js';
+import { createSharingActions, createSharingFields } from '../actions/sharing.js';
+import { createCommunityActions, createCommunityFields } from '../actions/community.js';
 import { createDemoActions } from '../actions/demo.js';
 
 /**
  * Registers listeners once and returns a teardown for development reloads. A click on a button
- * runs the action its `data-action` names; the actions are grouped by feature in `actions/`.
+ * runs the action its `data-action` names, and a field does the same as it is typed in or
+ * changed; both are grouped by feature in `actions/`.
  */
 export function bindEvents(appContext) {
   const disposers = [];
@@ -25,6 +26,13 @@ export function bindEvents(appContext) {
     ...createCommunityActions(appContext),
     ...createDemoActions(appContext),
   };
+  const fields = {
+    ...createPassportFields(appContext),
+    ...createDiscoveryFields(appContext),
+    ...createClaimFields(appContext),
+    ...createSharingFields(appContext),
+    ...createCommunityFields(appContext),
+  };
   listen(document, 'click', async (event) => {
     const backdrop = event.target.closest('[data-modal-backdrop]');
     if (backdrop && event.target === backdrop) {
@@ -38,103 +46,10 @@ export function bindEvents(appContext) {
     appContext.navigation.rememberPage();
     await actions[button.dataset.action]?.(button, button.dataset.id || appContext.ui.selected);
   });
-  listen(document, 'input', (event) => {
-    if (event.target.id === 'venue-search') {
-      appContext.ui.query = event.target.value;
-      appContext.discovery.updateSearch();
-    }
-    if (event.target.id === 'memory-input')
-      document.getElementById('note-count').textContent = event.target.value.length;
-    if (
-      ['ticket-custom-name', 'ticket-custom-city', 'ticket-custom-exhibit'].includes(
-        event.target.id,
-      ) &&
-      appContext.ui.ticketDraft &&
-      !appContext.data.tickets[appContext.ui.ticketDraft.id]
-    ) {
-      const prop = {
-        'ticket-custom-name': 'customName',
-        'ticket-custom-city': 'customCity',
-        'ticket-custom-exhibit': 'customExhibit',
-      }[event.target.id];
-      appContext.ui.ticketDraft[prop] = event.target.value;
-      appContext.claims.updateTicketConfirmation();
-    }
-  });
-  // A switch of the visibility dialog. Notes and photographs are shown with the visits they
-  // belong to, or not at all, so their switch follows the one of the footprints.
-  async function changeVisibility(input) {
-    const shown = await appContext.social.setVisibility(input.dataset.visibility, input.checked);
-    if (!shown) {
-      input.checked = !input.checked;
-      return;
-    }
-    const memories = appContext.dom.modalRoot.querySelector('[data-visibility="memories"]');
-    if (memories) {
-      memories.checked = shown.memories;
-      memories.disabled = !shown.footprints;
-    }
-    appContext.render(true);
-  }
-  listen(document, 'change', (event) => {
-    if (event.target.id === 'photo-input') appContext.memories.preparePhoto(event.target.files[0]);
-    if (['ticket-camera-input', 'ticket-album-input'].includes(event.target.id))
-      appContext.claims.prepareTicketImage(event.target.files[0]);
-    if (event.target.id === 'save-ticket-memory' && appContext.ui.ticketDraft) {
-      appContext.ui.ticketDraft.saveTicket = event.target.checked;
-      appContext.views.renderFooter();
-    }
-    if (event.target.id === 'share-ticket-select')
-      appContext.dialogs.setupTicketEditor(event.target.value);
-    if (event.target.dataset.visibility) changeVisibility(event.target);
-    if (
-      ['ticket-venue', 'ticket-date'].includes(event.target.id) &&
-      appContext.ui.ticketDraft &&
-      !appContext.ui.claimBusy
-    ) {
-      if (appContext.data.tickets[appContext.ui.ticketDraft.id]) return;
-      if (event.target.id === 'ticket-venue')
-        appContext.ui.ticketDraft.venueId = event.target.value;
-      else appContext.ui.ticketDraft.visitedAt = event.target.value;
-      appContext.claims.resetTicketSelection();
-      if (event.target.id === 'ticket-venue') {
-        appContext.ui.ticketError = '';
-        appContext.render(true);
-      } else appContext.claims.updateTicketConfirmation();
-    }
-    if (
-      event.target.dataset.ticketReward &&
-      appContext.ui.ticketDraft &&
-      !appContext.ui.claimBusy
-    ) {
-      const id = event.target.dataset.ticketReward;
-      if (
-        !appContext.selectors.ticketRewards(appContext.ui.ticketDraft).some((v) => v.id === id) ||
-        appContext.data.tickets[appContext.ui.ticketDraft.id]?.redeemed.includes(id)
-      )
-        return;
-      appContext.ui.ticketDraft.selected = event.target.checked
-        ? [...new Set([...appContext.ui.ticketDraft.selected, id])]
-        : appContext.ui.ticketDraft.selected.filter((value) => value !== id);
-      appContext.views.renderFooter();
-    }
-    if (event.target.dataset.option) {
-      if (event.target.dataset.option === 'ticket') {
-        if (event.target.checked) {
-          event.target.checked = appContext.ui.includeTicket;
-          appContext.dialogs.openModal('ticket-editor');
-        } else {
-          appContext.ui.includeTicket = false;
-          appContext.ui.shareTicket = '';
-          appContext.render(true);
-        }
-        return;
-      }
-      appContext.ui[event.target.dataset.option === 'note' ? 'includeNote' : 'includePhoto'] =
-        event.target.checked;
-      document.getElementById('share-card-preview').innerHTML = appContext.views.sharePaper();
-    }
-  });
+  // A field that is typed in or changed runs what its `data-input` or `data-change` names.
+  const onField = (event) => fields[event.target.dataset?.[event.type]]?.(event.target);
+  listen(document, 'input', onField);
+  listen(document, 'change', onField);
   listen(document, 'keydown', (event) => {
     if (!appContext.runtime.modalState) return;
     if (event.key === 'Escape') {

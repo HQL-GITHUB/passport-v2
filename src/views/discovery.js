@@ -81,6 +81,7 @@ export function createDiscoveryViews(appContext) {
           >搜索场馆或展览</label
         ><input
           id="venue-search"
+          data-input="search"
           type="search"
           placeholder="每一次探索，都值得留下印记"
           value="${appContext.format.safe(appContext.ui.query)}"
