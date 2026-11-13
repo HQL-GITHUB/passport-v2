@@ -38,7 +38,13 @@ export function createVisitViews(appContext) {
           </button>
         </div>
         ${hasNote ? /* HTML */ `<p class="memory-note">${appContext.format.safe(v.note)}</p>` : !v.photo ? `<button class="visit-add" data-action="edit-memory">${appContext.format.icon('edit')}一张照片，一句话，留住那一天。</button>` : ''}${v.photo ? `<img class="memory-photo" src="${appContext.format.safe(v.photo)}" alt="这次到访的个人照片">` : ''}
-        <p class="privacy">${appContext.format.icon('lock')}票根、照片和感想默认仅自己可见</p>
+        <p class="privacy">
+          ${appContext.format.icon('lock')}${
+            appContext.selectors.visibility().memories
+              ? '票根仅自己可见；感想与照片已随足迹公开'
+              : '票根、照片和感想默认仅自己可见'
+          }
+        </p>
       </section>
       <div id="page-actions"></div>
     </section>`;

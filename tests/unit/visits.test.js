@@ -170,3 +170,23 @@ test('records keep the order they were made in, so stamps of one day fill the al
   assert.deepEqual(Object.keys(result.records), ['modern', 'museum', 'artmuseum']);
   assert.deepEqual(Object.keys(normalize(result).records), ['modern', 'museum', 'artmuseum']);
 });
+
+test('a passport shows others only what its holder switched on, and notes only along with the footprints', () => {
+  const blank = { version: 3, records: {}, visits: {}, tickets: {}, wanted: [] };
+  assert.deepEqual(normalize(blank).profile.public, {
+    album: false,
+    footprints: false,
+    memories: false,
+  });
+  assert.deepEqual(
+    normalize({ ...blank, profile: { public: { album: true, footprints: 'yes', memories: true } } })
+      .profile.public,
+    { album: true, footprints: false, memories: false },
+  );
+  const shown = normalize({
+    ...blank,
+    profile: { public: { album: true, footprints: true, memories: true } },
+  });
+  assert.deepEqual(shown.profile.public, { album: true, footprints: true, memories: true });
+  assert.deepEqual(normalize(shown).profile, shown.profile);
+});

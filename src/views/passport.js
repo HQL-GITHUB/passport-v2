@@ -97,6 +97,11 @@ export function createPassportViews(appContext) {
   function bookTurned(leaf) {
     const section = leaf.dataset.section,
       changed = section !== appContext.ui.collection;
+    // Someone else's album is a book of its own, with its own place.
+    if (section === 'collector') {
+      appContext.ui.collectorPage = Number(leaf.dataset.local);
+      return;
+    }
     appContext.ui.collection = section;
     appContext.ui[section === 'tickets' ? 'ticketPage' : 'stampPage'] = Number(leaf.dataset.local);
     if (!changed) return;
@@ -152,47 +157,53 @@ export function createPassportViews(appContext) {
       ],
       owned = appContext.selectors.collected().length,
       pending = appContext.selectors.uncollected().length;
-    return /* HTML */ `<div
-      class="passport-book"
-      data-page="${claimed ? stampPageOf(claimed[0]) : bookIndex()}"
-    >
+    return bookFrame(
+      claimed ? stampPageOf(claimed[0]) : bookIndex(),
+      leaves
+        .map(([section, local, items], n) => {
+          const album = section === 'collected',
+            // The first page with an empty slot says how many are still to come.
+            note =
+              album && pending && local === Math.floor(owned / 4)
+                ? `<span class="album-pending">${owned ? `还有 ${pending} 枚，等你出发` : '第一枚纪念章，等你出发'}</span>`
+                : album
+                  ? '<span></span>'
+                  : `<span class="privacy">${appContext.format.icon('lock')}票根仅自己可见，原图只保存在本机</span>`;
+          return /* HTML */ `<div
+            class="book-page ${album ? 'stamp-leaf' : 'ticket-leaf'}"
+            style="--n:${leaves.length - n}"
+            role="group"
+            aria-label="${sections[section]} 第 ${local + 1} 页，共 ${pages[section].length} 页"
+            data-section="${section}"
+            data-local="${local}"
+          >
+            <div class="leaf-head">
+              <span>${album ? '纪念章' : '票根'}</span
+              ><i aria-hidden="true">${album ? 'STAMPS' : 'TICKETS'}</i>
+            </div>
+            ${
+              album
+                ? `<div class="stamp-slots">${items.map((v) => stampSlot(v, claimed?.includes(v.id))).join('')}</div>`
+                : appContext.selectors.ticketRows().length
+                  ? `<div class="ticket-slots">${items.map(ticketSlot).join('')}</div>`
+                  : emptyTickets()
+            }
+            <div class="leaf-foot">${note}<b>${String(n + 1).padStart(2, '0')}</b></div>
+          </div>`;
+        })
+        .join(''),
+      claimed ? '' : leaves.map(([section]) => `<i class="${section}"></i>`).join(''),
+    );
+  }
+  // The book around the pages it is given: its boards, the gutter and the front cover. Under it
+  // the pager, with a dot for each page, unless the book is only looked at.
+  function bookFrame(page, leaves, dots) {
+    return /* HTML */ `<div class="passport-book" data-page="${page}">
       <div class="book-stage">
         <div class="book-cover" aria-hidden="true"></div>
         <div class="book-leaves">
           <div class="book-left" aria-hidden="true"></div>
-          ${leaves
-            .map(([section, local, items], n) => {
-              const album = section === 'collected',
-                // The first page with an empty slot says how many are still to come.
-                note =
-                  album && pending && local === Math.floor(owned / 4)
-                    ? `<span class="album-pending">${owned ? `还有 ${pending} 枚，等你出发` : '第一枚纪念章，等你出发'}</span>`
-                    : album
-                      ? '<span></span>'
-                      : `<span class="privacy">${appContext.format.icon('lock')}票根仅自己可见，原图只保存在本机</span>`;
-              return /* HTML */ `<div
-                class="book-page ${album ? 'stamp-leaf' : 'ticket-leaf'}"
-                style="--n:${leaves.length - n}"
-                role="group"
-                aria-label="${sections[section]} 第 ${local + 1} 页，共 ${pages[section].length} 页"
-                data-section="${section}"
-                data-local="${local}"
-              >
-                <div class="leaf-head">
-                  <span>${album ? '纪念章' : '票根'}</span
-                  ><i aria-hidden="true">${album ? 'STAMPS' : 'TICKETS'}</i>
-                </div>
-                ${
-                  album
-                    ? `<div class="stamp-slots">${items.map((v) => stampSlot(v, claimed?.includes(v.id))).join('')}</div>`
-                    : appContext.selectors.ticketRows().length
-                      ? `<div class="ticket-slots">${items.map(ticketSlot).join('')}</div>`
-                      : emptyTickets()
-                }
-                <div class="leaf-foot">${note}<b>${String(n + 1).padStart(2, '0')}</b></div>
-              </div>`;
-            })
-            .join('')}
+          ${leaves}
         </div>
         <div class="book-front-wrap" aria-hidden="true">
           <div class="book-front">
@@ -208,21 +219,18 @@ export function createPassportViews(appContext) {
         </div>
       </div>
       ${
-        claimed
-          ? ''
-          : /* HTML */ `<div class="book-pager">
+        dots
+          ? /* HTML */ `<div class="book-pager">
               <button data-book-step="-1" aria-label="上一页">
                 ${appContext.format.icon('back')}
               </button>
-              <span class="book-dots" aria-hidden="true"
-                ><i class="cover"></i
-                >${leaves.map(([section]) => `<i class="${section}"></i>`).join('')}</span
-              >
+              <span class="book-dots" aria-hidden="true"><i class="cover"></i>${dots}</span>
               <button data-book-step="1" aria-label="下一页">
                 ${appContext.format.icon('chevron')}
               </button>
               <span class="sr-only book-status" role="status"></span>
             </div>`
+          : ''
       }
     </div>`;
   }
@@ -393,6 +401,7 @@ export function createPassportViews(appContext) {
     renderFootprints,
     inBook,
     bookIndex,
+    bookFrame,
     renderBook,
     stampPageOf,
     bookTurned,

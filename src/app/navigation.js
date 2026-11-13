@@ -9,10 +9,17 @@ export function createNavigation(appContext) {
     'city',
     'category',
     'query',
+    'discoverView',
+    'mapVenue',
     'scanMode',
     'visitKey',
     'visitDate',
     'stampReturn',
+    'board',
+    'person',
+    'collectorTab',
+    'collectorPage',
+    'post',
   ];
   const entries = new Map();
   const session = Date.now().toString(36);
@@ -25,7 +32,11 @@ export function createNavigation(appContext) {
   function scrollKey(page) {
     if (page.screen === 'passport') return `passport/${page.collection}`;
     if (page.screen === 'discover')
-      return JSON.stringify(['discover', page.city, page.category, page.query]);
+      return JSON.stringify(['discover', page.city, page.category, page.query, page.discoverView]);
+    if (page.screen === 'square') return 'square';
+    if (page.screen === 'post') return `post/${page.post}`;
+    if (page.screen === 'collectors') return `collectors/${page.board}`;
+    if (page.screen === 'collector') return `collector/${page.person}/${page.collectorTab}`;
     if (['visit', 'visit-share', 'ticket-success'].includes(page.screen))
       return `${page.screen}/${page.visitKey}`;
     return `${page.screen}/${page.selected}/${page.screen === 'stamp' ? page.visitDate || '' : ''}`;
@@ -58,6 +69,17 @@ export function createNavigation(appContext) {
     appContext.ui.selected = appContext.catalog.stamps.some((s) => s.id === parts[1])
       ? parts[1]
       : 'museum';
+    // A post is addressed by its writer, its venue and the day of the visit.
+    if (appContext.ui.screen === 'post') {
+      const id = parts.slice(1).join('/');
+      if (appContext.selectors.posts().some((p) => p.id === id)) appContext.ui.post = id;
+      else appContext.ui.screen = 'square';
+    }
+    // A collector's passport is addressed by its collector.
+    if (appContext.ui.screen === 'collector') {
+      if (appContext.selectors.person(parts[1])) appContext.ui.person = parts[1];
+      else appContext.ui.screen = 'collectors';
+    }
     if (['visit', 'visit-share', 'ticket-success'].includes(appContext.ui.screen) && parts[2]) {
       const key = appContext.domain.key(parts[1], parts[2]);
       if (appContext.data.visits[key]) {
@@ -118,7 +140,12 @@ export function createNavigation(appContext) {
         ? appContext.ui.ticketResult?.visitedAt
         : appContext.data.visits[appContext.ui.visitKey]?.day
       : null;
-    const hash = `#/${screen}/${appContext.ui.selected}${day ? '/' + day : ''}`;
+    const hash =
+      screen === 'collector'
+        ? `#/collector/${appContext.ui.person}`
+        : screen === 'post'
+          ? `#/post/${appContext.ui.post}`
+          : `#/${screen}/${appContext.ui.selected}${day ? '/' + day : ''}`;
     const page = pageState();
     currentEntry = {
       id: `${session}-${sequence++}`,
@@ -194,6 +221,14 @@ export function createNavigation(appContext) {
     }
     if (appContext.ui.screen === 'venue') {
       appContext.navigation.navigate('discover', appContext.ui.selected, true);
+      return;
+    }
+    if (appContext.ui.screen === 'collector') {
+      appContext.navigation.navigate('collectors', appContext.ui.selected, true);
+      return;
+    }
+    if (appContext.ui.screen === 'post') {
+      appContext.navigation.navigate('square', appContext.ui.selected, true);
       return;
     }
     // An overview share opened directly returns to the tab it shares.

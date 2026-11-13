@@ -10,6 +10,10 @@ export function createUiState() {
     city: '全部城市',
     category: 'all',
     query: '',
+    // How the discover page shows its destinations, as a list or on the map, and the venue
+    // chosen on the map.
+    discoverView: 'list',
+    mapVenue: null,
     scanMode: 'qr',
     claimBusy: false,
     duplicate: false,
@@ -27,6 +31,15 @@ export function createUiState() {
     ticketError: '',
     ticketResult: null,
     highlightVisit: null,
+    // The board the collectors page is open on; the first one until another is chosen.
+    board: '',
+    // The collector whose passport is open, the tab it is on and the page of its album.
+    person: null,
+    collectorTab: 'album',
+    collectorPage: 0,
+    // The post that is open, and the one of the holder's own about to be taken off the square.
+    post: null,
+    withdrawing: null,
   };
 }
 

@@ -1,6 +1,7 @@
 import { APP_CONFIG } from '../config.js';
 import * as catalog from '../data/catalog.js';
 import { createDemoData } from '../data/demo-data.js';
+import { collectors, posts } from '../data/collectors.js';
 import {
   visitKey,
   hashIdentity,
@@ -20,6 +21,7 @@ import { bindEvents } from './events.js';
 import { assets } from '../data/assets.js';
 import { createMetadataStorage } from '../storage/metadata.js';
 import { createQueries } from '../state/queries.js';
+import { createCommunityQueries } from '../state/community.js';
 import { createNavigation } from '../app/navigation.js';
 import { createFeedback } from '../ui/feedback.js';
 import { createCeremony } from '../ui/ceremony.js';
@@ -31,6 +33,9 @@ import { createTicketViews } from '../views/tickets.js';
 import { createDiscoveryViews } from '../views/discovery.js';
 import { createVisitViews } from '../views/visits.js';
 import { createSharingViews } from '../views/sharing.js';
+import { createCollectorViews } from '../views/collectors.js';
+import { createMapViews } from '../views/map.js';
+import { createSquareViews } from '../views/square.js';
 import { createRenderer } from '../app/render.js';
 import { createDiscoveryController } from '../controllers/discovery.js';
 import { createDialogController } from '../controllers/dialogs.js';
@@ -53,7 +58,7 @@ export function createApp() {
   const appContext = {
     config: APP_CONFIG,
     catalog,
-    fixtures: { initialData: createDemoData },
+    fixtures: { initialData: createDemoData, collectors, posts },
     domain: {
       key: visitKey,
       hash: hashIdentity,
@@ -85,6 +90,7 @@ export function createApp() {
   appContext.format = createPresentation(appContext);
   Object.assign((appContext.storage ||= {}), createMetadataStorage(appContext));
   Object.assign((appContext.selectors ||= {}), createQueries(appContext));
+  Object.assign((appContext.selectors ||= {}), createCommunityQueries(appContext));
   Object.assign((appContext.navigation ||= {}), createNavigation(appContext));
   Object.assign((appContext.feedback ||= {}), createFeedback(appContext));
   Object.assign((appContext.ceremony ||= {}), createCeremony(appContext));
@@ -96,6 +102,9 @@ export function createApp() {
   Object.assign((appContext.views ||= {}), createDiscoveryViews(appContext));
   Object.assign((appContext.views ||= {}), createVisitViews(appContext));
   Object.assign((appContext.views ||= {}), createSharingViews(appContext));
+  Object.assign((appContext.views ||= {}), createCollectorViews(appContext));
+  Object.assign((appContext.views ||= {}), createMapViews(appContext));
+  Object.assign((appContext.views ||= {}), createSquareViews(appContext));
   Object.assign(appContext, createRenderer(appContext));
   Object.assign((appContext.discovery ||= {}), createDiscoveryController(appContext));
   Object.assign((appContext.dialogs ||= {}), createDialogController(appContext));

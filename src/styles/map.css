@@ -1,0 +1,351 @@
+/* The discover page as a map: the two cities drawn on one sheet, a mark for each destination. */
+.header-actions .view-toggle {
+  padding-right: 10px;
+}
+.discover-page.map-open .category-tabs {
+  margin-top: 12px;
+}
+/* The sheet. Where the screen cannot be measured it keeps the proportions it was drawn in, and
+   everything on it is placed by those. */
+.venue-map {
+  position: relative;
+  isolation: isolate;
+  /* The panel's margin stays inside the sheet. */
+  display: flow-root;
+  aspect-ratio: 2 / 3;
+  margin-top: 12px;
+  border-radius: 12px;
+  background: #f3f5f9;
+  /* Clipped without becoming a scroller of its own: the panel holds to the page's scroll. */
+  overflow: clip;
+  -webkit-user-select: none;
+  user-select: none;
+  --seal: 44px;
+}
+.map-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  stroke: none;
+}
+/* Pulled to another shape, the drawing keeps its lines as wide as they were drawn. */
+.map-art * {
+  vector-effect: non-scaling-stroke;
+}
+/* A mark or a name stands where the drawing has it: so far across, so far down. */
+.map-pin,
+.map-city {
+  position: absolute;
+  left: calc(var(--x) / 360 * 100%);
+  top: calc(var(--y) / 540 * 100%);
+}
+/* The map page fills the screen, whatever its size, and does not scroll: the sheet takes all the
+   room under the search box and the categories. Its top band, where the panel lies, keeps its
+   height; the rest of the drawing is pulled to the room that is left, and the marks go with it.
+   --unit is how tall one unit of the drawing stands on the sheet. */
+@supports (height: 1cqh) {
+  .page.discover-page.map-open {
+    display: flex;
+    flex-direction: column;
+    height: 100cqh;
+    min-height: 0;
+    padding-bottom: 12px;
+  }
+  .map-open > * {
+    flex: none;
+  }
+  .venue-map {
+    container: venue-map / size;
+    /* Shorter than this the marks would no longer keep clear of each other: the page scrolls. */
+    flex: 1 0 304px;
+    aspect-ratio: auto;
+    --band: 84px;
+    --unit: calc((100cqh - var(--band)) / 444);
+  }
+  .map-art {
+    inset: calc(var(--band) - 96 * var(--unit)) 0 auto;
+    height: calc(540 * var(--unit));
+  }
+  .map-pin,
+  .map-city {
+    top: calc(var(--band) + (var(--y) - 96) * var(--unit));
+  }
+  /* On a short sheet the marks are smaller, so that none stands on the name of the one above. */
+  @container venue-map (max-height: 372px) {
+    .map-pin {
+      --seal: 36px;
+      gap: 2px;
+    }
+    .map-pin .pin-name {
+      line-height: 16px;
+    }
+    .map-pin .pin-mark {
+      width: 15px;
+      height: 15px;
+    }
+  }
+  @container venue-map (max-height: 318px) {
+    .map-pin {
+      --seal: 32px;
+    }
+  }
+}
+/* The names of the two cities, lettered over the drawing. */
+.map-city {
+  translate: -50% -50%;
+  font: 15px/1.3 var(--song);
+  letter-spacing: 5px;
+  text-indent: 5px;
+  text-align: center;
+  white-space: nowrap;
+  color: #9aa3b3;
+  pointer-events: none;
+}
+.map-city i {
+  display: block;
+  font: 7px/1.6 var(--font);
+  font-style: normal;
+  letter-spacing: 2.2px;
+  text-indent: 2.2px;
+  color: #b3bac6;
+}
+/* A mark is the venue's stamp, its middle on the venue's place, with the venue's name under it. */
+.map-pin {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  translate: -50% calc(var(--seal) / -2);
+  transition: opacity 0.2s;
+}
+.pin-seal {
+  position: relative;
+  width: var(--seal);
+  height: var(--seal);
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow:
+    0 0 0 2px var(--paper),
+    0 4px 8px #1f283c33;
+  transition:
+    scale 0.2s,
+    box-shadow 0.2s;
+}
+.pin-seal .badge-edition:after {
+  display: none;
+}
+/* Still to collect: the stamp dimmed in a dashed ring, as its place in the album is. */
+.map-pin:not(.owned) .pin-seal {
+  background: #ffffffd9;
+  box-shadow: none;
+  outline: 1px dashed #aab3c2;
+  outline-offset: 1px;
+}
+.map-pin:not(.owned) .badge-art {
+  scale: 0.86;
+  filter: grayscale(0.8) opacity(0.72);
+}
+.pin-name {
+  padding: 0 6px;
+  border-radius: 9px;
+  background: #ffffffd9;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.map-pin.owned .pin-name {
+  color: var(--ink);
+}
+/* Collected carries a tick, wanted a heart, on the rim at the lower right. */
+.pin-mark {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--paper);
+}
+.pin-mark svg {
+  width: 60%;
+  height: 60%;
+  stroke-width: 2.8;
+}
+.pin-mark.want {
+  background: var(--paper);
+  color: var(--blue);
+}
+.pin-mark.want svg {
+  fill: currentColor;
+  stroke-width: 1.6;
+}
+/* The chosen mark stands forward, ringed in blue. */
+.map-pin.selected {
+  z-index: 2;
+}
+.map-pin.selected .pin-seal {
+  scale: 1.16;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--paper),
+    0 0 0 4px var(--blue),
+    0 7px 14px #2455e84d;
+}
+.map-pin.selected .pin-name {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 600;
+}
+/* Left out by the search, the city or the category: faded back, and not to be pressed. */
+.map-pin.dim {
+  opacity: 0.25;
+}
+/* Laid over the clear band at the top of the sheet. On a screen shorter than the map it holds
+   under the header while the map scrolls. */
+.map-panel {
+  position: sticky;
+  top: 10px;
+  z-index: 3;
+  margin: 10px 10px 0;
+  border-radius: 12px;
+  background: #fffffff5;
+  box-shadow:
+    0 0 0 1px #1b243a0d,
+    0 6px 16px #1b243a1f;
+}
+.map-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 10px;
+  min-height: 48px;
+  padding: 8px 14px;
+}
+.map-summary strong {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.map-summary strong b {
+  margin: 0 1px;
+  font: 20px/1 var(--serif);
+  font-weight: 400;
+}
+.map-summary button {
+  min-height: 32px;
+  font-size: 12px;
+  color: var(--blue);
+}
+/* What the marks mean, each word after a small one of its kind. */
+.map-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.map-legend i {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  border-radius: 50%;
+}
+.map-legend i:first-child {
+  margin-left: 0;
+}
+.map-legend .owned {
+  background: var(--blue);
+  color: #fff;
+}
+.map-legend .owned svg {
+  width: 8px;
+  height: 8px;
+  stroke-width: 3;
+}
+.map-legend .open {
+  outline: 1px dashed #8d97a8;
+  outline-offset: -1px;
+}
+.map-legend .want {
+  color: var(--blue);
+}
+.map-legend .want svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+/* The chosen venue: its photograph or its stamp, its name, and what waits there. */
+.map-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px 8px 8px;
+  text-align: left;
+}
+.map-thumb {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 9px;
+  background: var(--soft);
+  overflow: hidden;
+}
+.map-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.map-thumb .badge-art {
+  width: 84%;
+}
+.map-copy {
+  flex: 1;
+  min-width: 0;
+}
+.map-copy strong,
+.map-copy small {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.map-copy strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.map-copy small {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.map-copy .map-state {
+  color: var(--blue);
+}
+.map-card > svg {
+  width: 14px;
+  height: 14px;
+  color: #95a2b7;
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-pin,
+  .pin-seal {
+    transition: none;
+  }
+}

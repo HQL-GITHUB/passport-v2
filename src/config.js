@@ -19,5 +19,9 @@ export const APP_CONFIG = Object.freeze({
     'visit-share',
     'share-footprints',
     'share-album',
+    'collectors',
+    'collector',
+    'square',
+    'post',
   ],
 });

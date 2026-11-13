@@ -24,7 +24,9 @@ export function createStampViews(appContext) {
               </button>
             </div>
             ${visit.note ? /* HTML */ `<p class="memory-note">${appContext.format.safe(visit.note)}</p>` : !visit.photo ? '<p class="memory-empty">一张照片，一句话。<br>把当时的心情，也一起收藏。</p>' : ''}${visit.photo ? `<img class="memory-photo" src="${appContext.format.safe(visit.photo)}" alt="这次参观的个人照片">` : ''}
-            <p class="privacy">${appContext.format.icon('lock')}仅自己可见，分享时可自行选择</p>
+            <p class="privacy">
+              ${appContext.selectors.memoryPrivacy('仅自己可见，分享时可自行选择')}
+            </p>
           </section>`
       : `<div class="stamp-unowned">${v.period ? '展览已经结束，可以用当时的票根补领纪念。' : `前往${v.name}，把这枚纪念收入护照。`}</div>`;
     return /* HTML */ `<section class="page stamp-page ${r ? '' : 'unowned'} screen-enter">
@@ -48,6 +50,7 @@ export function createStampViews(appContext) {
       <p class="stamp-description">${v.description}</p>
       ${renderEdition(v)}
       ${r ? `<div id="page-actions"></div>${memory}` : `${memory}<div id="page-actions"></div>`}
+      ${appContext.views.renderHolders(v)}
     </section>`;
   }
   function renderEdition(v) {

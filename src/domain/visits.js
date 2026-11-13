@@ -46,6 +46,7 @@ function normalize(raw, venues, stamps, validDay) {
     wanted: [],
     tickets: {},
     visits: {},
+    posts: [],
   };
   const stampById = (id) => stamps.find((s) => s.id === id);
   const base = (s) => venues.find((v) => v.id === (s.venueId || s.id));
@@ -161,6 +162,33 @@ function normalize(raw, venues, stamps, validDay) {
     };
     if (venue.name) ensure(result, venue, t.visitedAt, t.redeemed, id);
   }
+  // What the holder has put on the square: one post to a visit, with a copy of what was chosen to
+  // go with it. And the posts of others the holder liked.
+  for (const p of Array.isArray(raw?.posts) ? raw.posts : []) {
+    const v = p && result.visits[p.key];
+    if (!v || !validDay(p.at)) continue;
+    result.posts = result.posts.filter((item) => item.key !== p.key);
+    result.posts.push({
+      key: p.key,
+      stampIds: Array.isArray(p.stampIds) ? p.stampIds.filter((s) => v.stampIds.includes(s)) : [],
+      note: cleanText(p.note),
+      photo: photo(p.photo),
+      at: p.at,
+    });
+  }
+  result.liked = Array.isArray(raw?.liked)
+    ? [...new Set(raw.liked.filter((id) => typeof id === 'string' && /^[\w/-]{1,80}$/.test(id)))]
+    : [];
+  // What the holder shows of the passport to others: only what was switched on. Notes and
+  // photographs are shown with the visits they belong to, so not without the footprints.
+  const shown = raw?.profile?.public || {};
+  result.profile = {
+    public: {
+      album: shown.album === true,
+      footprints: shown.footprints === true,
+      memories: shown.footprints === true && shown.memories === true,
+    },
+  };
   return result;
 }
 export {

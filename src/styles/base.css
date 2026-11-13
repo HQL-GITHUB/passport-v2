@@ -680,9 +680,10 @@ img {
   position: relative;
   z-index: 1;
 }
+/* Five places, the claim button in the middle. */
 .bottom-nav {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(5, 1fr);
   align-items: center;
   border-top: 1px solid var(--line);
   padding: 8px 23px 5px;

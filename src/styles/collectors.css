@@ -1,0 +1,467 @@
+/* The collectors: the boards, other people's passports, and what the holder shows of their own. */
+/* A collector's face: the first letter of the name, on a tint of the collector's own. */
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: hsl(var(--hue) 42% 92%);
+  color: hsl(var(--hue) 32% 36%);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+.avatar.me {
+  background: var(--blue);
+  color: #fff;
+}
+/* Where the holder stands on the open board; it opens the holder's own passport as others see it. */
+.standing-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 68px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--blue-soft);
+  text-align: left;
+}
+.standing-card > span:not(.avatar) {
+  flex: 1;
+  min-width: 0;
+}
+.standing-card strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.standing-card small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.standing-card > svg {
+  width: 14px;
+  height: 14px;
+  color: #95a2b7;
+}
+/* Not on the board: what would put the holder there, and the way to it. */
+.standing-card.off {
+  background: var(--soft);
+}
+.standing-card.off strong {
+  font-size: 14px;
+}
+.standing-card.off button {
+  flex: none;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 12px;
+  position: relative;
+}
+.standing-card.off button:before {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+.board-switch {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 16px;
+}
+.board-rule {
+  margin: 10px 0 2px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.board-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.board-row + .board-row {
+  border-top: 1px solid var(--line);
+}
+.board-row button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 0;
+  text-align: left;
+}
+.board-rank {
+  flex: none;
+  width: 22px;
+  font: 16px/1 var(--serif);
+  font-weight: 400;
+  text-align: center;
+  color: #9299a6;
+}
+/* The first three places are medals: a disc of gold, silver or bronze on a ribbon, the place
+   struck into it. The metals are the medals' own colours, like the foil on the passport's cover. */
+.board-rank.medal {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin: 9px -2px 0;
+  font-size: 14px;
+  color: var(--medal-ink);
+  text-shadow: 0 1px 0 #ffffff80;
+}
+.board-rank.medal:before,
+.board-rank.medal:after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+}
+.board-rank.medal:before {
+  top: -9px;
+  left: 50%;
+  width: 18px;
+  height: 13px;
+  translate: -50% 0;
+  background: linear-gradient(90deg, var(--blue) 50%, #1c44c2 50%);
+  clip-path: polygon(0 0, 34% 0, 50% 42%, 66% 0, 100% 0, 73% 100%, 27% 100%);
+}
+.board-rank.medal:after {
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--medal-light), var(--medal) 48%, var(--medal-dark));
+  box-shadow:
+    inset 0 0 0 1px var(--medal-dark),
+    inset 0 0 0 3px var(--medal-light),
+    inset 0 0 0 3.5px var(--medal-dark),
+    0 2px 3px #1b243a2e;
+}
+.medal-1 {
+  --medal-light: #f6e9bf;
+  --medal: #dcb962;
+  --medal-dark: #a5854a;
+  --medal-ink: #6b4f14;
+}
+.medal-2 {
+  --medal-light: #f6f8fb;
+  --medal: #c9d0da;
+  --medal-dark: #8b95a5;
+  --medal-ink: #48515f;
+}
+.medal-3 {
+  --medal-light: #f3d8bd;
+  --medal: #d29a6a;
+  --medal-dark: #9a6238;
+  --medal-ink: #6a3d1b;
+}
+.board-who {
+  flex: 1;
+  min-width: 0;
+}
+.board-who strong,
+.board-who small {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.board-who strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.board-who small {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+/* The stamps that count on this board, the latest in front. */
+.board-stamps {
+  flex: none;
+  display: flex;
+  flex-direction: row-reverse;
+}
+.board-stamps .badge-art {
+  width: 30px;
+  filter: drop-shadow(0 2px 2px #292a301f);
+}
+.board-stamps .badge-art + .badge-art {
+  margin-right: -11px;
+}
+.board-stamps .badge-edition:after {
+  display: none;
+}
+.board-count {
+  flex: none;
+  min-width: 36px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--muted);
+}
+.board-count b {
+  margin-right: 2px;
+  font: 21px/1 var(--serif);
+  font-weight: 400;
+  color: var(--ink);
+}
+/* The holder's own row stands out of the list. */
+.board-row.me,
+.board-row.me + .board-row {
+  border-top-color: transparent;
+}
+.board-row.me button {
+  width: calc(100% + 20px);
+  margin-inline: -10px;
+  padding-inline: 10px;
+  border-radius: 12px;
+  background: var(--blue-soft);
+}
+/* Someone's passport: who it belongs to, then the same tabs and the same book as the holder's own. */
+.collector-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0 10px;
+}
+.collector-head .avatar {
+  width: 44px;
+  height: 44px;
+  font-size: 17px;
+}
+.collector-head > div {
+  flex: 1;
+  min-width: 0;
+}
+.collector-head h1 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.collector-head p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.collector-standing {
+  flex: none;
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.collector-standing span {
+  display: block;
+  color: var(--ink);
+}
+.collector-standing b {
+  font: 20px/1.3 var(--serif);
+  font-weight: 400;
+}
+/* The month a visit fell in: the figure as dates are set, the rest as a caption. */
+.public-footprints .footprint-when {
+  gap: 3px;
+}
+/* On the holder's own, the header leads to what the passport shows; the caption keeps the middle
+   between neighbours of unequal width. */
+.app-header:has(.header-setting) {
+  position: relative;
+}
+.app-header:has(.header-setting) .header-caption {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+}
+.collection-tabs.two {
+  grid-template-columns: 1fr 1fr;
+}
+.collection-tabs .count svg {
+  width: 15px;
+  height: 22px;
+  vertical-align: top;
+}
+/* The book gives up the room the head takes above it. On the shortest screens it keeps a height
+   its stamps can be read at, and the page scrolls. */
+.collector-page .book-stage {
+  min-height: 290px;
+  max-height: calc(100cqh - 192px);
+}
+.collector-page .empty-state {
+  padding-top: 36px;
+}
+.collector-page .empty-art svg {
+  width: 40px;
+  height: 40px;
+}
+.collector-page .empty-state .button {
+  width: auto;
+  margin-inline: auto;
+  padding-inline: 28px;
+}
+/* Shown footprints carry a note in full, and a photograph under the row. */
+.public-footprints {
+  padding-top: 4px;
+}
+.public-footprints .footprint-card.compact .footprint-note {
+  white-space: normal;
+}
+.public-footprints div.footprint-open {
+  cursor: default;
+}
+.public-photo {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+}
+.public-footprints > .privacy {
+  justify-content: center;
+  margin: 4px 0 0;
+}
+/* On a stamp's page: who else holds it, by number. */
+.holders {
+  margin-top: 26px;
+}
+.holders .memory-header {
+  min-height: 36px;
+}
+.holders .memory-header span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.holder-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 12px;
+  background: var(--soft);
+}
+.holder-list li + li {
+  border-top: 1px solid var(--paper);
+}
+.holder-list button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 50px;
+  padding: 8px 12px;
+  text-align: left;
+}
+.holder-list b {
+  flex: none;
+  width: 76px;
+  font: 13px/1.6 var(--serif);
+  font-weight: 400;
+  letter-spacing: 0.4px;
+}
+.holder-list .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 12px;
+}
+.holder-list strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.holder-list small {
+  flex: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+.holder-list .me strong {
+  color: var(--blue);
+}
+/* What the holder shows: one switch for each part of the passport. */
+.visibility-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+}
+.visibility-row > span {
+  flex: 1;
+  min-width: 0;
+}
+.visibility-row strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.visibility-row small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.visibility-row input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 13px;
+  background: #d5dae3;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.visibility-row input:after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px #1b243a40;
+  transition: translate 0.2s;
+}
+.visibility-row input:checked {
+  background: var(--blue);
+}
+.visibility-row input:checked:after {
+  translate: 18px 0;
+}
+.visibility-row input:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.visibility-list + .privacy {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 360px) {
+  .board-stamps .badge-art:nth-child(3) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .visibility-row input,
+  .visibility-row input:after {
+    transition: none;
+  }
+}

@@ -71,8 +71,11 @@ export function createDiscoveryViews(appContext) {
       }
     </div>`;
   }
+  // The destinations are shown as a list or on the map; the search box and the categories serve
+  // both. On the map the featured row and the list's title make way for it.
   function renderDiscover() {
-    return /* HTML */ `<section class="page discover-page screen-enter">
+    const map = appContext.ui.discoverView === 'map';
+    return /* HTML */ `<section class="page discover-page ${map ? 'map-open' : ''} screen-enter">
       <h1 class="sr-only">发现下一站</h1>
       <div class="search-box">
         ${appContext.format.icon('search')}<label class="sr-only" for="venue-search"
@@ -92,13 +95,17 @@ export function createDiscoveryViews(appContext) {
           ${appContext.format.icon('close')}
         </button>
       </div>
-      ${renderHero()}
-      <div class="row">
-        <h2 class="section-title">值得出发的地方</h2>
-        <span id="venue-count" class="section-count"
-          >${appContext.selectors.filteredVenues().length} 个目的地</span
-        >
-      </div>
+      ${
+        map
+          ? ''
+          : /* HTML */ `${renderHero()}
+              <div class="row">
+                <h2 class="section-title">值得出发的地方</h2>
+                <span id="venue-count" class="section-count"
+                  >${appContext.selectors.filteredVenues().length} 个目的地</span
+                >
+              </div>`
+      }
       <div class="category-tabs" role="group" aria-label="场馆类别">
         ${[
           ['all', '全部'],
@@ -112,10 +119,11 @@ export function createDiscoveryViews(appContext) {
           )
           .join('')}
       </div>
-      <div id="venue-list" class="venue-list" aria-live="polite">
-        ${appContext.views.venueRows()}
-      </div>
-      <p class="foot-hint">所有场馆及开放信息均为原型演示内容</p>
+      ${
+        map
+          ? appContext.views.renderVenueMap()
+          : `<div id="venue-list" class="venue-list" aria-live="polite">${appContext.views.venueRows()}</div><p class="foot-hint">所有场馆及开放信息均为原型演示内容</p>`
+      }
     </section>`;
   }
   function renderVenue() {
@@ -169,6 +177,7 @@ export function createDiscoveryViews(appContext) {
           <div>${v.location}<small>纪念章领取点位于场馆内部</small></div>
           <button data-action="guide">查看位置</button>
         </div>
+        ${appContext.views.renderGuestbook(v)}
         <p class="venue-disclaimer">纪念章用于保存参观经历；入馆预约需通过场馆渠道另行完成。</p>
       </div>
     </section>`;

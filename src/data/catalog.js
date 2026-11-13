@@ -19,6 +19,10 @@ export const venues = [
     serial: 'LJ-M-0001',
     kind: '常设馆章',
     word: '器物',
+    // Where the venue stands on the drawn map of the two cities, in the map's own units: 360
+    // across and 540 down. The venues of each side of the map are spaced evenly down it, so
+    // that no mark stands on the name of the one above when the map is pulled to a short screen.
+    at: [236, 354],
   },
   {
     id: 'artmuseum',
@@ -37,6 +41,7 @@ export const venues = [
     serial: 'LJ-A-0002',
     kind: '常设馆章',
     word: '光影',
+    at: [170, 458],
   },
   {
     id: 'landscape',
@@ -55,6 +60,7 @@ export const venues = [
     serial: 'YC-S-0003',
     kind: '常设馆章',
     word: '山川',
+    at: [92, 166],
   },
   {
     id: 'modern',
@@ -74,6 +80,7 @@ export const venues = [
     kind: '展览纪念章',
     limit: 8000,
     word: '形状',
+    at: [86, 378],
   },
   // The stamps below have images of their own in data/assets.js, so they name no atlas tile.
   {
@@ -94,6 +101,7 @@ export const venues = [
     serial: 'YC-M-0005',
     kind: '常设馆章',
     word: '青瓷',
+    at: [222, 242],
   },
   {
     id: 'maritime',
@@ -113,6 +121,7 @@ export const venues = [
     serial: 'LJ-M-0006',
     kind: '常设馆章',
     word: '远航',
+    at: [290, 466],
   },
   {
     id: 'textile',
@@ -133,6 +142,7 @@ export const venues = [
     serial: 'YC-S-0007',
     kind: '常设馆章',
     word: '经纬',
+    at: [84, 272],
   },
   {
     id: 'astronomy',
@@ -153,6 +163,7 @@ export const venues = [
     serial: 'YC-M-0008',
     kind: '常设馆章',
     word: '星河',
+    at: [268, 130],
   },
 ];
 

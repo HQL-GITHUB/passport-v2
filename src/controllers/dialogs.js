@@ -39,7 +39,7 @@ ${appContext.format.safe(visit.note)}</textarea>
           ${visit.photo ? `<img class="photo-edit-preview" src="${appContext.format.safe(visit.photo)}" alt="这次到访的个人照片"><button class="remove-photo" data-action="remove-photo">移除这张照片</button>` : ''}
         </div>
         <p id="photo-status" class="photo-loading" hidden>正在准备照片…</p>
-        <p class="privacy">${appContext.format.icon('lock')}仅自己可见，分享时由你选择</p>
+        <p class="privacy">${appContext.selectors.memoryPrivacy('仅自己可见，分享时由你选择')}</p>
         <p id="memory-error" class="modal-error" role="alert" hidden></p>
         <button class="button" data-action="save-memory">保存这一刻</button>`;
     } else if (kind === 'ticket-view') {
@@ -114,6 +114,47 @@ ${appContext.format.safe(visit.note)}</textarea>
         <p class="medal-hint">
           ${record ? (animate ? '拖动章面，翻看背面的到访印记。' : '背面刻着这次到访的日期与编号。') : animate ? '拖动可以倾斜章面，收藏后可翻看背面。' : '收藏后，可以翻看背面的到访印记。'}
         </p>`;
+    } else if (kind === 'visibility') {
+      const shown = appContext.selectors.visibility(),
+        row = (key, title, text, disabled = false) =>
+          `<label class="visibility-row"><span><strong>${title}</strong><small>${text}</small></span><input type="checkbox" role="switch" data-visibility="${key}" ${shown[key] ? 'checked' : ''} ${disabled ? 'disabled' : ''}></label>`;
+      label = '公开设置';
+      body = /* HTML */ `<p class="modal-sub">
+          公开的部分，其他收藏家可以在你的护照里翻看。不打开的，只有你自己看得到。
+        </p>
+        <div class="visibility-list">
+          ${row('album', '章册', '纪念章、收藏编号与收藏月份。公开后，现场领取的章计入榜单。')}
+          ${row('footprints', '足迹', '去过的场馆与月份，不显示具体日期。')}
+          ${row('memories', '感想与照片', '随足迹一起展示，需要先公开足迹。', !shown.footprints)}
+        </div>
+        <p class="privacy">
+          ${appContext.format.icon('lock')}票根始终仅自己可见，只能通过遮挡后的旅行卡分享
+        </p>
+        ${
+          appContext.ui.screen === 'collector'
+            ? ''
+            : '<button class="button secondary" data-action="collector" data-person="me">看看别人眼中的我的护照</button>'
+        }`;
+    } else if (kind === 'publish') {
+      const rows = appContext.selectors.visitRows();
+      label = '分享一次到访';
+      body = rows.length
+        ? /* HTML */ `<p class="modal-sub">
+              选一次到访，在旅行卡上勾选要带上的感想和照片，再发布到广场。票根不会发布。
+            </p>
+            <div class="choice-list publish-list">
+              ${rows
+                .map(
+                  (v) =>
+                    `<button data-action="publish-visit" data-key="${v.key}"><span><small>${appContext.format.date(v.day)}</small>${appContext.format.safe(v.name)}</span>${appContext.selectors.myPost(v.key) ? '<i>已发布</i>' : appContext.format.icon('chevron')}</button>`,
+                )
+                .join('')}
+            </div>`
+        : '<p class="modal-sub">护照里还没有到访。先去收藏一枚纪念章，或保存一张票根，再回来分享。</p><button class="button" data-action="discover">去发现目的地</button>';
+    } else if (kind === 'post-withdraw') {
+      label = '从广场撤回这一条？';
+      body =
+        '<p class="modal-sub">撤回后别人不再看到它。这次到访、纪念章和你的记忆仍在护照里，以后可以重新发布。</p><button class="button secondary" data-action="close-modal">保留</button><button class="button" data-action="confirm-withdraw">撤回</button>';
     } else if (kind === 'city') {
       label = '选择下一站的城市';
       body = `<div class="choice-list">${['全部城市', ...new Set(appContext.catalog.venues.map((v) => v.city))].map((city) => `<button data-action="set-city" data-value="${city}" class="${appContext.ui.city === city ? 'active' : ''}">${city}${appContext.ui.city === city ? appContext.format.icon('check') : ''}</button>`).join('')}</div>`;

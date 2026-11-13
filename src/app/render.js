@@ -17,6 +17,10 @@ export function createRenderer(appContext) {
         'visit-share': appContext.views.renderShare,
         'share-footprints': appContext.views.renderJournalShare,
         'share-album': appContext.views.renderJournalShare,
+        square: appContext.views.renderSquare,
+        post: appContext.views.renderPost,
+        collectors: appContext.views.renderCollectors,
+        collector: appContext.views.renderCollector,
       };
     appContext.views.renderHeader();
     // A ceremony does not outlive the page it plays on.
@@ -82,6 +86,10 @@ export function createRenderer(appContext) {
             'ticket-success': '旅程已收藏',
             'share-footprints': '足迹分享预览',
             'share-album': '章册分享预览',
+            square: '广场',
+            post: '广场上的到访',
+            collectors: '收藏家',
+            collector: `${appContext.selectors.person(appContext.ui.person)?.name}的护照`,
           }[appContext.ui.screen]
     } · 旅行护照`;
     if (keepScroll) appContext.dom.main.scrollTop = pos;

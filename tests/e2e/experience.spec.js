@@ -180,7 +180,7 @@ test('the navigation stays under every page and each page keeps its actions in i
   const nav = page.locator('#app-footer .bottom-nav'),
     actions = page.locator('#app-main #page-actions button');
   await page.goto('/');
-  await expect(nav.locator('button')).toHaveText(['发现', '盖章', '护照']);
+  await expect(nav.locator('button')).toHaveText(['发现', '广场', '盖章', '收藏家', '护照']);
   await expect(actions).toHaveCount(0);
   await page.getByRole('button', { name: '章册 4/9', exact: true }).click();
   await page.locator('.badge-card').filter({ hasText: '山川来信' }).click();
@@ -189,9 +189,9 @@ test('the navigation stays under every page and each page keeps its actions in i
   await expect(actions).toHaveText('分享这次到访');
   await actions.click();
   await expect(page.locator('#app')).toHaveAttribute('data-screen', 'visit-share');
-  await expect(actions).toHaveText('保存旅行卡');
+  await expect(actions).toHaveText(['保存旅行卡', '发布到广场']);
   // Three levels down, the passport is still one tap away, on the tab it was left on.
-  await expect(page.locator('#app-footer button')).toHaveCount(3);
+  await expect(page.locator('#app-footer button')).toHaveCount(5);
   await nav.getByRole('button', { name: '护照', exact: true }).click();
   await expect(page.locator('#app')).toHaveAttribute('data-screen', 'passport');
   await expect(page.getByRole('button', { name: '章册 4/9', exact: true })).toHaveAttribute(

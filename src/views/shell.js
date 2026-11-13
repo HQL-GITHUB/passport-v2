@@ -2,17 +2,19 @@
 export function createShellViews(appContext) {
   function renderHeader() {
     const owned = !!appContext.data.records[appContext.ui.selected];
-    if (['passport', 'discover'].includes(appContext.ui.screen)) {
+    if (['passport', 'discover', 'square', 'collectors'].includes(appContext.ui.screen)) {
       // On the passport the header shares the open tab: the footprints or the album, once there
-      // is something in them.
+      // is something in them. Among the collectors it leads to what the holder shows of it.
       const tab = appContext.ui.collection,
+        // The discover page changes between its list and its map from here.
+        map = appContext.ui.discoverView === 'map',
         share =
           tab === 'footprints' && Object.keys(appContext.data.visits).length
             ? '分享我的足迹'
             : tab === 'collected' && Object.keys(appContext.data.records).length
               ? '分享我的章册'
               : '';
-      appContext.dom.header.innerHTML = `<div class="app-brand">${appContext.format.icon('passport', 'brand-icon')}旅行护照</div>${appContext.ui.screen === 'discover' ? `<button class="city-button" data-action="choose-city">${appContext.format.icon('pin')}${appContext.format.safe(appContext.ui.city)}${appContext.format.icon('chevron')}</button>` : `<div class="header-actions">${share ? `<button class="collection-share" data-action="share-collection" aria-label="${share}">${appContext.format.icon('share')}</button>` : ''}<button class="ticket-home-entry" data-action="ticket-entry" data-id="museum">${appContext.format.icon('ticket')}添加票根</button></div>`}`;
+      appContext.dom.header.innerHTML = `<div class="app-brand">${appContext.format.icon('passport', 'brand-icon')}旅行护照</div>${appContext.ui.screen === 'discover' ? `<div class="header-actions"><button class="ticket-home-entry view-toggle" data-action="discover-view">${appContext.format.icon(map ? 'list' : 'map')}${map ? '列表' : '地图'}</button><button class="city-button" data-action="choose-city">${appContext.format.icon('pin')}${appContext.format.safe(appContext.ui.city)}${appContext.format.icon('chevron')}</button></div>` : appContext.ui.screen === 'collectors' ? `<div class="header-actions"><button class="ticket-home-entry" data-action="visibility">${appContext.format.icon('lock')}公开设置</button></div>` : appContext.ui.screen === 'square' ? `<div class="header-actions"><button class="ticket-home-entry" data-action="publish-pick">${appContext.format.icon('edit')}分享到访</button></div>` : `<div class="header-actions">${share ? `<button class="collection-share" data-action="share-collection" aria-label="${share}">${appContext.format.icon('share')}</button>` : ''}<button class="ticket-home-entry" data-action="ticket-entry" data-id="museum">${appContext.format.icon('ticket')}添加票根</button></div>`}`;
       return;
     }
     const titles = {
@@ -28,25 +30,34 @@ export function createShellViews(appContext) {
       'visit-share': '到访分享预览',
       'share-footprints': '足迹分享预览',
       'share-album': '章册分享预览',
+      collector: appContext.ui.person === 'me' ? '我的公开护照' : '收藏家的护照',
+      post: '广场',
     };
-    appContext.dom.header.innerHTML = `<button class="header-back" data-action="back" aria-label="返回">${appContext.format.icon('back')}</button><span class="header-caption">${titles[appContext.ui.screen]}</span><span style="width:28px" aria-hidden="true"></span>`;
+    // Looking at the passport as others see it, the header leads to what it shows.
+    const preview = appContext.ui.screen === 'collector' && appContext.ui.person === 'me';
+    appContext.dom.header.innerHTML = `<button class="header-back" data-action="back" aria-label="返回">${appContext.format.icon('back')}</button><span class="header-caption">${titles[appContext.ui.screen]}</span>${preview ? '<button class="ticket-home-entry header-setting" data-action="visibility">公开设置</button>' : '<span style="width:28px" aria-hidden="true"></span>'}`;
   }
   // The navigation stays under every page. A page's own actions sit in its content, in the
   // #page-actions slot its view leaves for them, so they can be refreshed without a full render.
   function renderFooter() {
     const screen = appContext.ui.screen,
-      root = ['passport', 'discover'].includes(screen),
+      root = ['passport', 'discover', 'square', 'post', 'collectors', 'collector'].includes(screen),
       current = (name) => (screen === name ? 'aria-current="page" class="active"' : ''),
       // Already claiming: the middle button marks the place instead of starting over.
       claiming = ['scan', 'ticket', 'ticket-confirm'].includes(screen);
-    appContext.dom.footer.innerHTML = `<nav class="bottom-nav" aria-label="主要导航"><button data-action="discover" ${current('discover')}>${appContext.format.icon('compass')}发现</button><button class="nav-claim" ${claiming ? 'aria-current="page"' : `data-action="scan" ${root ? 'data-id="museum"' : ''}`} aria-label="现场盖章">${appContext.format.icon('scan')}<span>盖章</span></button><button data-action="passport" ${current('passport')}>${appContext.format.icon('passport')}护照</button></nav>`;
+    appContext.dom.footer.innerHTML = `<nav class="bottom-nav" aria-label="主要导航"><button data-action="discover" ${current('discover')}>${appContext.format.icon('compass')}发现</button><button data-action="square" ${current('square')}>${appContext.format.icon('plaza')}广场</button><button class="nav-claim" ${claiming ? 'aria-current="page"' : `data-action="scan" ${root ? 'data-id="museum"' : ''}`} aria-label="现场盖章">${appContext.format.icon('scan')}<span>盖章</span></button><button data-action="collectors" ${current('collectors')}>${appContext.format.icon('medal')}收藏家</button><button data-action="passport" ${current('passport')}>${appContext.format.icon('passport')}护照</button></nav>`;
     const slot = document.getElementById('page-actions');
     if (slot) slot.innerHTML = pageActions();
   }
   function pageActions() {
     const v = appContext.catalog.byId(appContext.ui.selected),
       owned = !!appContext.data.records[v.id];
-    if (['passport', 'discover'].includes(appContext.ui.screen)) return '';
+    if (
+      ['passport', 'discover', 'square', 'post', 'collectors', 'collector'].includes(
+        appContext.ui.screen,
+      )
+    )
+      return '';
     if (appContext.ui.screen === 'venue') {
       return `<div class="page-actions"><button class="button" data-action="scan">${appContext.format.icon('scan')}${owned ? '再次到馆盖章' : '到馆领取纪念章'}</button></div>`;
     }
@@ -71,7 +82,10 @@ export function createShellViews(appContext) {
     if (
       ['share', 'visit-share', 'share-footprints', 'share-album'].includes(appContext.ui.screen)
     ) {
-      return `<div class="page-actions"><button class="button" data-action="download-card">${appContext.format.icon('download')}保存旅行卡</button></div>`;
+      // The card of a single visit can also go to the square; the overviews are only saved.
+      const single = ['share', 'visit-share'].includes(appContext.ui.screen),
+        posted = single && appContext.selectors.myPost(appContext.selectors.currentVisit().key);
+      return `<div class="page-actions"><button class="button" data-action="download-card">${appContext.format.icon('download')}保存旅行卡</button>${single ? `<button class="button secondary" data-action="publish-post">${appContext.format.icon('plaza')}${posted ? '重新发布到广场' : '发布到广场'}</button><p class="publish-note">发布的是纪念章、到访日期和勾选的感想、照片，不包含票根</p>` : ''}</div>`;
     }
     if (appContext.ui.screen === 'visit') {
       return `<div class="page-actions"><button class="button" data-action="visit-share">${appContext.format.icon('share')}分享这次到访</button></div>`;

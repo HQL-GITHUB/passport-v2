@@ -32,8 +32,13 @@ data
 ├─ records[stampId]            已收藏的章、收藏编号、首次领取日期及到访日期
 ├─ visits[venueId/date]        到访主体：场馆、日期、票根、徽章、照片、感想
 ├─ tickets[ticketId]           票根元数据、保存状态及已领取章
-└─ wanted[]                   想去的场馆
+├─ wanted[]                   想去的场馆
+├─ profile.public             对别人公开的部分：章册、足迹、感想与照片
+├─ posts[]                    发布到广场的到访：每次到访一条，保存发布时的感想与照片副本
+└─ liked[]                    赞过的广场动态
 ```
+
+其他收藏家与他们在广场上的动态是 `fixtures.collectors`、`fixtures.posts` 中的演示数据，不进入 `data`；榜单、名次、收藏者名录与广场的信息流由 `state/community.js` 在读取时计算。
 
 一条到访可以引用多张票根和多枚章。同一场馆、同一天始终合为一次到访。感想和照片归属于到访，不会因为同馆的另一段参观被覆盖。
 

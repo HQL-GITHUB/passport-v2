@@ -27,6 +27,9 @@ export function createMetadataStorage(appContext) {
         kind: 'sample',
       };
     }
+    // The demonstration passport shows its album, so its holder has a place on the boards. A
+    // passport started from nothing shows nothing until its holder says so.
+    raw.profile ||= { public: { album: true } };
     return appContext.domain.normalize(
       raw,
       appContext.catalog.venues,
