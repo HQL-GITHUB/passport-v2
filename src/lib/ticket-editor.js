@@ -105,7 +105,7 @@ export class TicketEditor {
         c.width - (crop.x + crop.w) * sx,
         crop.h * sy,
       );
-      ctx.strokeStyle = '#2455e8';
+      ctx.strokeStyle = '#20242c';
       ctx.lineWidth = 2;
       ctx.strokeRect(crop.x * sx, crop.y * sy, crop.w * sx, crop.h * sy);
     }

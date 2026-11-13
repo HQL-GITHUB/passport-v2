@@ -129,7 +129,7 @@
   background: var(--paper);
   box-shadow:
     0 0 0 2px var(--paper),
-    0 4px 8px #1f283c33;
+    0 4px 8px var(--shade-4);
   transition:
     scale 0.2s,
     box-shadow 0.2s;
@@ -139,9 +139,9 @@
 }
 /* Still to collect: the stamp dimmed in a dashed ring, as its place in the album is. */
 .map-pin:not(.owned) .pin-seal {
-  background: #ffffffd9;
+  background: var(--veil);
   box-shadow: none;
-  outline: 1px dashed #aab3c2;
+  outline: 1px dashed var(--edge-strong);
   outline-offset: 1px;
 }
 .map-pin:not(.owned) .badge-art {
@@ -151,7 +151,7 @@
 .pin-name {
   padding: 0 6px;
   border-radius: 9px;
-  background: #ffffffd9;
+  background: var(--veil);
   font-size: 12px;
   line-height: 18px;
   white-space: nowrap;
@@ -170,8 +170,8 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--blue);
-  color: #fff;
+  background: var(--owned);
+  color: var(--on-fill);
   box-shadow: 0 0 0 2px var(--paper);
 }
 .pin-mark svg {
@@ -181,13 +181,13 @@
 }
 .pin-mark.want {
   background: var(--paper);
-  color: var(--blue);
+  color: var(--want);
 }
 .pin-mark.want svg {
   fill: currentColor;
   stroke-width: 1.6;
 }
-/* The chosen mark stands forward, ringed in blue. */
+/* The chosen mark stands forward, ringed in the accent. */
 .map-pin.selected {
   z-index: 2;
 }
@@ -196,12 +196,12 @@
   outline: none;
   box-shadow:
     0 0 0 2px var(--paper),
-    0 0 0 4px var(--blue),
-    0 7px 14px #2455e84d;
+    0 0 0 4px var(--accent),
+    0 7px 14px var(--accent-glow);
 }
 .map-pin.selected .pin-name {
-  background: var(--blue);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-fill);
   font-weight: 600;
 }
 /* Left out by the search, the city or the category: faded back, and not to be pressed. */
@@ -216,10 +216,10 @@
   z-index: 3;
   margin: 10px 10px 0;
   border-radius: 12px;
-  background: #fffffff5;
+  background: color-mix(in srgb, var(--paper) 96%, transparent);
   box-shadow:
-    0 0 0 1px #1b243a0d,
-    0 6px 16px #1b243a1f;
+    0 0 0 1px var(--shade-1),
+    0 6px 16px var(--shade-2);
 }
 .map-summary {
   display: flex;
@@ -243,7 +243,7 @@
 .map-summary button {
   min-height: 32px;
   font-size: 12px;
-  color: var(--blue);
+  color: var(--link);
 }
 /* What the marks mean, each word after a small one of its kind. */
 .map-legend {
@@ -267,8 +267,8 @@
   margin-left: 0;
 }
 .map-legend .owned {
-  background: var(--blue);
-  color: #fff;
+  background: var(--owned);
+  color: var(--on-fill);
 }
 .map-legend .owned svg {
   width: 8px;
@@ -276,11 +276,11 @@
   stroke-width: 3;
 }
 .map-legend .open {
-  outline: 1px dashed #8d97a8;
+  outline: 1px dashed var(--faint);
   outline-offset: -1px;
 }
 .map-legend .want {
-  color: var(--blue);
+  color: var(--want);
 }
 .map-legend .want svg {
   width: 13px;
@@ -336,12 +336,15 @@
   color: var(--muted);
 }
 .map-copy .map-state {
-  color: var(--blue);
+  color: var(--accent);
+}
+.map-copy .map-state.owned {
+  color: var(--owned);
 }
 .map-card > svg {
   width: 14px;
   height: 14px;
-  color: #95a2b7;
+  color: var(--faint);
 }
 @media (prefers-reduced-motion: reduce) {
   .map-pin,

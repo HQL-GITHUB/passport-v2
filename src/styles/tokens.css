@@ -7,18 +7,76 @@
   font-display: swap;
   unicode-range: U+002C-003A, U+004E, U+006F;
 }
+/* Every colour of the interface is named here, and the other sheets only use the names. What an
+   object brings of its own stays with that object: a stamp's rim and glow, a medal's metal, the
+   passport's cover and paper, the sample ticket, the travel card, the map's land and water. */
 :root {
   color-scheme: light;
-  --paper: #fff;
   --safe-top: env(safe-area-inset-top, 0px);
-  --ink: #20242c;
-  --muted: #626c7b;
-  --line: #e9ebef;
+
+  /* Grounds, lightest first: the page and its cards; a field or an empty place; a section, a pill
+     or a quiet button; what is pressed, and the desk the review page lies on. */
+  --paper: #fff;
+  --wash: #fafbfe;
   --soft: #f5f6f9;
-  --blue: #2455e8;
-  --blue-soft: #eef2ff;
+  --sunken: #eff1f5;
+  /* Lines, lightest first: a divider; the border of a card or a field; a dot or a switch at rest;
+     the dashed ring of an empty place; the same ring where it lies over a picture. */
+  --line: #e9ebef;
+  --line-strong: #dfe3eb;
+  --idle: #d5dae3;
+  --edge: #c3cad6;
+  --edge-strong: #aab3c2;
+  /* Text, lightest first: a serial, a hint or a chevron; a caption; supporting copy; what is read. */
+  --faint: #9299a6;
+  --subtle: #7a8494;
+  --muted: #626c7b;
+  --ink: #20242c;
+
+  /* What can be pressed, and what is chosen: the black of the passport's cover. */
+  --accent: #1c212c;
+  /* What the holder has left on a place: its stamp collected, a wish to go, a like. */
+  --owned: #16805d;
+  --want: #c92c62;
+  --like: #c2530a;
+  /* What went wrong. */
+  --danger: #b53838;
+  /* Text and icons on a fill of any colour above, or on ink. */
+  --on-fill: #fff;
+  /* What shadows are cast in. */
+  --shadow: #1b243a;
+
   --serif: 'Passport Numerals', Georgia, 'Songti SC', SimSun, serif;
   /* A Song face for a line meant to be read as writing: whichever one the system has. */
   --song: 'Songti SC', 'Noto Serif SC', 'Noto Serif CJK SC', 'Source Han Serif SC', SimSun, serif;
   --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+/* Drawn from the colours above, so a theme that changes one of those changes these with it. They
+   are worked out again wherever a theme is set, and a theme may still name any of them itself. */
+:root,
+[data-theme] {
+  /* Of the accent: a tinted ground, a border on it, copy on it, its glow, and the ring of
+     keyboard focus. */
+  --accent-soft: color-mix(in srgb, var(--accent) 5%, var(--wash));
+  --accent-line: color-mix(in srgb, var(--accent) 28%, var(--paper));
+  --accent-ink: color-mix(in srgb, var(--accent) 45%, var(--muted));
+  --accent-glow: color-mix(in srgb, var(--accent) 24%, transparent);
+  --focus: color-mix(in srgb, var(--accent) 55%, var(--paper));
+  /* Text that is pressed. It is the accent, which here is no colour apart from the text that is
+     read, so such text is also set heavier and led by an icon or followed by a chevron. */
+  --link: var(--accent);
+  /* The tinted ground of each mark. */
+  --owned-soft: color-mix(in srgb, var(--owned) 10%, var(--paper));
+  --want-soft: color-mix(in srgb, var(--want) 8%, var(--paper));
+  --like-soft: color-mix(in srgb, var(--like) 14%, var(--paper));
+  --danger-soft: color-mix(in srgb, var(--danger) 6%, var(--paper));
+  --danger-line: color-mix(in srgb, var(--danger) 45%, var(--paper));
+  /* Paper laid over a picture, and the dimming behind a dialog. */
+  --veil: color-mix(in srgb, var(--paper) 85%, transparent);
+  --scrim: color-mix(in srgb, var(--shadow) 42%, transparent);
+  /* Shadows, faintest first. */
+  --shade-1: color-mix(in srgb, var(--shadow) 6%, transparent);
+  --shade-2: color-mix(in srgb, var(--shadow) 10%, transparent);
+  --shade-3: color-mix(in srgb, var(--shadow) 15%, transparent);
+  --shade-4: color-mix(in srgb, var(--shadow) 24%, transparent);
 }

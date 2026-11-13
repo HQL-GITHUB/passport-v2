@@ -105,6 +105,18 @@
         <circle cx="12" cy="15" r="5.5" />
         <path d="M8.6 10.7 5.5 3h4.2L12 8l2.3-5h4.2l-3.1 7.7M12 13v4" />
       </symbol>
+      <!-- A wreath of two branches, open at the top, around a place on the board. -->
+      <symbol id="i-laurel" viewBox="-1 -1 34 34">
+        <g id="i-laurel-branch">
+          <path
+            d="M10.3 26.8C8.6 25 5.5 25.1 3.7 27C5.6 28.7 8.7 28.6 10.3 26.8ZM5.6 22.4C5 20 2.3 18.5 -0.2 19.2C0.6 21.7 3.3 23.2 5.6 22.4ZM3.8 16.2C4.5 13.9 2.9 11.2 0.4 10.6C-0.2 13.1 1.4 15.7 3.8 16.2ZM5.4 10C7.2 8.3 7.1 5.2 5.3 3.4C3.5 5.3 3.6 8.4 5.4 10ZM9.9 5.4C12.3 4.9 13.8 2.2 13.2 -0.3C10.7 0.4 9.2 3.1 9.9 5.4Z"
+            fill="currentColor"
+            stroke="none"
+          />
+          <path d="M12 26.9A11.6 11.6 0 0 1 10.2 6" stroke-width=".7" />
+        </g>
+        <use href="#i-laurel-branch" transform="matrix(-1 0 0 1 32 0)" />
+      </symbol>
       <symbol id="i-camera" viewBox="0 0 24 24">
         <path d="m8 5 1-2h6l1 2h4a1 1 0 0 1 1 1v14H3V6a1 1 0 0 1 1-1h4Z" />
         <circle cx="12" cy="12.5" r="4" />
@@ -142,11 +154,13 @@
         <details class="design-reason">
           <summary>这一版的视觉依据<span>＋</span></summary>
           <p>
-            白色承托内容，炭黑建立阅读层级。蓝色用于主要操作与选中状态；纪念章保留自己的色彩与图案。
+            白色承托内容，炭黑建立阅读层级。主要操作与选中状态用护照封面的黑；已收藏、想去与赞是留下的印记，各有一种颜色。纪念章保留自己的色彩与图案。
           </p>
           <div class="palette">
             <span><i class="swatch white"></i>留白</span><span><i class="swatch ink"></i>阅读</span
-            ><span><i class="swatch blue"></i>行动</span>
+            ><span><i class="swatch accent"></i>行动</span
+            ><span><i class="swatch owned"></i>已收藏</span
+            ><span><i class="swatch want"></i>想去</span><span><i class="swatch like"></i>赞</span>
           </div>
         </details>
         <button class="first-use-button" data-action="toggle-first-use">

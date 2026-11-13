@@ -47,7 +47,7 @@ export function createShareCardService(appContext) {
     ctx.lineTo(990, fy);
     ctx.stroke();
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#2455e8';
+    ctx.fillStyle = '#1c212c';
     ctx.font = '28px "Microsoft YaHei", sans-serif';
     ctx.fillText('旅行护照', 90, fy + 40);
     ctx.textAlign = 'right';
@@ -309,7 +309,7 @@ export function createShareCardService(appContext) {
         y += badgeH + 35;
       } else if (!ticket) {
         ctx.textAlign = 'center';
-        ctx.fillStyle = '#2455e8';
+        ctx.fillStyle = '#1c212c';
         ctx.font = `110px ${numerals}`;
         ctx.fillText(appContext.format.dateShort(v.day), 540, y + 35);
         y += 260;

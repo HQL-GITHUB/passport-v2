@@ -3,7 +3,7 @@
 }
 body {
   margin: 0;
-  background: #eff1f5;
+  background: var(--sunken);
   color: var(--ink);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
@@ -35,7 +35,7 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
-  outline: 3px solid #88a7ff;
+  outline: 3px solid var(--focus);
   outline-offset: 4px;
 }
 button {
@@ -93,8 +93,8 @@ img {
   place-items: center;
   width: 27px;
   height: 31px;
-  background: var(--blue);
-  color: white;
+  background: var(--accent);
+  color: var(--on-fill);
   border-radius: 3px;
   font-size: 15px;
 }
@@ -119,7 +119,7 @@ img {
   margin-top: 17px;
 }
 .rail-title span {
-  color: var(--blue);
+  color: var(--accent);
 }
 .rail-description {
   font-size: 14px;
@@ -136,7 +136,7 @@ img {
   gap: 19px;
   width: 100%;
   padding: 15px 0;
-  border-top: 1px solid #d9dce4;
+  border-top: 1px solid var(--line-strong);
   text-align: left;
   font-size: 13px;
 }
@@ -149,10 +149,10 @@ img {
   width: 18px;
 }
 .preview-links button:hover {
-  color: var(--blue);
+  color: var(--accent);
 }
 .design-reason {
-  border-top: 1px solid #d9dce4;
+  border-top: 1px solid var(--line-strong);
   padding-top: 17px;
   margin-top: 1px;
   font-size: 12px;
@@ -172,12 +172,13 @@ img {
 }
 .design-reason p {
   line-height: 1.9;
-  color: #626976;
+  color: var(--muted);
   margin-top: 14px;
 }
 .palette {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 10px 24px;
   margin-top: 15px;
 }
 .palette > span {
@@ -193,13 +194,22 @@ img {
 }
 .swatch.white {
   background: var(--paper);
-  border: 1px solid #d2d7df;
+  border: 1px solid var(--idle);
 }
 .swatch.ink {
   background: var(--ink);
 }
-.swatch.blue {
-  background: var(--blue);
+.swatch.accent {
+  background: var(--accent);
+}
+.swatch.owned {
+  background: var(--owned);
+}
+.swatch.want {
+  background: var(--want);
+}
+.swatch.like {
+  background: var(--like);
 }
 .first-use-button {
   padding: 15px 0;
@@ -317,7 +327,7 @@ img {
   letter-spacing: 1px;
 }
 .brand-icon {
-  color: var(--blue);
+  color: var(--accent);
   width: 22px;
   height: 25px;
 }
@@ -386,9 +396,6 @@ img {
   line-height: 1.8;
   margin-top: 7px;
 }
-.blue-text {
-  color: var(--blue);
-}
 .row {
   display: flex;
   align-items: center;
@@ -396,7 +403,7 @@ img {
   gap: 10px;
 }
 .passport-ticket {
-  background: #f2f4f9;
+  background: var(--soft);
   min-height: 185px;
   border-radius: 14px;
   position: relative;
@@ -413,7 +420,7 @@ img {
   top: 12px;
   bottom: 12px;
   width: 1px;
-  background: #d7dfea;
+  background: var(--idle);
 }
 .passport-ticket:after {
   content: 'CULTURAL PASSPORT';
@@ -422,7 +429,7 @@ img {
   bottom: 15px;
   font: 8px var(--font);
   letter-spacing: 1.8px;
-  color: #9099ac;
+  color: var(--faint);
 }
 .ticket-copy {
   position: relative;
@@ -436,7 +443,7 @@ img {
 .ticket-kicker {
   font-size: 8px;
   letter-spacing: 1.4px;
-  color: #8993a7;
+  color: var(--faint);
 }
 .ticket-heading {
   font-size: 23px;
@@ -447,7 +454,7 @@ img {
 }
 .ticket-year {
   font: 11px var(--serif);
-  color: #6d7892;
+  color: var(--muted);
   margin-top: 9px;
   letter-spacing: 2px;
 }
@@ -457,7 +464,7 @@ img {
   top: 7px;
   width: 179px;
   transform: rotate(9deg);
-  filter: drop-shadow(0 9px 8px #292a301c);
+  filter: drop-shadow(0 9px 8px var(--shade-2));
 }
 .badge-art {
   display: block;
@@ -545,7 +552,7 @@ img {
   background: var(--paper);
   color: var(--ink);
   font-weight: 600;
-  box-shadow: 0 2px 6px #212e4510;
+  box-shadow: 0 2px 6px var(--shade-1);
 }
 .collection-tabs .count {
   font: 19px/1.15 var(--serif);
@@ -560,14 +567,11 @@ img {
   place-items: center;
   width: 40px;
   min-height: 44px;
-  color: var(--blue);
+  color: var(--link);
 }
 .collection-share svg {
   width: 17px;
   height: 17px;
-}
-#collection-content > .badge-grid:first-child {
-  padding-top: 6px;
 }
 .collection-switch .view-switch {
   margin-left: auto;
@@ -581,12 +585,6 @@ img {
   width: 17px;
   height: 17px;
 }
-.badge-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px 12px;
-  padding-top: 13px;
-}
 .badge-card {
   width: 100%;
   text-align: center;
@@ -594,7 +592,7 @@ img {
   padding: 0;
 }
 .badge-card .badge-frame {
-  background: #f8f9fb;
+  background: var(--wash);
   border-radius: 12px;
   padding: 9px;
   position: relative;
@@ -603,11 +601,11 @@ img {
     transform 0.2s;
 }
 .badge-card:hover .badge-frame {
-  background: #eff2f9;
+  background: var(--sunken);
   transform: translateY(-2px);
 }
 .badge-card .badge-art {
-  filter: drop-shadow(0 6px 4px #292a3010);
+  filter: drop-shadow(0 6px 4px var(--shade-1));
 }
 .badge-kind {
   position: absolute;
@@ -615,8 +613,8 @@ img {
   left: 9px;
   font-size: 8px;
   letter-spacing: 0.5px;
-  color: #6b7485;
-  background: #ffffffd9;
+  color: var(--muted);
+  background: var(--veil);
   padding: 2px 5px;
   border-radius: 4px;
   z-index: 1;
@@ -664,12 +662,12 @@ img {
 }
 .next-stop svg {
   width: 17px;
-  color: var(--blue);
+  color: var(--accent);
 }
 .foot-hint {
   text-align: center;
   font-size: 12px;
-  color: #9299a6;
+  color: var(--faint);
   margin-top: 25px;
   letter-spacing: 0.5px;
 }
@@ -697,10 +695,10 @@ img {
   gap: 3px;
   min-height: 47px;
   font-size: 9px;
-  color: #777e8a;
+  color: var(--subtle);
 }
 .bottom-nav button.active {
-  color: var(--blue);
+  color: var(--accent);
 }
 .bottom-nav button svg {
   width: 21px;
@@ -714,14 +712,14 @@ img {
   padding: 12px;
   margin-top: -25px;
   border-radius: 50%;
-  background: var(--blue);
-  color: white;
+  background: var(--accent);
+  color: var(--on-fill);
   box-shadow:
     0 0 0 4px var(--paper),
-    0 7px 14px #2455e830;
+    0 7px 14px var(--accent-glow);
 }
 .bottom-nav .nav-claim[aria-current] {
-  color: var(--blue);
+  color: var(--accent);
 }
 .home-indicator {
   height: 15px;
@@ -734,12 +732,12 @@ img {
   content: '';
   height: 4px;
   width: 112px;
-  background: #20242c;
+  background: var(--ink);
   border-radius: 5px;
 }
 .device-caption {
   font-size: 10px;
-  color: #8c94a1;
+  color: var(--faint);
   text-align: center;
   margin-top: 17px;
   display: flex;
@@ -751,7 +749,7 @@ img {
 .live-dot {
   width: 5px;
   height: 5px;
-  background: var(--blue);
+  background: var(--accent);
   border-radius: 50%;
 }
 .button {
@@ -765,15 +763,15 @@ img {
   border-radius: 11px;
   font-size: 14px;
   font-weight: 550;
-  background: var(--blue);
-  color: white;
+  background: var(--accent);
+  color: var(--on-fill);
 }
 .button svg {
   width: 19px;
   height: 19px;
 }
 .button.secondary {
-  background: #f2f4f9;
+  background: var(--soft);
   color: var(--ink);
   font-weight: 400;
 }
@@ -788,6 +786,35 @@ img {
   color: var(--muted);
   font-size: 12px;
   min-height: 44px;
+}
+/* Text that is pressed has no colour apart from the text that is read, so it is set heavier; and
+   where no icon stands with it, a small chevron follows it. */
+.ticket-home-entry,
+.memory-header button,
+.scan-place > button,
+.info-row button,
+.map-summary button,
+.visit-section-heading > button,
+.footprint-meta > span:last-child,
+.share-ticket-edit {
+  font-weight: 500;
+}
+:is(
+    .memory-header button,
+    .scan-place > button,
+    .info-row button,
+    .map-summary button,
+    .share-ticket-edit
+  ):not(:has(svg)):after {
+  content: '';
+  display: inline-block;
+  width: 0.42em;
+  height: 0.42em;
+  margin: 0 0.1em 0 0.35em;
+  border: solid currentColor;
+  border-width: 1.4px 1.4px 0 0;
+  rotate: 45deg;
+  translate: 0 -0.12em;
 }
 /* A page's own actions sit in its content; the navigation keeps the bottom of every page. */
 #page-actions {
@@ -829,8 +856,8 @@ img {
   height: 15px;
 }
 .heart-button.saved {
-  color: var(--blue);
-  background: var(--blue-soft);
+  color: var(--want);
+  background: var(--want-soft);
 }
 .heart-button.saved svg {
   fill: currentColor;
@@ -839,7 +866,7 @@ img {
   display: inline-flex;
   gap: 4px;
   align-items: center;
-  color: var(--muted);
+  color: var(--owned);
   font-size: 12px;
 }
 .subtle-label svg {
@@ -904,7 +931,7 @@ img {
 }
 .timeline-date {
   font: 11px var(--serif);
-  color: #9ba2ad;
+  color: var(--faint);
 }
 .stamp-page {
   padding-top: 3px;
@@ -916,8 +943,8 @@ img {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: var(--blue-soft);
-  color: var(--blue);
+  background: var(--accent-soft);
+  color: var(--accent);
   padding: 5px 9px;
   border-radius: 5px;
   font-size: 9px;
@@ -966,7 +993,7 @@ img {
   position: absolute;
   bottom: 9px;
   right: 25px;
-  color: #858c9a;
+  color: var(--faint);
   font-size: 12px;
   display: flex;
   align-items: center;
@@ -979,7 +1006,7 @@ img {
 .stamp-description {
   font-size: 12px;
   line-height: 1.85;
-  color: #737983;
+  color: var(--subtle);
   max-width: 310px;
   text-align: center;
   margin: 0 auto 20px;
@@ -995,7 +1022,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fafbfc;
+  background: var(--wash);
   gap: 10px;
 }
 .visit-ticket-top > span {
@@ -1028,7 +1055,7 @@ img {
 .visit-ticket-number {
   font: 11px/1.8 var(--font);
   letter-spacing: 1px;
-  color: #8b93a2;
+  color: var(--faint);
   text-align: right;
 }
 .visit-number-bars {
@@ -1036,12 +1063,12 @@ img {
   width: 65px;
   background: repeating-linear-gradient(
     to right,
-    #9aa1ad 0,
-    #9aa1ad 1px,
+    var(--faint) 0,
+    var(--faint) 1px,
     transparent 1px,
     transparent 3px,
-    #9aa1ad 3px,
-    #9aa1ad 5px,
+    var(--faint) 3px,
+    var(--faint) 5px,
     transparent 5px,
     transparent 8px
   );
@@ -1064,7 +1091,7 @@ img {
 }
 .memory-header button {
   font-size: 10px;
-  color: var(--blue);
+  color: var(--link);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1076,7 +1103,7 @@ img {
 }
 .memory-empty {
   border-radius: 10px;
-  background: #f7f8fa;
+  background: var(--wash);
   padding: 15px;
   font-size: 11px;
   line-height: 1.8;
@@ -1108,13 +1135,13 @@ img {
   height: 11px;
 }
 .stamp-unowned {
-  background: #f6f8fc;
+  background: var(--soft);
   padding: 15px;
   border-radius: 10px;
   font-size: 13px;
   line-height: 1.8;
   text-align: center;
-  color: #6d7690;
+  color: var(--muted);
 }
 .scan-page,
 .ticket-page {
@@ -1159,7 +1186,7 @@ img {
 .scan-switch button.active {
   background: var(--paper);
   color: var(--ink);
-  box-shadow: 0 2px 6px #212e4510;
+  box-shadow: 0 2px 6px var(--shade-1);
 }
 .scan-area {
   /* The one part of the page that gives way on a short screen; see "Pages that fit the screen". */
@@ -1172,13 +1199,13 @@ img {
   position: relative;
   margin-top: 15px;
   border-radius: 16px;
-  background: #f3f5fa;
+  background: var(--soft);
   overflow: hidden;
 }
 .scan-brackets {
   position: absolute;
   inset: clamp(12px, 10.8%, 27px) 27px;
-  border: 1px solid #d8e0f3;
+  border: 1px solid var(--accent-line);
   border-radius: 16px;
 }
 .scan-brackets:before,
@@ -1187,7 +1214,7 @@ img {
   position: absolute;
   width: 27px;
   height: 27px;
-  border-color: var(--blue);
+  border-color: var(--accent);
   border-style: solid;
 }
 .scan-brackets:before {
@@ -1207,7 +1234,7 @@ img {
   width: auto;
   height: min(167px, 67%);
   opacity: 0.88;
-  filter: drop-shadow(0 9px 7px #253a6015);
+  filter: drop-shadow(0 9px 7px var(--shade-2));
 }
 .scan-area .scan-line {
   position: absolute;
@@ -1215,8 +1242,8 @@ img {
   right: 32px;
   height: 1px;
   top: 50%;
-  background: var(--blue);
-  box-shadow: 0 0 12px #2455e899;
+  background: var(--accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent);
   opacity: 0.5;
 }
 .scan-area.nfc .scan-line {
@@ -1227,7 +1254,7 @@ img {
   position: absolute;
   height: min(195px, 78%);
   aspect-ratio: 1;
-  border: 1px solid #2455e834;
+  border: 1px solid var(--accent-glow);
   border-radius: 50%;
 }
 .scan-help {
@@ -1251,7 +1278,7 @@ img {
   margin-top: 25px;
 }
 .scan-place > svg {
-  color: var(--blue);
+  color: var(--accent);
   width: 18px;
 }
 .scan-place strong {
@@ -1268,12 +1295,12 @@ img {
   margin-left: auto;
   font-size: 12px;
   min-height: 44px;
-  color: var(--blue);
+  color: var(--link);
   min-width: 44px;
 }
 .demo-notice {
   text-align: center;
-  color: #969eab;
+  color: var(--faint);
   font-size: 9px;
   margin-bottom: 9px;
   line-height: 1.8;
@@ -1290,8 +1317,8 @@ img {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--blue-soft);
-  color: var(--blue);
+  background: var(--owned-soft);
+  color: var(--owned);
   margin: 0 auto 12px;
 }
 .success-check svg {
@@ -1333,7 +1360,7 @@ img {
   pointer-events: none;
 }
 .stamp-seat {
-  border: 1px dashed #c5cbd6;
+  border: 1px dashed var(--edge);
 }
 /* Where the stamp rests on the white page: a faint halo in the stamp's own colour and two fine rings, like the ground pattern of a passport page. */
 .stamp-ground {
@@ -1368,7 +1395,7 @@ img {
 .success-art .medal-shadow,
 .stamp-zoom .medal-shadow {
   height: 10px;
-  background: color-mix(in srgb, var(--glow, var(--rim)) 45%, #1b243a);
+  background: color-mix(in srgb, var(--glow, var(--rim)) 45%, var(--shadow));
   filter: blur(7px);
   opacity: 0.3;
 }
@@ -1523,7 +1550,7 @@ img {
   padding: 7px;
 }
 .search-box {
-  background: #f5f6f8;
+  background: var(--soft);
   display: flex;
   align-items: center;
   gap: 9px;
@@ -1534,7 +1561,7 @@ img {
 }
 .search-box svg {
   width: 17px;
-  color: #9098a6;
+  color: var(--faint);
 }
 .search-box input {
   border: 0;
@@ -1546,6 +1573,10 @@ img {
   color: var(--ink);
   min-width: 0;
 }
+/* The box has a button of its own to clear it; the browser's is put away. */
+.search-box input::-webkit-search-cancel-button {
+  display: none;
+}
 .search-box .icon-button {
   width: 30px;
   height: 36px;
@@ -1556,7 +1587,7 @@ img {
   align-items: center;
   gap: 3px;
   font-size: 11px;
-  color: #626d80;
+  color: var(--muted);
   min-height: 40px;
 }
 .city-button svg {
@@ -1617,7 +1648,7 @@ img {
   scroll-snap-stop: always;
   text-align: left;
   color: white;
-  background: #dfe3ea;
+  background: var(--line-strong);
 }
 .hero-slide:focus-visible {
   outline-offset: -3px;
@@ -1669,7 +1700,7 @@ img {
   height: 6px;
   padding: 0;
   border-radius: 3px;
-  background: #d5dae3;
+  background: var(--idle);
   transition:
     width 0.2s,
     background 0.2s;
@@ -1681,7 +1712,7 @@ img {
 }
 .hero-dots button[aria-current='true'] {
   width: 18px;
-  background: var(--blue);
+  background: var(--accent);
 }
 .discover-page .row {
   margin-top: 24px;
@@ -1699,7 +1730,7 @@ img {
   padding: 0 13px;
   border-radius: 16px;
   font-size: 12px;
-  background: #f4f5f8;
+  background: var(--soft);
   color: var(--muted);
 }
 /* Each is pressed on a taller place than it shows. */
@@ -1710,7 +1741,7 @@ img {
 }
 .category-tabs button.active {
   background: var(--ink);
-  color: white;
+  color: var(--on-fill);
 }
 .section-title {
   font-size: 14px;
@@ -1748,7 +1779,7 @@ img {
   place-items: center;
   aspect-ratio: 4 / 3;
   border-radius: 11px 11px 0 0;
-  background: #f5f6fa;
+  background: var(--soft);
 }
 .venue-thumb img {
   position: absolute;
@@ -1769,7 +1800,7 @@ img {
   right: 10px;
   bottom: -10px;
   width: 31%;
-  filter: drop-shadow(0 3px 5px #1f283c38);
+  filter: drop-shadow(0 3px 5px var(--shade-4));
   --tick: 18px;
 }
 /* A stamp already collected carries a tick, set on its rim at the lower right. */
@@ -1782,8 +1813,8 @@ img {
   width: var(--tick);
   height: var(--tick);
   border-radius: 50%;
-  background: var(--blue);
-  color: white;
+  background: var(--owned);
+  color: var(--on-fill);
   box-shadow: 0 0 0 2px var(--paper);
 }
 .venue-status svg {
@@ -1820,7 +1851,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f4f6;
+  background: var(--soft);
   position: relative;
   overflow: hidden;
 }
@@ -1835,7 +1866,7 @@ img {
   font-weight: 600;
   position: absolute;
   letter-spacing: 5px;
-  color: #e4dfe5;
+  color: var(--line-strong);
   left: -15px;
   top: 10px;
 }
@@ -1844,7 +1875,7 @@ img {
 }
 .venue-category {
   font-size: 12px;
-  color: var(--blue);
+  color: var(--accent);
   letter-spacing: 1px;
 }
 .venue-title {
@@ -1874,7 +1905,7 @@ img {
   margin: 22px 0 8px;
   padding: 0 13px 13px;
   border-radius: 12px;
-  background: #f6f7fa;
+  background: var(--soft);
 }
 .venue-stamp .page-actions {
   margin-top: 0;
@@ -1908,7 +1939,7 @@ img {
 }
 .venue-chapter > svg {
   width: 15px;
-  color: var(--blue);
+  color: var(--accent);
 }
 .info-row {
   display: flex;
@@ -1922,7 +1953,7 @@ img {
   width: 16px;
   height: 16px;
   margin-top: 2px;
-  color: #8b93a1;
+  color: var(--faint);
 }
 .info-row > div {
   flex: 1;
@@ -1936,12 +1967,9 @@ img {
 }
 .info-row button {
   font-size: 10px;
-  color: var(--blue);
+  color: var(--link);
   min-height: 36px;
   align-self: center;
-}
-.collection-wanted .badge-card .badge-frame {
-  background: #f6f8fc;
 }
 .share-page {
   padding-top: 1px;
@@ -2014,7 +2042,7 @@ img {
 .share-paper-footer strong {
   font-size: 10px;
   font-weight: 600;
-  color: var(--blue);
+  color: #1c212c;
 }
 .share-paper-footer span {
   font-size: 7px;
@@ -2036,7 +2064,7 @@ img {
   min-height: 35px;
 }
 .share-options input {
-  accent-color: var(--blue);
+  accent-color: var(--accent);
   width: 15px;
   height: 15px;
 }
@@ -2053,15 +2081,15 @@ img {
   transform: translateX(-50%);
   width: max-content;
   max-width: calc(100% - 40px);
-  background: #20242ced;
-  color: white;
+  background: color-mix(in srgb, var(--ink) 93%, transparent);
+  color: var(--on-fill);
   font-size: 12px;
   line-height: 1.7;
   padding: 11px 16px;
   border-radius: 10px;
   text-align: center;
   z-index: 30;
-  box-shadow: 0 8px 20px #20242c20;
+  box-shadow: 0 8px 20px var(--shade-2);
 }
 .modal-overlay {
   position: fixed;
@@ -2070,7 +2098,7 @@ img {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: #1118276b;
+  background: var(--scrim);
   backdrop-filter: blur(6px);
   z-index: 100;
 }
@@ -2081,7 +2109,7 @@ img {
   background: var(--paper);
   border-radius: 22px;
   padding: 22px;
-  box-shadow: 0 30px 100px #13203833;
+  box-shadow: 0 30px 100px var(--shade-4);
 }
 .modal-head {
   display: flex;
@@ -2107,13 +2135,13 @@ img {
   width: 100%;
   min-height: 126px;
   resize: vertical;
-  border: 1px solid #e1e5ee;
+  border: 1px solid var(--line-strong);
   border-radius: 10px;
   padding: 13px;
   font-size: 16px;
   color: var(--ink);
   line-height: 1.8;
-  background: #fafbfe;
+  background: var(--wash);
 }
 .field-label {
   font-size: 12px;
@@ -2122,19 +2150,19 @@ img {
 }
 .character-count {
   text-align: right;
-  color: #9199a7;
+  color: var(--faint);
   font-size: 12px;
   margin-top: 5px;
 }
 .photo-upload {
-  border: 1px dashed #d8dfec;
+  border: 1px dashed var(--line-strong);
   display: flex;
   gap: 9px;
   align-items: center;
   justify-content: center;
   min-height: 65px;
   border-radius: 10px;
-  color: #7e8aa1;
+  color: var(--subtle);
   font-size: 12px;
   margin-top: 14px;
   cursor: pointer;
@@ -2155,17 +2183,17 @@ img {
 }
 .remove-photo {
   font-size: 12px;
-  color: #9098a5;
+  color: var(--faint);
   min-height: 35px;
 }
 .modal-error {
   font-size: 12px;
-  color: #b53838;
+  color: var(--danger);
   line-height: 1.7;
   margin-top: 8px;
 }
 .zoom-modal {
-  background: #f6f7fb;
+  background: var(--soft);
 }
 .zoom-modal .modal-sub {
   text-align: center;
@@ -2387,7 +2415,7 @@ img {
   display: block;
   font: 12px/1.7 var(--serif);
   letter-spacing: 0.7px;
-  color: #7d8593;
+  color: var(--subtle);
   margin-top: 1px;
 }
 /* The collector's number is the stamp's own: set large and widely spaced between two fine rules, like a serial struck on a plate, in the colour of the stamp it is cut into. */
@@ -2444,13 +2472,13 @@ img {
   width: 30px;
 }
 .shelf-item .badge-art {
-  filter: drop-shadow(0 2px 2px #24385918);
+  filter: drop-shadow(0 2px 2px var(--shade-2));
 }
 .shelf-item i {
   font: 10px/1.2 var(--serif);
   font-style: normal;
   letter-spacing: 0.5px;
-  color: #9aa1ad;
+  color: var(--faint);
 }
 .shelf-item.shelf-current {
   position: relative;
@@ -2458,7 +2486,7 @@ img {
 }
 .shelf-current i {
   font-size: 12px;
-  color: var(--blue);
+  color: var(--accent);
 }
 /* The ring thrown off where the stamp's place in the row is marked. */
 .shelf-current:after {
@@ -2466,7 +2494,7 @@ img {
   position: absolute;
   inset: 0 0 auto;
   aspect-ratio: 1;
-  border: 2px solid var(--blue);
+  border: 2px solid var(--accent);
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
@@ -2477,14 +2505,14 @@ img {
 .shelf-more {
   align-self: center;
   padding-bottom: 12px;
-  color: #9aa1ad;
+  color: var(--faint);
 }
 .success-shelf .badge-edition:after {
   display: none;
 }
 .badge-kind.new {
   font-size: 11px;
-  color: var(--blue);
+  color: var(--accent);
 }
 .issue-list {
   list-style: none;
@@ -2509,7 +2537,7 @@ img {
 .issue-list svg {
   width: 13px;
   height: 13px;
-  color: #95a2b7;
+  color: var(--faint);
 }
 .issue-list b {
   display: inline-block;
@@ -2546,7 +2574,7 @@ img {
   height: 16px;
   margin: 18px auto 0;
   border-radius: 50%;
-  background: #1b243a;
+  background: var(--shadow);
   filter: blur(11px);
   opacity: 0.2;
   transform: scaleX(var(--shadow, 1));
@@ -2576,10 +2604,10 @@ img {
   background: var(--paper);
   box-shadow:
     inset 0 0 0 1px var(--line),
-    0 2px 6px #212e4512;
+    0 2px 6px var(--shade-1);
 }
 .medal-flip[aria-pressed='true'] svg {
-  color: var(--blue);
+  color: var(--accent);
 }
 .medal-hint {
   text-align: center;
@@ -2603,45 +2631,45 @@ img {
   font-size: 13px;
 }
 .choice-list button.active {
-  color: var(--blue);
-  background: var(--blue-soft);
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 .guide-map {
   width: 100%;
   height: 180px;
-  background: #f5f7fb;
+  background: var(--soft);
   border-radius: 10px;
   margin-top: 14px;
 }
 .guide-map text {
   font-family: var(--font);
   font-size: 11px;
-  fill: #7b879a;
+  fill: var(--subtle);
   stroke: none;
 }
 .guide-map .guide-label {
-  fill: var(--blue);
+  fill: var(--accent);
   font-weight: 600;
 }
 .guide-description {
   font-size: 12px;
   line-height: 1.9;
-  color: #717d90;
+  color: var(--subtle);
   margin-top: 17px;
 }
 .first-mode-tag {
-  background: #f2f4f9;
+  background: var(--soft);
   border-radius: 5px;
   font-size: 9px;
-  color: #8b95a6;
+  color: var(--faint);
   padding: 4px 6px;
 }
 .loading-dots:after {
   content: '';
   width: 15px;
   height: 15px;
-  border: 2px solid #ffffff66;
-  border-top-color: white;
+  border: 2px solid color-mix(in srgb, var(--on-fill) 40%, transparent);
+  border-top-color: var(--on-fill);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   margin-left: 4px;
@@ -2843,7 +2871,7 @@ img {
 @keyframes nav-receive {
   35% {
     scale: 1.3;
-    color: var(--blue);
+    color: var(--accent);
   }
 }
 @keyframes book-press {
@@ -3155,9 +3183,6 @@ img {
   .ticket-year {
     font-size: 10px;
   }
-  .badge-grid {
-    gap: 18px 10px;
-  }
   .badge-card .badge-frame {
     padding: 6px;
   }
@@ -3229,7 +3254,7 @@ img {
 }
 /* Not collected yet: the ground is there, without the stamp's colour. */
 .stamp-page.unowned .stamp-ground {
-  --ground: #a9b0bc;
+  --ground: var(--edge-strong);
   opacity: 0.7;
 }
 /* The album's empty slots: stamps still to collect, dimmed after the collected ones. */
@@ -3246,7 +3271,7 @@ img {
 .badge-pending {
   font-size: 12px;
   line-height: 1.7;
-  color: var(--blue);
+  color: var(--accent);
   margin-top: 1px;
 }
 /* Limited stamps: how much of the edition is already out. */

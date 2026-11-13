@@ -42,16 +42,7 @@ export function createPassportViews(appContext) {
           发现目的地${appContext.format.icon('arrow')}
         </button>
       </div>`;
-    return `<div class="badge-grid">${list
-      .map(
-        (v) =>
-          /* HTML */ `<button class="badge-card" data-action="venue" data-id="${v.id}">
-            <div class="badge-frame">${appContext.format.art(v)}</div>
-            <h3>${v.stamp}</h3>
-            <p class="badge-meta">${v.name} · 想去</p>
-          </button>`,
-      )
-      .join('')}</div>`;
+    return `<div class="venue-list">${list.map(appContext.views.venueCard).join('')}</div>`;
   }
   // The album and the tickets are the two sections of one book, opened inside the passport: a page
   // holds four stamps or two tickets, and the tabs are its bookmarks.

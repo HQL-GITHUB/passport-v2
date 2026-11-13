@@ -224,6 +224,23 @@ test('the navigation stays under every page and each page keeps its actions in i
   await expect(actions).toHaveText('确认收藏 2 枚纪念章');
 });
 
+test('a venue saved for later is kept in the passport as the card it is on the discover page', async ({
+  page,
+}) => {
+  await page.goto('/#/venue/porcelain');
+  await page.locator('.venue-heading .heart-button').click();
+  await page.locator('#app-footer .bottom-nav').getByRole('button', { name: '护照' }).click();
+  await page.getByRole('button', { name: '想去 1', exact: true }).click();
+  const card = page.locator('#collection-content .venue-card');
+  await expect(card).toHaveCount(1);
+  await expect(card.locator('.venue-thumb.has-photo img')).toHaveCount(1);
+  await expect(card.locator('.venue-seal .badge-art')).toHaveCount(1);
+  await expect(card.locator('h3')).toHaveText('青窑陶瓷博物馆');
+  await expect(card.locator('p')).toHaveText('云川 · 泥土与火的诗');
+  await card.click();
+  await expect(page.locator('.venue-title')).toHaveText('青窑陶瓷博物馆');
+});
+
 test('leaving an unsaved ticket through the navigation asks first', async ({ page }) => {
   const nav = page.locator('#app-footer .bottom-nav'),
     dialog = page.getByRole('dialog');

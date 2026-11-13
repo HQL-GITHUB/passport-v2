@@ -116,7 +116,7 @@ export function createMapViews(appContext) {
           >${photo ? `<img src="${photo}" alt="" />` : appContext.format.art(v)}</span
         ><span class="map-copy"
           ><strong>${v.name}</strong><small>${v.city} · ${v.exhibit}</small
-          ><small class="map-state"
+          ><small class="map-state ${owned ? 'owned' : ''}"
             >${owned ? '馆章已收藏' : `${appContext.data.wanted.includes(v.id) ? '想去 · ' : ''}到馆可领取「${v.stamp}」`}</small
           ></span
         >${appContext.format.icon('chevron')}

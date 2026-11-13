@@ -167,18 +167,26 @@ ${appContext.format.safe(visit.note)}</textarea>
           role="img"
           aria-label="从入口经过大厅，到参观出口的纪念章台"
         >
-          <rect x="20" y="23" width="300" height="134" rx="8" fill="#fff" stroke="#dfe5ef" />
-          <path d="M127 23v57h70v-57M127 157V99h70v58" stroke="#e4e9f1" fill="none" />
+          <rect
+            x="20"
+            y="23"
+            width="300"
+            height="134"
+            rx="8"
+            fill="var(--paper)"
+            stroke="var(--line-strong)"
+          />
+          <path d="M127 23v57h70v-57M127 157V99h70v58" stroke="var(--line-strong)" fill="none" />
           <path
             d="M55 116h72V90h92v27h47"
-            stroke="#2455e8"
+            stroke="var(--accent)"
             stroke-width="2"
             stroke-dasharray="5 5"
             fill="none"
           />
-          <circle cx="55" cy="116" r="5" fill="#b9c9ed" stroke="none" />
-          <circle cx="269" cy="117" r="11" fill="#2455e8" stroke="none" />
-          <path d="m264 117 3 3 6-6" stroke="white" fill="none" stroke-width="2" />
+          <circle cx="55" cy="116" r="5" fill="var(--accent-line)" stroke="none" />
+          <circle cx="269" cy="117" r="11" fill="var(--accent)" stroke="none" />
+          <path d="m264 117 3 3 6-6" stroke="var(--on-fill)" fill="none" stroke-width="2" />
           <text x="43" y="138">入口</text>
           <text x="145" y="58">公共大厅</text>
           <text x="220" y="138" class="guide-label">纪念章台</text>

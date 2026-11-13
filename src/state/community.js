@@ -108,6 +108,7 @@ export function createCommunityQueries(appContext) {
   // A board ranks by the stamps collected on site: one redeemed with a ticket stays in the album
   // but does not count. Collectors level on stamps share a place, so one more stamp is always
   // enough to draw level with the next; among themselves they stand in the order they got there.
+  // A shared place takes up one place only: after two seconds comes the third, not the fourth.
   function board(id) {
     const def = appContext.selectors.boards().find((b) => b.id === id);
     return appContext.selectors
@@ -131,7 +132,10 @@ export function createCommunityQueries(appContext) {
           a.reached.localeCompare(b.reached) ||
           a.person.name.localeCompare(b.person.name),
       )
-      .map((row, n, rows) => ({ ...row, rank: 1 + rows.findIndex((r) => r.count === row.count) }));
+      .map((row, n, rows) => ({
+        ...row,
+        rank: new Set(rows.slice(0, n + 1).map((r) => r.count)).size,
+      }));
   }
   // What the holder has put on the square of one visit, if anything.
   function myPost(key) {

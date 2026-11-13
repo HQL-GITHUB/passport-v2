@@ -1,5 +1,6 @@
 /* The collectors: the boards, other people's passports, and what the holder shows of their own. */
-/* A collector's face: the first letter of the name, on a tint of the collector's own. */
+/* A collector's face: the first letter of the name, on a faint tint of the collector's own. The
+   holder's own is in ink. */
 .avatar {
   flex: none;
   display: grid;
@@ -7,63 +8,106 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: hsl(var(--hue) 42% 92%);
-  color: hsl(var(--hue) 32% 36%);
+  background: hsl(var(--hue) 30% 94%);
+  color: hsl(var(--hue) 22% 40%);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
 }
 .avatar.me {
-  background: var(--blue);
-  color: #fff;
+  background: var(--ink);
+  color: var(--on-fill);
 }
-/* Where the holder stands on the open board; it opens the holder's own passport as others see it. */
+/* Where the holder stands on the open board; it opens the holder's own passport as others see it.
+   The card is cut from the passport's cover: its dark cloth, a fine gold rule inside the edge,
+   and the place in its foil. These are the cover's own colours. */
 .standing-card {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  min-height: 68px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--blue-soft);
+  min-height: 84px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background:
+    radial-gradient(#ffffff0d 0.6px, #0000 1px) 0 0 / 3px 3px,
+    radial-gradient(120% 150% at 16% 0%, #2c3445, #1c212c 58%, #141821);
+  box-shadow: 0 12px 20px -14px #1b243a8c;
+  color: #fff;
   text-align: left;
 }
-.standing-card > span:not(.avatar) {
+.standing-card:before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid #cdb37638;
+  border-radius: 10px;
+  pointer-events: none;
+}
+.standing-card > span {
   flex: 1;
   min-width: 0;
 }
 .standing-card strong {
   display: block;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.5;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 30px;
+  letter-spacing: 0.5px;
+}
+.standing-card strong b {
+  margin: 0 3px;
+  font: 30px/1 var(--serif);
+  font-weight: 400;
+  letter-spacing: 0;
+  vertical-align: -3px;
+  background: linear-gradient(120deg, #eadbab, #b8985a 42%, #f3e6bd 58%, #a5854a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .standing-card small {
   display: block;
+  margin-top: 3px;
   font-size: 12px;
-  line-height: 1.7;
-  color: var(--muted);
+  line-height: 1.6;
+  color: #ffffffa3;
 }
 .standing-card > svg {
   width: 14px;
   height: 14px;
-  color: #95a2b7;
+  color: #cdb376b8;
 }
-/* Not on the board: what would put the holder there, and the way to it. */
+/* Not on the board: what would put the holder there, and the way to it, on plain paper. */
 .standing-card.off {
+  min-height: 68px;
+  padding: 12px 14px;
+  border-radius: 12px;
   background: var(--soft);
+  box-shadow: none;
+  color: inherit;
+}
+.standing-card.off:before {
+  display: none;
 }
 .standing-card.off strong {
-  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+.standing-card.off small {
+  margin-top: 0;
+  line-height: 1.7;
+  color: var(--muted);
 }
 .standing-card.off button {
   flex: none;
   min-height: 36px;
   padding: 0 14px;
   border-radius: 18px;
-  background: var(--blue);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-fill);
   font-size: 12px;
   position: relative;
 }
@@ -76,93 +120,58 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 16px;
 }
-.board-rule {
-  margin: 10px 0 2px;
-  font-size: 12px;
-  line-height: 1.8;
-  color: var(--muted);
-}
 .board-list {
   list-style: none;
-  margin: 0;
+  margin: 10px 0 0;
   padding: 0;
 }
-.board-row + .board-row {
-  border-top: 1px solid var(--line);
-}
+/* The rows are set apart by their own space, not by rules. */
 .board-row button {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 64px;
-  padding: 10px 0;
+  min-height: 62px;
+  padding: 9px 0;
   text-align: left;
 }
 .board-rank {
   flex: none;
-  width: 22px;
+  width: 34px;
   font: 16px/1 var(--serif);
   font-weight: 400;
   text-align: center;
-  color: #9299a6;
+  color: var(--faint);
 }
-/* The first three places are medals: a disc of gold, silver or bronze on a ribbon, the place
-   struck into it. The metals are the medals' own colours, like the foil on the passport's cover. */
+/* The first three places stand in a wreath of gold, silver or bronze: two branches of laurel,
+   open at the top, around the place. The metals are the wreaths' own colours, like the foil on
+   the passport's cover. */
 .board-rank.medal {
   position: relative;
-  isolation: isolate;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
-  margin: 9px -2px 0;
-  font-size: 14px;
+  height: 34px;
+  font-size: 15px;
   color: var(--medal-ink);
-  text-shadow: 0 1px 0 #ffffff80;
 }
-.board-rank.medal:before,
-.board-rank.medal:after {
-  content: '';
+.board-rank.medal svg {
   position: absolute;
-  z-index: -1;
-}
-.board-rank.medal:before {
-  top: -9px;
-  left: 50%;
-  width: 18px;
-  height: 13px;
-  translate: -50% 0;
-  background: linear-gradient(90deg, var(--blue) 50%, #1c44c2 50%);
-  clip-path: polygon(0 0, 34% 0, 50% 42%, 66% 0, 100% 0, 73% 100%, 27% 100%);
-}
-.board-rank.medal:after {
   inset: 0;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--medal-light), var(--medal) 48%, var(--medal-dark));
-  box-shadow:
-    inset 0 0 0 1px var(--medal-dark),
-    inset 0 0 0 3px var(--medal-light),
-    inset 0 0 0 3.5px var(--medal-dark),
-    0 2px 3px #1b243a2e;
+  width: 100%;
+  height: 100%;
+  color: var(--medal);
 }
 .medal-1 {
-  --medal-light: #f6e9bf;
-  --medal: #dcb962;
-  --medal-dark: #a5854a;
-  --medal-ink: #6b4f14;
+  --medal: #c9a556;
+  --medal-ink: #8a6a22;
 }
 .medal-2 {
-  --medal-light: #f6f8fb;
-  --medal: #c9d0da;
-  --medal-dark: #8b95a5;
-  --medal-ink: #48515f;
+  --medal: #a2abb9;
+  --medal-ink: #5f6876;
 }
 .medal-3 {
-  --medal-light: #f3d8bd;
-  --medal: #d29a6a;
-  --medal-dark: #9a6238;
-  --medal-ink: #6a3d1b;
+  --medal: #c38c63;
+  --medal-ink: #8d5a34;
 }
 .board-who {
   flex: 1;
@@ -183,48 +192,51 @@
 .board-who small {
   font-size: 12px;
   line-height: 1.6;
-  color: var(--muted);
+  color: var(--subtle);
 }
-/* The stamps that count on this board, the latest in front. */
+/* The stamps that count on this board, the latest in front, each on a disc of the row's own
+   ground so that one stands clear of the next. */
 .board-stamps {
+  --disc: var(--paper);
   flex: none;
   display: flex;
   flex-direction: row-reverse;
 }
 .board-stamps .badge-art {
   width: 30px;
-  filter: drop-shadow(0 2px 2px #292a301f);
+  border-radius: 50%;
+  background-color: var(--disc);
+  box-shadow: 0 0 0 1.5px var(--disc);
 }
 .board-stamps .badge-art + .badge-art {
-  margin-right: -11px;
+  margin-right: -10px;
 }
 .board-stamps .badge-edition:after {
   display: none;
 }
 .board-count {
   flex: none;
-  min-width: 36px;
+  min-width: 38px;
   text-align: right;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 11px;
+  color: var(--faint);
 }
 .board-count b {
-  margin-right: 2px;
-  font: 21px/1 var(--serif);
+  margin-right: 3px;
+  font: 22px/1 var(--serif);
   font-weight: 400;
   color: var(--ink);
 }
-/* The holder's own row stands out of the list. */
-.board-row.me,
-.board-row.me + .board-row {
-  border-top-color: transparent;
-}
+/* The holder's own row lies on a quiet ground of its own. */
 .board-row.me button {
-  width: calc(100% + 20px);
-  margin-inline: -10px;
-  padding-inline: 10px;
-  border-radius: 12px;
-  background: var(--blue-soft);
+  width: calc(100% + 24px);
+  margin-inline: -12px;
+  padding-inline: 12px;
+  border-radius: 14px;
+  background: var(--soft);
+}
+.board-row.me .board-stamps {
+  --disc: var(--soft);
 }
 /* Someone's passport: who it belongs to, then the same tabs and the same book as the holder's own. */
 .collector-head {
@@ -387,7 +399,7 @@
   color: var(--muted);
 }
 .holder-list .me strong {
-  color: var(--blue);
+  font-weight: 600;
 }
 /* What the holder shows: one switch for each part of the passport. */
 .visibility-row {
@@ -423,7 +435,7 @@
   height: 26px;
   margin: 0;
   border-radius: 13px;
-  background: #d5dae3;
+  background: var(--idle);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -435,12 +447,12 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px #1b243a40;
+  background: var(--paper);
+  box-shadow: 0 1px 3px var(--shade-4);
   transition: translate 0.2s;
 }
 .visibility-row input:checked {
-  background: var(--blue);
+  background: var(--accent);
 }
 .visibility-row input:checked:after {
   translate: 18px 0;

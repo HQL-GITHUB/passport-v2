@@ -35,25 +35,31 @@ test('the boards rank by stamps collected on site, one board to a city and one f
     '已集齐临江',
   );
   await expect(page.locator('.board-row.me')).toHaveCount(1);
-  // Collectors level on stamps share a place.
+  // Collectors level on stamps share a place, and the place after it is the next one: no number
+  // is skipped, so the first three places always wear their medals.
   await expect(page.locator('.board-rank')).toHaveText([
     '1',
     '2',
     '3',
     '3',
+    '4',
+    '4',
+    '4',
+    '4',
     '5',
     '5',
-    '5',
-    '5',
-    '9',
-    '9',
   ]);
+  await expect(page.locator('.board-rank.medal')).toHaveCount(4);
+  // What counts is said once, under the last row.
+  await expect(page.locator('.collectors-page > :last-child')).toHaveText(
+    '只计现场领取的纪念章，票根补领的不计入。',
+  );
   await page.getByRole('button', { name: '云川', exact: true }).click();
   await expect(names(page).first()).toHaveText('沈青');
-  await expect(page.locator('.standing-card strong')).toHaveText('云川第 5 位');
+  await expect(page.locator('.standing-card strong')).toHaveText('云川第 4 位');
   await page.getByRole('button', { name: '2026 年度', exact: true }).click();
   await expect(names(page).first()).toHaveText('周末看展人');
-  await expect(page.locator('.standing-card strong')).toHaveText('2026 年度第 6 位');
+  await expect(page.locator('.standing-card strong')).toHaveText('2026 年度第 3 位');
   await expect(page.locator('.standing-card small')).toContainText('再收 1 枚，追上林间小鹿');
   // A stamp collected on site draws its holder level with the next collector.
   await page.goto('/#/scan/maritime');

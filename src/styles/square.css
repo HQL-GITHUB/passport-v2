@@ -32,7 +32,7 @@
   position: relative;
   display: block;
   border-radius: 11px 11px 0 0;
-  background: #f5f6fa;
+  background: var(--soft);
   overflow: hidden;
 }
 .note-cover img {
@@ -47,7 +47,7 @@
   right: 8px;
   bottom: 8px;
   width: 30%;
-  filter: drop-shadow(0 3px 5px #1f283c47);
+  filter: drop-shadow(0 3px 5px var(--shade-4));
 }
 .note-cover .badge-edition:after,
 .post-hero .badge-edition:after {
@@ -59,26 +59,26 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--glow, var(--rim, #a9b0bc)) 15%, #fff);
+  background: color-mix(in srgb, var(--glow, var(--rim, var(--edge-strong))) 15%, var(--paper));
 }
 .note-cover.card .badge-art {
   width: 58%;
   rotate: -4deg;
-  filter: drop-shadow(0 6px 6px #292a3026);
+  filter: drop-shadow(0 6px 6px var(--shade-3));
 }
 .note-cover.card b,
 .post-hero.card b {
   margin-top: 10px;
   font: 600 14px/1.4 var(--song);
   letter-spacing: 1px;
-  color: color-mix(in srgb, var(--glow, var(--rim, #a9b0bc)) 46%, var(--ink));
+  color: color-mix(in srgb, var(--glow, var(--rim, var(--edge-strong))) 46%, var(--ink));
 }
 .note-cover.card i,
 .post-hero.card i {
   font: 11px/1.6 var(--serif);
   font-style: normal;
   letter-spacing: 0.6px;
-  color: #7d8593;
+  color: var(--subtle);
 }
 .note-cover.card > svg,
 .post-hero.card > svg {
@@ -160,7 +160,7 @@
 .post-hero.card .badge-art {
   width: 168px;
   rotate: -4deg;
-  filter: drop-shadow(0 8px 8px #292a3026);
+  filter: drop-shadow(0 8px 8px var(--shade-3));
 }
 .post-hero.card b {
   margin-top: 12px;
@@ -204,7 +204,7 @@
   text-align: left;
 }
 .post.mine .post-card {
-  background: var(--blue-soft);
+  background: var(--accent-soft);
 }
 .post-stamps {
   flex: none;
@@ -213,7 +213,7 @@
 }
 .post-stamps .badge-art {
   width: 64px;
-  filter: drop-shadow(0 4px 4px #292a301f);
+  filter: drop-shadow(0 4px 4px var(--shade-2));
 }
 .post-stamps .badge-art + .badge-art {
   width: 42px;
@@ -258,12 +258,12 @@
   font: 12px/1.6 var(--serif);
   font-weight: 400;
   letter-spacing: 0.5px;
-  color: #7d8593;
+  color: var(--subtle);
 }
 .post-card > svg {
   width: 14px;
   height: 14px;
-  color: #95a2b7;
+  color: var(--faint);
 }
 .post-note {
   margin-top: 8px;
@@ -284,7 +284,7 @@
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--owned);
 }
 .post-owned svg {
   width: 13px;
@@ -318,10 +318,10 @@
   font-weight: 400;
 }
 .post-like.on {
-  color: var(--blue);
+  color: var(--like);
 }
 .post-like.on svg {
-  fill: #2455e826;
+  fill: var(--like-soft);
 }
 /* On the card of a single visit: what goes to the square with it. */
 .publish-note {
@@ -345,12 +345,12 @@
   flex: none;
   font-size: 12px;
   font-style: normal;
-  color: var(--blue);
+  color: var(--accent);
 }
 .publish-list svg {
   width: 14px;
   height: 14px;
-  color: #95a2b7;
+  color: var(--faint);
 }
 /* On a venue's page: the lines its visitors left on the square. */
 .guestbook {
@@ -388,7 +388,7 @@
 .guestbook small {
   font: 12px/1.6 var(--serif);
   letter-spacing: 0.4px;
-  color: #9299a6;
+  color: var(--faint);
 }
 .guestbook p {
   font-size: 13px;

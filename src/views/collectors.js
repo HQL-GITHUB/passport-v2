@@ -23,12 +23,12 @@ export function createCollectorViews(appContext) {
           )
           .join('')}
       </div>
-      <p class="board-rule">
-        ${current.yearly ? '只计现场领取，票根补领不计入；每年一月重新开始。' : '只计现场领取的纪念章，票根补领的不计入。'}
-      </p>
       <ol class="board-list">
         ${rows.map((row) => boardRow(row, current)).join('')}
       </ol>
+      <p class="foot-hint">
+        ${current.yearly ? '只计现场领取，票根补领不计入；每年一月重新开始。' : '只计现场领取的纪念章，票根补领的不计入。'}
+      </p>
     </section>`;
   }
   // Where the holder stands on the open board. A passport that is not shown is on no board, and
@@ -54,8 +54,8 @@ export function createCollectorViews(appContext) {
         ><button data-action="discover">去发现</button>
       </div>`;
     return /* HTML */ `<button class="standing-card" data-action="collector" data-person="me">
-      ${avatar(mine.person)}<span
-        ><strong>${current.label}第 ${mine.rank} 位</strong
+      <span
+        ><strong>${current.label}第 <b>${mine.rank}</b> 位</strong
         ><small
           >现场收藏 ${mine.count}
           枚${ahead ? ` · 再收 ${ahead.count - mine.count} 枚，追上${appContext.format.safe(ahead.person.name)}` : ''}</small
@@ -65,10 +65,11 @@ export function createCollectorViews(appContext) {
   }
   function boardRow(row, current) {
     const p = row.person;
-    // The first three places are worn as medals: gold, silver and bronze.
+    // The first three places stand in a wreath: gold, silver and bronze.
     return /* HTML */ `<li class="board-row ${p.me ? 'me' : ''}">
       <button data-action="collector" data-person="${p.id}">
-        <b class="board-rank ${row.rank <= 3 ? `medal medal-${row.rank}` : ''}">${row.rank}</b
+        <b class="board-rank ${row.rank <= 3 ? `medal medal-${row.rank}` : ''}"
+          >${row.rank <= 3 ? appContext.format.icon('laurel') : ''}${row.rank}</b
         >${avatar(p)}<span class="board-who"
           ><strong>${appContext.format.safe(p.name)}</strong
           ><small

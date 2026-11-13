@@ -12,26 +12,25 @@ export function createDiscoveryViews(appContext) {
         <p>试试其他关键词，或换一个城市看看。</p>
         <button class="button secondary" data-action="clear-filters">查看全部目的地</button>
       </div>`;
-    // A venue is a card: its photograph, with its stamp on the corner, or the stamp alone where
-    // there is no photograph. The stamp says what can be collected there; one already collected
-    // carries a tick on its rim.
-    return list
-      .map((v) => {
-        const photo = appContext.assets.venueThumbs[v.id],
-          owned = !!appContext.data.records[v.id];
-        return /* HTML */ `<button class="venue-card" data-action="venue" data-id="${v.id}">
-          <span class="venue-thumb ${photo ? 'has-photo' : ''}"
-            >${photo ? `<img src="${photo}" alt="" loading="lazy" decoding="async" ${fade(photo)}>` : ''}<span
-              class="venue-seal"
-              >${appContext.format.art(v)}${owned ? `<span class="venue-status" role="img" aria-label="馆章已收藏">${appContext.format.icon('check')}</span>` : ''}</span
-            ></span
-          ><span class="venue-copy"
-            ><h3>${v.name}</h3>
-            <p>${v.city} · ${v.exhibit}</p></span
-          >
-        </button>`;
-      })
-      .join('');
+    return list.map(venueCard).join('');
+  }
+  // A venue is a card: its photograph, with its stamp on the corner, or the stamp alone where
+  // there is no photograph. The stamp says what can be collected there; one already collected
+  // carries a tick on its rim. The places saved for later in the passport are the same cards.
+  function venueCard(v) {
+    const photo = appContext.assets.venueThumbs[v.id],
+      owned = !!appContext.data.records[v.id];
+    return /* HTML */ `<button class="venue-card" data-action="venue" data-id="${v.id}">
+      <span class="venue-thumb ${photo ? 'has-photo' : ''}"
+        >${photo ? `<img src="${photo}" alt="" loading="lazy" decoding="async" ${fade(photo)}>` : ''}<span
+          class="venue-seal"
+          >${appContext.format.art(v)}${owned ? `<span class="venue-status" role="img" aria-label="馆章已收藏">${appContext.format.icon('check')}</span>` : ''}</span
+        ></span
+      ><span class="venue-copy"
+        ><h3>${v.name}</h3>
+        <p>${v.city} · ${v.exhibit}</p></span
+      >
+    </button>`;
   }
   // The featured venues above the list, each a slide that opens its venue. They stay while the
   // list is narrowed to a category, and give way to the results of a search.
@@ -184,6 +183,7 @@ export function createDiscoveryViews(appContext) {
   }
   return {
     venueRows,
+    venueCard,
     renderDiscover,
     renderVenue,
   };
