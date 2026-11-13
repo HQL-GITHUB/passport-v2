@@ -29,10 +29,21 @@ npm run dev
 | `npm run build:all`        | 同时生成网站和离线版本                                     |
 | `npm test`                 | 运行数据规则、迁移与名称核对的单元测试                     |
 | `npm run test:e2e`         | 生成网站与离线文件，并运行浏览器回归测试                   |
+| `npm run shot`             | 按手机尺寸给页面截图，保存到 `.work/shots/`                |
 | `npm run lint`             | 用 ESLint 检查未使用的变量、未定义的名字等                 |
 | `npm run format`           | 格式化源码、配置、测试和文档                               |
 | `npm run format:check`     | 检查格式，不改动文件                                       |
 | `npm run verify`           | 依次执行单元测试、代码检查、格式检查、网站构建、浏览器测试 |
+
+截图用来在改动样式后查看结果，页面按地址里 `#/` 之后的部分指定，不指定时截底部导航上的四个页面：
+
+```sh
+npm run shot -- discover venue/museum
+npm run shot -- passport --width 320 --full
+npm run shot -- visit/artmuseum/2026-10-24 --click "[data-action=edit-memory]"
+```
+
+`--full` 截到页面底部，`--width`、`--height` 换屏幕尺寸，`--click` 在截图前先点一下（可以写多次）。每个页面都在全新的浏览器里打开，显示的是演示内容；页面上的报错会随输出一起列出。
 
 网站构建用于通过 HTTP 服务部署。需要直接双击、离线打开时，使用：
 
@@ -62,11 +73,12 @@ passport-v2/
 │  ├─ lib/                    # 不依赖应用状态的部件与工具：翻页、徽章查看、轮播、票根裁剪遮挡、图片、文字格式
 │  └─ styles/                 # 设计变量与按功能划分的样式，index.css 决定导入顺序
 ├─ assets-src/                # 插画与照片的 PNG 原图，不进入构建
-├─ scripts/                   # 离线构建、浏览器测试服务器管理、由原图生成 WebP
+├─ scripts/                   # 离线构建、浏览器测试服务器管理、页面截图、由原图生成 WebP
 ├─ tests/
 │  ├─ unit/                   # Node.js 原生测试，无需浏览器
 │  └─ e2e/                    # Playwright 浏览器测试
 ├─ docs/                      # 架构说明、设计记录、图片生成提示词
+├─ CLAUDE.md                  # 给 AI 助手的说明：命令、改完要做的检查、约定
 ├─ artifacts/                 # 本地保留的历史原型、截图和分享样例
 └─ dist/                      # 网站与单文件构建产物
 ```

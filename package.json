@@ -16,6 +16,7 @@
     "test": "node --test tests/unit/*.test.js",
     "pretest:e2e": "npm run build:all",
     "test:e2e": "node scripts/test-e2e.mjs",
+    "shot": "node scripts/shot.mjs",
     "lint": "eslint .",
     "verify": "npm test && npm run lint && npm run format:check && npm run test:e2e",
     "format": "prettier --write src scripts tests index.html *.js *.json README.md docs/*.md",
