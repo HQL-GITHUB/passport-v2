@@ -1,7 +1,8 @@
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createStampViews(appContext) {
   function renderStamp() {
-    const v = appContext.catalog.byId(appContext.ui.selected),
+    const v = appContext.selectors.stamp(),
+      venue = appContext.catalog.venueOf(v),
       r = appContext.data.records[v.id],
       visit = r ? appContext.selectors.visitForStamp(v, r) : null;
     const memory = r
@@ -28,19 +29,19 @@ export function createStampViews(appContext) {
               ${appContext.selectors.memoryPrivacy('仅自己可见，分享时可自行选择')}
             </p>
           </section>`
-      : `<div class="stamp-unowned">${v.period ? '展览已经结束，可以用当时的票根补领纪念。' : `前往${v.name}，把这枚纪念收入护照。`}</div>`;
+      : `<div class="stamp-unowned">${v.period ? '展览已经结束，可以用当时的票根补领纪念。' : `前往${venue.name}，把这枚纪念收入护照。`}</div>`;
     return /* HTML */ `<section class="page stamp-page ${r ? '' : 'unowned'} screen-enter">
       <div class="stamp-intro">
         <span class="stamp-category">${appContext.format.icon('book')}${v.kind}</span
         >${r ? '' : `<span class="stamp-category pending">${appContext.format.icon('lock')}尚未收藏</span>`}
-        <h1 class="stamp-title">${v.stamp}</h1>
-        <p class="stamp-subtitle">${v.name} · ${v.city}</p>
+        <h1 class="stamp-title">${v.title}</h1>
+        <p class="stamp-subtitle">${venue.name} · ${venue.city}</p>
       </div>
       <div class="stamp-showcase">
         <button
           class="stamp-zoom medal-${v.art} ${v.edition ? 'medal-edition' : ''}"
           data-action="zoom"
-          aria-label="放大欣赏${v.stamp}纪念章"
+          aria-label="放大欣赏${v.title}纪念章"
         >
           <span class="stamp-ground" aria-hidden="true"></span>${renderMedal(v, r)}</button
         ><span class="zoom-hint"
@@ -73,6 +74,7 @@ export function createStampViews(appContext) {
   // The stamp as a disc that MedalViewer can turn; the back is engraved once the stamp is collected.
   // Its rim is a wall of sixty flat strips, two per <i>, lit from above.
   function renderMedal(v, r) {
+    const venue = appContext.catalog.venueOf(v);
     return /* HTML */ `<div class="medal-stage" data-flip="${!!r}">
       <div class="medal medal-${v.art} ${v.edition ? 'medal-edition' : ''}">
         <div class="medal-edge" aria-hidden="true">
@@ -86,8 +88,8 @@ export function createStampViews(appContext) {
           r
             ? /* HTML */ `<div class="medal-face medal-back">
                 <small>旅行护照</small>
-                <strong>${v.stamp}</strong>
-                <span>${v.name} · ${v.city}</span>
+                <strong>${v.title}</strong>
+                <span>${venue.name} · ${venue.city}</span>
                 <b>${appContext.format.date(appContext.format.selectedVisit(r))}</b>
                 <em>${appContext.format.issue(r, v)}</em>
                 <svg class="medal-rim" viewBox="0 0 200 200" aria-hidden="true">
@@ -121,7 +123,9 @@ export function createStampViews(appContext) {
         <div class="visit-ticket-body">
           <div>
             <p class="visit-date">${appContext.format.date(day)}</p>
-            <p class="visit-city">${appContext.format.icon('pin')}${v.city} · 参观日期</p>
+            <p class="visit-city">
+              ${appContext.format.icon('pin')}${appContext.catalog.venueOf(v).city} · 参观日期
+            </p>
           </div>
           <div class="visit-ticket-number">
             <div class="visit-number-bars" aria-hidden="true"></div>

@@ -1,12 +1,11 @@
-export function createUiState() {
+export function createUiState(config) {
   return {
     screen: 'passport',
-    selected: 'museum',
+    selected: config.demoVenue,
     collection: 'collected',
     // The page each section of the passport book is open on.
     stampPage: 0,
     ticketPage: 0,
-    timeline: false,
     city: '全部城市',
     category: 'all',
     query: '',
@@ -30,6 +29,10 @@ export function createUiState() {
     ticketBusy: false,
     ticketError: '',
     ticketResult: null,
+    // The ticket shown at full size or about to be removed, and the page to go to once leaving
+    // an unsaved ticket is confirmed.
+    viewingTicket: null,
+    leaveTo: null,
     highlightVisit: null,
     // The board the collectors page is open on; the first one until another is chosen.
     board: '',
@@ -45,12 +48,9 @@ export function createUiState() {
 
 export function createRuntimeState() {
   return {
-    savedExperience: null,
     modalState: null,
     lastFocused: null,
     toastTimer: undefined,
-    claimToken: 0,
-    ticketToken: 0,
     cardBusy: false,
     scrollPositions: {},
     bookShown: false,

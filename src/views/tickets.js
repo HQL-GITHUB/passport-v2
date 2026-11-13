@@ -60,7 +60,7 @@ export function createTicketViews(appContext) {
             id="ticket-date"
             type="date"
             min="1900-01-01"
-            max="${appContext.config.demoDate}"
+            max="${appContext.clock.today()}"
             required
             value="${appContext.format.safe(d.visitedAt)}"
             ${r || appContext.ui.claimBusy ? 'disabled' : ''}
@@ -107,21 +107,19 @@ export function createTicketViews(appContext) {
       list = appContext.selectors.ticketRewards(d);
     if (!list.length)
       return /* HTML */ `<p class="ticket-no-rewards">
-        ${appContext.format.validDay(d.visitedAt) ? '暂时没有匹配的纪念章。<br>票根与这次到访，依然可以好好收藏。' : '填写有效的参观日期后，即可查看纪念章。'}
+        ${appContext.domain.validDay(d.visitedAt) ? '暂时没有匹配的纪念章。<br>票根与这次到访，依然可以好好收藏。' : '填写有效的参观日期后，即可查看纪念章。'}
       </p>`;
     return list
       .map((v) => {
         const done = r?.redeemed.includes(v.id),
           owned = !!appContext.data.records[v.id];
-        return `<label class="ticket-reward ${done ? 'redeemed' : ''}"><input type="checkbox" data-ticket-reward="${v.id}" ${done || d.selected.includes(v.id) ? 'checked' : ''} ${done || appContext.ui.claimBusy ? 'disabled' : ''}>${appContext.format.art(v)}<span class="ticket-reward-copy"><strong>${v.stamp}</strong><small>${v.kind}${v.limit ? ` · 限量 ${v.limit} 枚` : ''}</small><span>${done ? '这张票根已领取' : owned ? '已有此章 · 补充这次到访' : '加入我的章册'}</span></span></label>`;
+        return `<label class="ticket-reward ${done ? 'redeemed' : ''}"><input type="checkbox" data-ticket-reward="${v.id}" ${done || d.selected.includes(v.id) ? 'checked' : ''} ${done || appContext.ui.claimBusy ? 'disabled' : ''}>${appContext.format.art(v)}<span class="ticket-reward-copy"><strong>${v.title}</strong><small>${v.kind}${v.limit ? ` · 限量 ${v.limit} 枚` : ''}</small><span>${done ? '这张票根已领取' : owned ? '已有此章 · 补充这次到访' : '加入我的章册'}</span></span></label>`;
       })
       .join('');
   }
   function renderSampleTicket() {
-    const v =
-        appContext.ui.ticketContext ||
-        appContext.catalog.venueOf(appContext.catalog.byId(appContext.ui.selected)),
-      day = appContext.ui.ticketContext?.day || '2025-10-18';
+    const v = appContext.ui.ticketContext || appContext.selectors.venue(),
+      day = appContext.ui.ticketContext?.day || appContext.config.sampleTicketDay;
     return /* HTML */ `<div class="sample-ticket">
       <div class="sample-ticket-top"><span>VISITOR’S PASS</span><span>示例票根</span></div>
       <strong>${appContext.format.safe(v.name)}</strong>
@@ -139,7 +137,7 @@ export function createTicketViews(appContext) {
     const result = appContext.ui.ticketResult,
       v = appContext.data.visits[result.visitKey],
       tickets = appContext.selectors.savedTickets(v),
-      badges = v.stampIds.map(appContext.catalog.byId);
+      badges = appContext.catalog.stampsFor(v.stampIds);
     return /* HTML */ `<section
       class="page success-page ticket-success-page memory-success screen-enter"
     >
@@ -163,10 +161,11 @@ export function createTicketViews(appContext) {
       <p class="success-place-sub">${appContext.format.safe(v.exhibit)}</p>
       ${
         result.stampIds.length
-          ? `<ul class="issue-list">${result.stampIds
+          ? `<ul class="issue-list">${appContext.catalog
+              .stampsFor(result.stampIds)
               .map(
-                (id) =>
-                  `<li><button data-action="zoom" data-id="${id}"><span>${appContext.catalog.byId(id).stamp}</span><b>${appContext.format.issue(appContext.data.records[id], appContext.catalog.byId(id))}</b>${appContext.format.icon('chevron')}</button></li>`,
+                (s) =>
+                  `<li><button data-action="zoom" data-id="${s.id}"><span>${s.title}</span><b>${appContext.format.issue(appContext.data.records[s.id], s)}</b>${appContext.format.icon('chevron')}</button></li>`,
               )
               .join('')}</ul>`
           : ''

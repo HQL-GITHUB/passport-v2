@@ -22,11 +22,12 @@ export function createVisitViews(appContext) {
       </div>
       ${
         v.stampIds.length
-          ? `<div class="visit-stamp-grid">${v.stampIds
-              .map((id) => {
-                const s = appContext.catalog.byId(id);
-                return `<button data-action="stamp" data-id="${id}" data-visit-date="${v.day}" data-from-visit="${v.key}">${appContext.format.art(s)}<strong>${s.stamp}</strong><small>${s.kind}</small><small class="badge-issue">${appContext.format.issue(appContext.data.records[id], s)}</small></button>`;
-              })
+          ? `<div class="visit-stamp-grid">${appContext.catalog
+              .stampsFor(v.stampIds)
+              .map(
+                (s) =>
+                  `<button data-action="stamp" data-id="${s.id}" data-visit-date="${v.day}" data-from-visit="${v.key}">${appContext.format.art(s)}<strong>${s.title}</strong><small>${s.kind}</small><small class="badge-issue">${appContext.format.issue(appContext.data.records[s.id], s)}</small></button>`,
+              )
               .join('')}</div>`
           : '<p class="visit-no-stamps">这一站暂时没有纪念章。<br>票根与到访记忆，已经好好保存。</p>'
       }

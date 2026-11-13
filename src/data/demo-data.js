@@ -22,7 +22,7 @@ export const createDemoData = () => ({
       photo: '',
     },
     // Collected on site during the 2025 exhibition: the passport's limited, time-bound example.
-    // Its ticket stub is added in storage/metadata.js; the sample ticket flow uses another day.
+    // Its ticket stub is among the tickets below; the sample ticket flow uses another day.
     'museum-exhibition': {
       firstAt: '2025-10-10',
       visits: ['2025-10-10'],
@@ -31,5 +31,22 @@ export const createDemoData = () => ({
     },
   },
   wanted: [],
-  tickets: {},
+  tickets: {
+    'demo-artmuseum-2026-10-24': {
+      venueId: 'artmuseum',
+      visitedAt: '2026-10-24',
+      receivedAt: '2026-10-24',
+      redeemed: ['artmuseum'],
+      saved: true,
+      kind: 'sample',
+    },
+    'demo-museum-2025-10-10': {
+      venueId: 'museum',
+      visitedAt: '2025-10-10',
+      receivedAt: '2025-10-10',
+      redeemed: ['museum-exhibition'],
+      saved: true,
+      kind: 'sample',
+    },
+  },
 });

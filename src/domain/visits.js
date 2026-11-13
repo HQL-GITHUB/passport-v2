@@ -11,6 +11,20 @@ function hash(text) {
   return n.toString(16);
 }
 
+// A day that can stand in the passport: a real date, written YYYY-MM-DD, and not after today.
+function validDay(value, today) {
+  if (
+    typeof value !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+    value < '1900-01-01' ||
+    value > today
+  )
+    return false;
+  const [y, m, d] = value.split('-').map(Number),
+    day = new Date(Date.UTC(y, m - 1, d));
+  return day.getUTCFullYear() === y && day.getUTCMonth() === m - 1 && day.getUTCDate() === d;
+}
+
 // Stand-in for the number a venue service would issue with each claim: later claims get larger numbers,
 // and a limited stamp never numbers past its edition size.
 function issueNumber(stampId, claimedAt, limit = Infinity) {
@@ -49,7 +63,7 @@ function normalize(raw, venues, stamps, validDay) {
     posts: [],
   };
   const stampById = (id) => stamps.find((s) => s.id === id);
-  const base = (s) => venues.find((v) => v.id === (s.venueId || s.id));
+  const base = (s) => venues.find((v) => v.id === s?.venueId);
   const validVenue = (id) => venues.some((v) => v.id === id) || /^custom-[a-f0-9]+$/.test(id);
   const methods = ['ticket', 'qr', 'nfc', 'legacy'];
   // Records keep the order they were made in: stamps collected on the same day fill the album
@@ -194,6 +208,7 @@ function normalize(raw, venues, stamps, validDay) {
 export {
   key as visitKey,
   hash as hashIdentity,
+  validDay as isValidDay,
   issueNumber,
   ensure as ensureVisit,
   normalize as normalizeData,

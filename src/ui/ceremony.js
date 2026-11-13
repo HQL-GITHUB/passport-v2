@@ -81,7 +81,7 @@ export function createCeremony(appContext) {
     // Each stamp is held over its place by a mark of the same size, laid on the passport.
     const frame = holder.getBoundingClientRect(),
       marks = ids.map((id) => {
-        const v = appContext.catalog.byId(id),
+        const v = appContext.catalog.stamp(id),
           card = root.querySelector(`.badge-card[data-id="${id}"]`),
           print = card.querySelector('.badge-frame > .badge-art'),
           box = print.parentNode.getBoundingClientRect(),

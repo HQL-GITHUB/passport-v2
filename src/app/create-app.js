@@ -1,14 +1,9 @@
 import { APP_CONFIG } from '../config.js';
-import * as catalog from '../data/catalog.js';
-import { createDemoData } from '../data/demo-data.js';
-import { collectors, posts } from '../data/collectors.js';
-import {
-  visitKey,
-  hashIdentity,
-  issueNumber,
-  ensureVisit,
-  normalizeData,
-} from '../domain/visits.js';
+import { createCatalog } from '../domain/catalog.js';
+import { visitKey, hashIdentity, isValidDay } from '../domain/visits.js';
+import { eligibleStamps } from '../domain/claims.js';
+import { createLocalApi } from '../api/local.js';
+import { createClock } from '../lib/clock.js';
 import { TicketMedia } from '../storage/ticket-media.js';
 import { TicketEditor } from '../lib/ticket-editor.js';
 import { MedalViewer } from '../lib/medal-viewer.js';
@@ -19,7 +14,7 @@ import { createPresentation } from '../lib/presentation.js';
 import { createUiState, createRuntimeState } from '../state/state.js';
 import { bindEvents } from './events.js';
 import { assets } from '../data/assets.js';
-import { createMetadataStorage } from '../storage/metadata.js';
+import { createStore } from '../state/store.js';
 import { createQueries } from '../state/queries.js';
 import { createCommunityQueries } from '../state/community.js';
 import { createNavigation } from '../app/navigation.js';
@@ -41,43 +36,52 @@ import { createDiscoveryController } from '../controllers/discovery.js';
 import { createDialogController } from '../controllers/dialogs.js';
 import { createClaimController } from '../controllers/claims.js';
 import { createMemoryController } from '../controllers/memories.js';
+import { createSocialController } from '../controllers/social.js';
 import { createShareCardService } from '../services/share-card.js';
 
 /** Composition root. Modules use the same context so replacing demo data stays consistent. */
 export function createApp() {
-  // The single-file build inlines every image as a data URL of several megabytes. Stylesheets
-  // and the pages, which are written as HTML strings, refer to each by a short URL instead.
+  // The single-file build inlines every image as a data URL of several megabytes. The
+  // stylesheet refers to each by a short URL instead.
   const blobUrls = [],
     short = (src) => {
       const url = images.imageUrl(src);
       if (url !== src) blobUrls.push(url);
       return url;
-    },
-    shortAll = (map) =>
-      Object.fromEntries(Object.entries(map).map(([id, src]) => [id, short(src)]));
+    };
+  const clock = createClock(APP_CONFIG.demoDate),
+    media = new TicketMedia(APP_CONFIG.mediaDbName);
   const appContext = {
     config: APP_CONFIG,
-    catalog,
-    fixtures: { initialData: createDemoData, collectors, posts },
+    clock,
     domain: {
       key: visitKey,
       hash: hashIdentity,
-      issue: issueNumber,
-      ensure: ensureVisit,
-      normalize: normalizeData,
+      validDay: (value) => isValidDay(value, clock.today()),
+      eligible: eligibleStamps,
     },
-    media: new TicketMedia(),
+    // The backend. Everything the passport keeps is read and changed through it; a server-backed
+    // implementation of the same methods takes its place here.
+    api: createLocalApi({
+      config: APP_CONFIG,
+      clock,
+      media,
+      photos: { venues: assets.venues, venueThumbs: assets.venueThumbs },
+    }),
+    // The images of saved tickets, by ticket.
+    media,
+    // What the backend last answered, which `store` loads and changes: the venues and stamps,
+    // the other collectors with their posts, and the holder's passport.
+    catalog: createCatalog(),
+    community: { collectors: [], posts: [] },
+    data: null,
     TicketEditor,
     MedalViewer,
     Carousel,
     PageBook,
     images,
-    assets: {
-      ...assets,
-      venues: shortAll(assets.venues),
-      venueThumbs: shortAll(assets.venueThumbs),
-    },
-    ui: createUiState(),
+    assets,
+    ui: createUiState(APP_CONFIG),
     runtime: createRuntimeState(),
     dom: {
       app: document.getElementById('app'),
@@ -88,7 +92,7 @@ export function createApp() {
     },
   };
   appContext.format = createPresentation(appContext);
-  Object.assign((appContext.storage ||= {}), createMetadataStorage(appContext));
+  Object.assign((appContext.store ||= {}), createStore(appContext));
   Object.assign((appContext.selectors ||= {}), createQueries(appContext));
   Object.assign((appContext.selectors ||= {}), createCommunityQueries(appContext));
   Object.assign((appContext.navigation ||= {}), createNavigation(appContext));
@@ -110,32 +114,50 @@ export function createApp() {
   Object.assign((appContext.dialogs ||= {}), createDialogController(appContext));
   Object.assign((appContext.claims ||= {}), createClaimController(appContext));
   Object.assign((appContext.memories ||= {}), createMemoryController(appContext));
+  Object.assign((appContext.social ||= {}), createSocialController(appContext));
   Object.assign((appContext.sharing ||= {}), createShareCardService(appContext));
-  appContext.data = appContext.storage.readData();
   // The stylesheet reads the stamp illustrations from custom properties: the atlas, and one for
   // each stamp that has an image of its own.
   for (const [name, src] of Object.entries({ atlas: assets.atlas, ...assets.badges }))
     document.documentElement.style.setProperty(`--badge-${name}-url`, `url("${short(src)}")`);
   const unbind = bindEvents(appContext);
+  let waiting;
+  // Nothing can be drawn before the backend has answered. A wait that can be felt says so; one
+  // that fails says that, and offers to try again. Until then the buttons do nothing.
+  async function start() {
+    waiting = setTimeout(() => {
+      appContext.dom.main.innerHTML =
+        '<div class="empty-state"><p role="status">正在打开护照…</p></div>';
+    }, 400);
+    try {
+      await appContext.store.load();
+    } catch (error) {
+      console.error('Passport initialization failed', error);
+      clearTimeout(waiting);
+      appContext.dom.main.innerHTML =
+        '<div class="empty-state" role="alert"><h3>护照暂时没能打开</h3><p>请检查网络后再试一次。</p><button class="button">重试</button></div>';
+      appContext.dom.main.querySelector('button').addEventListener('click', start, { once: true });
+      return;
+    }
+    clearTimeout(waiting);
+    appContext.navigation.routeFromLocation();
+    appContext.render();
+  }
   return {
-    async start() {
-      await appContext.media.load(appContext.data.tickets).finally(() => {
-        appContext.navigation.routeFromLocation();
-        appContext.render();
-      });
-    },
+    start,
     destroy() {
       unbind();
+      clearTimeout(waiting);
       clearTimeout(appContext.runtime.toastTimer);
       appContext.ceremony.finish();
       appContext.runtime.pageMedal?.destroy();
       appContext.runtime.pageCarousel?.destroy();
       appContext.runtime.pageBook?.destroy();
-      appContext.runtime.claimToken++;
-      appContext.runtime.ticketToken++;
+      appContext.claims.cancel();
       appContext.dialogs.closeModal(false);
       for (const id of appContext.media.urls.keys()) appContext.media.revoke(id);
       blobUrls.forEach((url) => URL.revokeObjectURL(url));
+      appContext.api.dispose();
     },
   };
 }

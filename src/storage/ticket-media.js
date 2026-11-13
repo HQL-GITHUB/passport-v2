@@ -1,8 +1,7 @@
-import { APP_CONFIG } from '../config.js';
-
 /** Stores original ticket Blobs in IndexedDB and manages object URL lifetimes. */
 export class TicketMedia {
-  constructor() {
+  constructor(dbName) {
+    this.dbName = dbName;
     this.urls = new Map();
     this.dbPromise = null;
     this.ephemeral = new Map();
@@ -16,7 +15,7 @@ export class TicketMedia {
         }
         let request;
         try {
-          request = indexedDB.open(APP_CONFIG.mediaDbName, 1);
+          request = indexedDB.open(this.dbName, 1);
         } catch {
           resolve(null);
           return;

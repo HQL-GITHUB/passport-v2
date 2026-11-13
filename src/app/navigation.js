@@ -55,6 +55,15 @@ export function createNavigation(appContext) {
     if (history.state?.passportNavigation?.id === currentEntry.id)
       history.replaceState({ ...history.state, passportNavigation: currentEntry }, '');
   }
+  // The id a screen's page is about, of the kind the screen takes; one the catalogue does not
+  // know gives way to the demonstration's venue, or its stamp.
+  function subject(screen, id) {
+    const { venue, stamp, stampOf } = appContext.catalog,
+      fallback = appContext.selectors.defaultVenue();
+    if (appContext.config.venueScreens.includes(screen)) return (venue(id) || fallback).id;
+    if (appContext.config.stampScreens.includes(screen)) return (stamp(id) || stampOf(fallback)).id;
+    return venue(id) || stamp(id) ? id : fallback.id;
+  }
   function routeFromLocation() {
     const stored = history.state?.passportNavigation;
     const entry = entries.get(stored?.id) || stored;
@@ -66,9 +75,7 @@ export function createNavigation(appContext) {
       parts = decodeURIComponent(location.hash.replace(/^#\/?/, '')).split('/');
     } catch {}
     appContext.ui.screen = appContext.config.screens.includes(parts[0]) ? parts[0] : 'passport';
-    appContext.ui.selected = appContext.catalog.stamps.some((s) => s.id === parts[1])
-      ? parts[1]
-      : 'museum';
+    appContext.ui.selected = subject(appContext.ui.screen, parts[1]);
     // A post is addressed by its writer, its venue and the day of the visit.
     if (appContext.ui.screen === 'post') {
       const id = parts.slice(1).join('/');
@@ -92,8 +99,10 @@ export function createNavigation(appContext) {
     }
     if (appContext.ui.screen === 'share' && !appContext.data.records[appContext.ui.selected])
       appContext.ui.screen = 'stamp';
-    if (appContext.ui.screen === 'success' && !appContext.data.records[appContext.ui.selected])
+    if (appContext.ui.screen === 'success' && !appContext.data.records[appContext.ui.selected]) {
       appContext.ui.screen = 'scan';
+      appContext.ui.selected = appContext.catalog.stamp(appContext.ui.selected).venueId;
+    }
     if (appContext.ui.screen === 'ticket-confirm' && !appContext.ui.ticketDraft)
       appContext.ui.screen = 'ticket';
     if (
@@ -121,8 +130,7 @@ export function createNavigation(appContext) {
   function navigate(screen, id = appContext.ui.selected, replace = false) {
     if (!appContext.config.screens.includes(screen)) return;
     rememberScroll();
-    appContext.runtime.claimToken++;
-    appContext.runtime.ticketToken++;
+    appContext.claims.cancel();
     appContext.ui.ticketBusy = false;
     appContext.ui.claimBusy = false;
     appContext.dialogs.closeModal(false);
@@ -130,11 +138,7 @@ export function createNavigation(appContext) {
       appContext.claims.clearTicketDraft();
     appContext.ui.screen = screen;
     const memoryScreen = ['visit', 'visit-share', 'ticket-success'].includes(screen);
-    appContext.ui.selected = memoryScreen
-      ? id
-      : ['venue', 'scan', 'ticket'].includes(screen)
-        ? appContext.catalog.venueOf(appContext.catalog.byId(id)).id
-        : appContext.catalog.byId(id).id;
+    appContext.ui.selected = memoryScreen ? id : subject(screen, id);
     const day = memoryScreen
       ? screen === 'ticket-success'
         ? appContext.ui.ticketResult?.visitedAt
@@ -170,8 +174,7 @@ export function createNavigation(appContext) {
   function restorePage() {
     // The location already points to the destination; retain the outgoing entry in memory.
     rememberPage();
-    appContext.runtime.claimToken++;
-    appContext.runtime.ticketToken++;
+    appContext.claims.cancel();
     appContext.ui.claimBusy = false;
     appContext.ui.ticketBusy = false;
     appContext.dialogs.closeModal(false);

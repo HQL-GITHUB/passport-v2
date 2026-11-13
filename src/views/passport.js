@@ -35,7 +35,7 @@ export function createPassportViews(appContext) {
     const list = appContext.catalog.venues.filter((v) => appContext.data.wanted.includes(v.id));
     if (!list.length)
       return /* HTML */ `<div class="empty-state">
-        <div class="empty-art">${appContext.format.art(appContext.catalog.venues[0])}</div>
+        <div class="empty-art">${appContext.format.art(appContext.catalog.stamps[0])}</div>
         <h3>下一站，留给你的好奇心</h3>
         <p>收藏喜欢的目的地，留给下一次出发。</p>
         <button class="button" data-action="discover">
@@ -236,17 +236,17 @@ export function createPassportViews(appContext) {
       return /* HTML */ `<button class="badge-card" data-action="stamp" data-id="${v.id}">
         <div class="badge-frame">
           ${awaited ? `<span class="slot-seat">${appContext.format.art(v)}</span>` : ''}
-          ${record.firstAt === appContext.config.demoDate ? '<span class="badge-kind new">新</span>' : ''}${appContext.format.art(v)}
+          ${record.firstAt === appContext.clock.today() ? '<span class="badge-kind new">新</span>' : ''}${appContext.format.art(v)}
         </div>
-        <h3>${v.stamp}</h3>
+        <h3>${v.title}</h3>
         <p class="badge-issue">${appContext.format.issue(record, v)}</p>
         <p class="badge-date">${appContext.format.date(record.firstAt)}</p>
       </button>`;
     const e = appContext.selectors.edition(v),
-      ended = v.period && v.period[1] < appContext.config.demoDate;
+      ended = v.period && v.period[1] < appContext.clock.today();
     return /* HTML */ `<button class="badge-card unowned" data-action="stamp" data-id="${v.id}">
       <div class="badge-frame">${appContext.format.art(v)}</div>
-      <h3>${v.stamp}</h3>
+      <h3>${v.title}</h3>
       <p class="badge-pending">
         ${ended ? '可用票根补领' : !e ? '到馆领取' : e.left > 0 ? `限量 · 还剩 ${e.left.toLocaleString('en-US')} 枚` : '已全部发行完毕'}
       </p>
@@ -257,7 +257,7 @@ export function createPassportViews(appContext) {
       <div class="empty-art">${appContext.format.icon('ticket')}</div>
       <h3>去过的票根，都夹在这里。</h3>
       <p>拍下纸质票根，或导入电子票截图。原图只保存在本机。</p>
-      <button class="button" data-action="ticket-entry" data-id="museum">
+      <button class="button" data-action="ticket-entry" data-id="${appContext.config.demoVenue}">
         添加第一张票根${appContext.format.icon('arrow')}
       </button>
     </div>`;
@@ -266,7 +266,11 @@ export function createPassportViews(appContext) {
   // the stamps it was redeemed for sit on its corner.
   function ticketSlot(row) {
     if (!row)
-      return /* HTML */ `<button class="ticket-add" data-action="ticket-entry" data-id="museum">
+      return /* HTML */ `<button
+        class="ticket-add"
+        data-action="ticket-entry"
+        data-id="${appContext.config.demoVenue}"
+      >
         ${appContext.format.icon('ticket')}再添一张票根
       </button>`;
     const { id, ticket, visit } = row;
@@ -274,9 +278,10 @@ export function createPassportViews(appContext) {
       <span class="ticket-mount ${ticket.kind === 'image' ? 'original' : ''}">
         ${appContext.views.ticketVisual(id)}
         <span class="ticket-thumb-badges">
-          ${ticket.redeemed
+          ${appContext.catalog
+            .stampsFor(ticket.redeemed)
             .slice(0, 2)
-            .map((s) => appContext.format.art(appContext.catalog.byId(s)))
+            .map((s) => appContext.format.art(s))
             .join('')}
         </span>
       </span>
@@ -291,7 +296,7 @@ export function createPassportViews(appContext) {
         <div class="empty-art">${appContext.format.icon('ticket')}</div>
         <h3>让第一段旅程，有迹可循。</h3>
         <p>保存一张去过的票根，或到馆领取纪念章，开始你的旅行护照。</p>
-        <button class="button" data-action="ticket-entry" data-id="museum">
+        <button class="button" data-action="ticket-entry" data-id="${appContext.config.demoVenue}">
           添加第一张票根${appContext.format.icon('arrow')}
         </button>
       </div>`;
@@ -317,14 +322,14 @@ export function createPassportViews(appContext) {
       .filter((s) => appContext.data.records[s.id])
       .map(
         (s) =>
-          `<span class="footprint-stamp"><span>${s.stamp}</span>${s.edition ? '<i>特展</i>' : s.limit ? '<i>限量</i>' : ''}<b>${appContext.format.issue(appContext.data.records[s.id], s)}</b></span>`,
+          `<span class="footprint-stamp"><span>${s.title}</span>${s.edition ? '<i>特展</i>' : s.limit ? '<i>限量</i>' : ''}<b>${appContext.format.issue(appContext.data.records[s.id], s)}</b></span>`,
       );
     return lines.length ? `<span class="footprint-stamps">${lines.join('')}</span>` : '';
   }
   // A visit with a ticket or photo opens as a full page; one that only holds stamps stays a single line.
   function footprintStop(v) {
     const tickets = appContext.selectors.savedTickets(v),
-      badges = v.stampIds.map(appContext.catalog.byId),
+      badges = appContext.catalog.stampsFor(v.stampIds),
       rich = tickets.length > 0 || !!v.photo,
       // A printed ticket already names the venue and the exhibition, so the card does not repeat
       // them above it. An imported photo of a ticket, or a visit photo, still gets the heading.

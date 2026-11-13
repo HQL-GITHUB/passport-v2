@@ -48,7 +48,22 @@ export function createMemoryController(appContext) {
       }
     }
   }
+  // Keeps what the open dialog holds with its visit. Answers whether it was kept.
+  async function saveMemory() {
+    const state = appContext.runtime.modalState;
+    if (state?.kind !== 'memory' || state.photoBusy) return false;
+    const saved = await appContext.store.attempt('saveMemory', state.visitKey, {
+      note: document.getElementById('memory-input').value.slice(0, 120),
+      photo: state.draftPhoto,
+    });
+    if (!saved) return false;
+    appContext.dialogs.closeModal(false);
+    appContext.render(true);
+    if (saved.persisted) appContext.feedback.toast('这一刻，已好好收藏');
+    return true;
+  }
   return {
     preparePhoto,
+    saveMemory,
   };
 }

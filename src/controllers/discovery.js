@@ -37,8 +37,15 @@ export function createDiscoveryController(appContext) {
     }
     map.querySelector('.map-panel').innerHTML = appContext.views.mapPanel();
   }
+  // Saves a venue for later, or lets it go. Answers whether it is wanted now, or null if
+  // nothing changed.
+  async function toggleWanted(venueId) {
+    const on = !appContext.data.wanted.includes(venueId);
+    return (await appContext.store.attempt('setWanted', venueId, on)) ? on : null;
+  }
   return {
     updateSearch,
     chooseVenue,
+    toggleWanted,
   };
 }

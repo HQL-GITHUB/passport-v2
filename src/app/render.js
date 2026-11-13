@@ -76,8 +76,8 @@ export function createRenderer(appContext) {
         : {
             passport: '我的旅行护照',
             discover: '发现下一站',
-            stamp: appContext.catalog.byId(appContext.ui.selected).stamp,
-            venue: appContext.catalog.byId(appContext.ui.selected).name,
+            stamp: appContext.selectors.stamp()?.title,
+            venue: appContext.selectors.venue()?.name,
             scan: '为旅程盖章',
             success: '旅程已收藏',
             share: '旅行卡预览',

@@ -173,7 +173,7 @@ export function createShareCardService(appContext) {
           ctx.drawImage(badge(s), x, top, size, size);
           ctx.fillStyle = '#20242c';
           ctx.font = `500 26px ${sans}`;
-          ctx.fillText(fit(s.stamp, size + gap - 8), x + size / 2, top + size + 12);
+          ctx.fillText(fit(s.title, size + gap - 8), x + size / 2, top + size + 12);
           ctx.fillStyle = '#5f6b80';
           ctx.font = `23px ${numerals}`;
           ctx.fillText(
@@ -297,7 +297,7 @@ export function createShareCardService(appContext) {
           ctx.textAlign = 'center';
           ctx.font = '22px "Microsoft YaHei", sans-serif';
           ctx.fillStyle = '#728099';
-          ctx.fillText(s.stamp, x + size / 2, y + size + 5);
+          ctx.fillText(s.title, x + size / 2, y + size + 5);
           ctx.font = `23px ${numerals}`;
           ctx.fillStyle = '#5f6b80';
           ctx.fillText(

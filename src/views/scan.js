@@ -1,12 +1,13 @@
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createScanViews(appContext) {
   function renderScan() {
-    const v = appContext.catalog.byId(appContext.ui.selected),
+    const venue = appContext.selectors.venue(),
+      v = appContext.catalog.stampOf(venue),
       nfc = appContext.ui.scanMode === 'nfc';
     return /* HTML */ `<section class="page scan-page screen-enter">
       ${appContext.views.renderClaimModes()}
-      <h1 class="scan-title">${v.stamp}</h1>
-      <p class="scan-subtitle">${v.name} · ${v.kind}</p>
+      <h1 class="scan-title">${v.title}</h1>
+      <p class="scan-subtitle">${venue.name} · ${v.kind}</p>
       <div class="scan-area ${nfc ? 'nfc' : ''} ${appContext.ui.claimBusy ? 'claim-progress' : ''}">
         <div class="scan-brackets"></div>
         ${appContext.format.art(v)}<span class="scan-line" aria-hidden="true"></span>
@@ -20,7 +21,7 @@ export function createScanViews(appContext) {
       <div class="scan-place">
         ${appContext.format.icon('pin')}
         <div>
-          <strong>${v.location}</strong>
+          <strong>${venue.location}</strong>
           <p>纪念章领取点</p>
         </div>
         <button data-action="guide">位置</button>
@@ -28,7 +29,7 @@ export function createScanViews(appContext) {
     </section>`;
   }
   function renderSuccess() {
-    const v = appContext.catalog.byId(appContext.ui.selected),
+    const v = appContext.selectors.stamp(),
       r = appContext.data.records[v.id],
       again = appContext.ui.duplicate,
       count = appContext.selectors.collected().length,
@@ -47,13 +48,13 @@ export function createScanViews(appContext) {
         <span class="stamp-ring" aria-hidden="true"></span>
         ${r ? appContext.views.renderMedalFlip() : ''}
       </div>
-      <h1 class="success-place">${v.stamp}</h1>
+      <h1 class="success-place">${v.title}</h1>
       <p class="issue-plate"><small>No.</small> <b>${serial}</b><small>${edition}</small></p>
       ${renderShelf(v, again)}
       <p class="success-moment">
         ${
           again
-            ? `<b>${appContext.format.date(appContext.config.demoDate)}</b> · ${r.visits.length > 1 ? `第 ${r.visits.length} 次到访` : '今日到访'}`
+            ? `<b>${appContext.format.date(appContext.clock.today())}</b> · ${r.visits.length > 1 ? `第 ${r.visits.length} 次到访` : '今日到访'}`
             : `我的第 <strong>${count}</strong> 枚 · 已收入护照`
         }
       </p>

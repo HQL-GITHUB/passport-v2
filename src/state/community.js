@@ -11,45 +11,24 @@ export function createCommunityQueries(appContext) {
       ? `${appContext.format.icon('check')}已随足迹公开，可在公开设置中关闭`
       : `${appContext.format.icon('lock')}${kept}`;
   }
-  // The invented collectors as the pages read one: the stamps in the order they were collected,
-  // each with a number issued the way the holder's own are, and the visits those stamps tell of.
-  let others;
-  function invented() {
-    return (others ||= appContext.fixtures.collectors.map((p) => {
-      const stamps = p.stamps
-          .map(([id, at, method, note = '']) => {
-            const stamp = appContext.catalog.byId(id);
-            return { stamp, at, method, note, issue: appContext.domain.issue(id, at, stamp.limit) };
-          })
-          .sort((a, b) => a.at.localeCompare(b.at)),
-        visits = new Map();
-      for (const s of stamps) {
-        const venue = appContext.catalog.venueOf(s.stamp),
-          key = appContext.domain.key(venue.id, s.at);
-        if (!visits.has(key))
-          visits.set(key, {
-            day: s.at,
-            venueId: venue.id,
-            name: venue.name,
-            city: venue.city,
-            exhibit: venue.exhibit,
-            stamps: [],
-            note: '',
-            photo: '',
-          });
-        visits.get(key).stamps.push(s.stamp);
-        visits.get(key).note ||= s.note;
-      }
-      return {
-        id: p.id,
-        name: p.name,
-        city: p.city,
+  // The other collectors as the pages read one: the stamps in the order they were collected,
+  // each with its number, and the visits those stamps tell of. The backend answers them by id;
+  // here they meet the catalogue. A stamp the catalogue does not know is left out.
+  let others, source;
+  function collectors() {
+    if (source !== appContext.community) {
+      source = appContext.community;
+      others = source.collectors.map((p) => ({
+        ...p,
         me: false,
-        public: { album: true, footprints: !!p.footprints, memories: !!p.memories },
-        stamps,
-        visits: [...visits.values()].sort((a, b) => b.day.localeCompare(a.day)),
-      };
-    }));
+        stamps: p.stamps.flatMap((s) => {
+          const stamp = appContext.catalog.stamp(s.stampId);
+          return stamp ? { ...s, stamp } : [];
+        }),
+        visits: p.visits.map((v) => ({ ...v, stamps: appContext.catalog.stampsFor(v.stampIds) })),
+      }));
+    }
+    return others;
   }
   // The holder of this passport, in the same form.
   function me() {
@@ -72,31 +51,32 @@ export function createCommunityQueries(appContext) {
         name: v.name,
         city: v.city,
         exhibit: v.exhibit,
-        stamps: v.stampIds.map(appContext.catalog.byId),
+        stamps: appContext.catalog.stampsFor(v.stampIds),
         note: v.note?.trim() || '',
         photo: v.photo,
       })),
     };
   }
   function person(id) {
-    return id === 'me' ? appContext.selectors.me() : invented().find((p) => p.id === id) || null;
+    return id === 'me' ? appContext.selectors.me() : collectors().find((p) => p.id === id) || null;
   }
   // Everyone whose album can be seen: the holder is among them only by choice.
   function people() {
     return [
       ...(appContext.selectors.visibility().album ? [appContext.selectors.me()] : []),
-      ...invented(),
+      ...collectors(),
     ];
   }
   // One board for each city, and one for the year, which starts again every January.
   function boards() {
-    const year = appContext.config.demoDate.slice(0, 4);
+    const year = appContext.clock.today().slice(0, 4);
     return [
-      ...[...new Set(appContext.catalog.venues.map((v) => v.city))].map((city) => ({
+      ...appContext.catalog.cities.map((city) => ({
         id: city,
         label: city,
-        counts: (s) => s.stamp.city === city,
-        total: appContext.catalog.stamps.filter((v) => v.city === city).length,
+        counts: (s) => appContext.catalog.venueOf(s.stamp)?.city === city,
+        total: appContext.catalog.stamps.filter((s) => appContext.catalog.venueOf(s)?.city === city)
+          .length,
       })),
       { id: 'year', label: `${year} 年度`, yearly: true, counts: (s) => s.at.startsWith(year) },
     ];
@@ -139,15 +119,15 @@ export function createCommunityQueries(appContext) {
   }
   // What the holder has put on the square of one visit, if anything.
   function myPost(key) {
-    return (appContext.data.posts || []).find((p) => p.key === key) || null;
+    return appContext.data.posts.find((p) => p.key === key) || null;
   }
   // The square: single visits that collectors chose to publish, newest first, the holder's own
   // among them. A post carries the stamps of the visit with their numbers, the line written with
   // it and, for the holder's, a photograph; never a ticket.
   function posts() {
     const records = appContext.data.records,
-      liked = appContext.data.liked || [],
-      known = (id) => appContext.catalog.venues.some((v) => v.id === id),
+      liked = appContext.data.liked,
+      known = (id) => !!appContext.catalog.venue(id),
       shape = (post) => ({
         ...post,
         known: known(post.venueId),
@@ -156,7 +136,7 @@ export function createCommunityQueries(appContext) {
       }),
       // Posts are kept in the order they were published, and dated to the day: of two from the
       // same day the later one leads.
-      mine = [...(appContext.data.posts || [])].reverse().flatMap((p) => {
+      mine = [...appContext.data.posts].reverse().flatMap((p) => {
         const v = appContext.data.visits[p.key];
         return v
           ? shape({
@@ -170,33 +150,27 @@ export function createCommunityQueries(appContext) {
               exhibit: v.exhibit,
               day: v.day,
               at: p.at,
-              stamps: p.stampIds
-                .filter((id) => records[id])
-                .map((id) => ({ stamp: appContext.catalog.byId(id), issue: records[id].issue })),
+              stamps: appContext.catalog
+                .stampsFor(p.stampIds)
+                .filter((s) => records[s.id])
+                .map((s) => ({ stamp: s, issue: records[s.id].issue })),
               note: p.note,
               photo: p.photo,
               likes: 0,
             })
           : [];
       }),
-      theirs = appContext.fixtures.posts.flatMap(([who, venueId, day, likes, note]) => {
-        const p = invented().find((item) => item.id === who),
-          v = p?.visits.find((item) => item.venueId === venueId && item.day === day);
-        return v
+      theirs = appContext.community.posts.flatMap((post) => {
+        const p = collectors().find((item) => item.id === post.collectorId);
+        return p
           ? shape({
-              id: `${who}/${venueId}/${day}`,
+              ...post,
               mine: false,
               person: p,
-              venueId,
-              name: v.name,
-              city: v.city,
-              exhibit: v.exhibit,
-              day,
-              at: day,
-              stamps: p.stamps.filter((s) => v.stamps.includes(s.stamp) && s.at === day),
-              note,
-              photo: '',
-              likes,
+              stamps: post.stamps.flatMap((s) => {
+                const stamp = appContext.catalog.stamp(s.stampId);
+                return stamp ? { ...s, stamp } : [];
+              }),
             })
           : [];
       });

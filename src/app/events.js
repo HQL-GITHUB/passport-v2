@@ -1,10 +1,30 @@
-/** Registers listeners once and returns a teardown for development reloads. */
+import { createPageActions } from '../actions/pages.js';
+import { createPassportActions } from '../actions/passport.js';
+import { createDiscoveryActions } from '../actions/discovery.js';
+import { createClaimActions } from '../actions/claims.js';
+import { createSharingActions } from '../actions/sharing.js';
+import { createCommunityActions } from '../actions/community.js';
+import { createDemoActions } from '../actions/demo.js';
+
+/**
+ * Registers listeners once and returns a teardown for development reloads. A click on a button
+ * runs the action its `data-action` names; the actions are grouped by feature in `actions/`.
+ */
 export function bindEvents(appContext) {
   const disposers = [];
   function listen(target, event, handler, capture = false) {
     target.addEventListener(event, handler, capture);
     disposers.push(() => target.removeEventListener(event, handler, capture));
   }
+  const actions = {
+    ...createPageActions(appContext),
+    ...createPassportActions(appContext),
+    ...createDiscoveryActions(appContext),
+    ...createClaimActions(appContext),
+    ...createSharingActions(appContext),
+    ...createCommunityActions(appContext),
+    ...createDemoActions(appContext),
+  };
   listen(document, 'click', async (event) => {
     const backdrop = event.target.closest('[data-modal-backdrop]');
     if (backdrop && event.target === backdrop) {
@@ -12,487 +32,11 @@ export function bindEvents(appContext) {
       return;
     }
     const button = event.target.closest('button[data-action]');
-    if (!button || button.disabled) return;
+    // Before the passport has been loaded there is nothing for an action to act on.
+    if (!button || button.disabled || !appContext.data) return;
+    // Captured before the action changes anything, so the page left keeps its own state.
     appContext.navigation.rememberPage();
-    const action = button.dataset.action,
-      id = button.dataset.id || appContext.ui.selected;
-    if (
-      ['passport', 'discover', 'square', 'collectors', 'venue', 'stamp', 'scan'].includes(action)
-    ) {
-      // The navigation is on every page; leaving a ticket that is not saved yet asks first.
-      if (
-        ['passport', 'discover', 'square', 'collectors'].includes(action) &&
-        appContext.claims.hasUnsavedTicket()
-      ) {
-        appContext.ui.leaveTo = action;
-        appContext.dialogs.openModal('ticket-leave');
-        return;
-      }
-      if (action === 'stamp') {
-        appContext.ui.visitDate = button.dataset.visitDate || null;
-        appContext.ui.stampReturn = button.dataset.fromVisit || null;
-      }
-      appContext.navigation.navigate(action, id);
-      return;
-    }
-    if (action === 'confirm-leave') {
-      appContext.dialogs.closeModal(false);
-      appContext.navigation.navigate(appContext.ui.leaveTo);
-      return;
-    }
-    if (action === 'open-visit') {
-      appContext.navigation.openVisit(button.dataset.key);
-      return;
-    }
-    if (action === 'open-post') {
-      appContext.ui.post = id;
-      appContext.navigation.navigate('post');
-      return;
-    }
-    if (action === 'publish-pick') {
-      appContext.dialogs.openModal('publish');
-      return;
-    }
-    if (action === 'publish-visit') {
-      const v = appContext.data.visits[button.dataset.key];
-      if (!v) return;
-      appContext.ui.visitKey = v.key;
-      appContext.ui.includeNote = false;
-      appContext.ui.includePhoto = false;
-      appContext.ui.includeTicket = false;
-      appContext.ui.shareTicket = '';
-      appContext.navigation.navigate('visit-share', v.venueId);
-      return;
-    }
-    if (action === 'publish-post') {
-      // A post is a copy of the card as it stands: the stamps on it, and the note and the
-      // photograph only if they were ticked. The ticket stays behind, whatever the card shows.
-      const c = appContext.selectors.getShareContext(),
-        stored = appContext.data.posts || [];
-      appContext.data.posts = [
-        ...stored.filter((p) => p.key !== c.visit.key),
-        {
-          key: c.visit.key,
-          stampIds: c.badges.map((s) => s.id),
-          note: appContext.ui.includeNote ? c.note : '',
-          photo: appContext.ui.includePhoto ? c.photo : '',
-          at: appContext.config.demoDate,
-        },
-      ];
-      appContext.storage.persist();
-      appContext.navigation.navigate('square');
-      appContext.dom.main.scrollTop = 0;
-      appContext.feedback.toast('已发布到广场');
-      return;
-    }
-    if (action === 'withdraw-post') {
-      appContext.ui.withdrawing = button.dataset.key;
-      appContext.dialogs.openModal('post-withdraw');
-      return;
-    }
-    if (action === 'confirm-withdraw') {
-      appContext.data.posts = (appContext.data.posts || []).filter(
-        (p) => p.key !== appContext.ui.withdrawing,
-      );
-      appContext.storage.persist();
-      appContext.dialogs.closeModal(false);
-      // The post was taken back from its own page, which is gone with it.
-      if (appContext.ui.screen === 'post') appContext.navigation.goBack();
-      else appContext.render(true);
-      appContext.feedback.toast('已从广场撤回，到访与记忆仍在护照里');
-      return;
-    }
-    if (action === 'like-post') {
-      const liked = appContext.data.liked || [],
-        on = !liked.includes(id);
-      appContext.data.liked = on ? [...liked, id] : liked.filter((v) => v !== id);
-      appContext.storage.persist();
-      // Marked where it stands, so the page does not jump under the finger.
-      button.classList.toggle('on', on);
-      button.setAttribute('aria-pressed', String(on));
-      button.querySelector('b').textContent = appContext.selectors
-        .posts()
-        .find((p) => p.id === id).likes;
-      return;
-    }
-    if (action === 'post-want') {
-      const wanted = appContext.data.wanted.includes(id);
-      appContext.data.wanted = wanted
-        ? appContext.data.wanted.filter((v) => v !== id)
-        : [...appContext.data.wanted, id];
-      appContext.storage.persist();
-      // The same venue may stand in several posts.
-      for (const b of appContext.dom.main.querySelectorAll(
-        `[data-action="post-want"][data-id="${id}"]`,
-      )) {
-        b.classList.toggle('saved', !wanted);
-        b.setAttribute('aria-pressed', String(!wanted));
-      }
-      appContext.feedback.toast(wanted ? '已从想去中移除' : '已加入想去，留给下一次出发');
-      return;
-    }
-    if (action === 'discover-view') {
-      appContext.ui.discoverView = appContext.ui.discoverView === 'map' ? 'list' : 'map';
-      appContext.ui.mapVenue = null;
-      appContext.render();
-      appContext.dom.main.scrollTop = 0;
-      return;
-    }
-    if (action === 'map-pin') {
-      appContext.discovery.chooseVenue(button.dataset.id);
-      return;
-    }
-    if (action === 'board') {
-      appContext.ui.board = button.dataset.value;
-      appContext.render();
-      appContext.dom.main.scrollTop = 0;
-      return;
-    }
-    if (action === 'collector') {
-      if (!appContext.selectors.person(button.dataset.person)) return;
-      // A passport is opened at its album, on the first page.
-      appContext.ui.person = button.dataset.person;
-      appContext.ui.collectorTab = 'album';
-      appContext.ui.collectorPage = 0;
-      appContext.navigation.navigate('collector');
-      return;
-    }
-    if (action === 'collector-tab') {
-      appContext.ui.collectorTab = button.dataset.value;
-      appContext.render();
-      return;
-    }
-    if (action === 'visibility') {
-      appContext.dialogs.openModal('visibility');
-      return;
-    }
-    if (action === 'preview-visit') {
-      const row =
-        appContext.selectors.visitRows().find((v) => appContext.selectors.savedTickets(v).length) ||
-        appContext.selectors.visitRows()[0];
-      if (row) appContext.navigation.openVisit(row.key);
-      else {
-        appContext.ui.ticketContext = null;
-        appContext.navigation.navigate('ticket', 'museum');
-      }
-      return;
-    }
-    if (action === 'preview-album' || action === 'open-album') {
-      appContext.ui.collection = 'collected';
-      // From a claim the album opens on the page that holds the stamp.
-      if (action === 'open-album')
-        appContext.ui.stampPage = appContext.views.stampPageOf(appContext.ui.selected);
-      appContext.navigation.navigate('passport');
-      return;
-    }
-    if (action === 'add-visit-ticket') {
-      const v = appContext.data.visits[appContext.ui.visitKey];
-      appContext.claims.clearTicketDraft();
-      appContext.ui.ticketContext = {
-        ...v,
-      };
-      appContext.ui.ticketResult = null;
-      appContext.navigation.navigate('ticket', v.venueId);
-      return;
-    }
-    if (action === 'view-ticket') {
-      appContext.ui.viewingTicket = button.dataset.ticketId;
-      appContext.dialogs.openModal('ticket-view');
-      return;
-    }
-    if (action === 'ticket-open-visit') {
-      const t = appContext.data.tickets[appContext.ui.viewingTicket];
-      appContext.navigation.openVisit(appContext.domain.key(t.venueId, t.visitedAt));
-      return;
-    }
-    if (action === 'remove-ticket-dialog') {
-      appContext.ui.viewingTicket = button.dataset.ticketId;
-      appContext.dialogs.openModal('ticket-remove');
-      return;
-    }
-    if (action === 'confirm-remove-ticket') {
-      const ticketId = appContext.ui.viewingTicket;
-      try {
-        await appContext.media.remove(ticketId);
-        appContext.data.tickets[ticketId].saved = false;
-        appContext.storage.persist();
-        appContext.dialogs.closeModal(false);
-        appContext.render(true);
-        appContext.feedback.toast('票根已移除，到访与纪念章仍在');
-      } catch {
-        appContext.feedback.toast('票根暂未移除，请再试一次');
-      }
-      return;
-    }
-    if (action === 'ticket-visit') {
-      appContext.navigation.openVisit(appContext.ui.ticketResult.visitKey);
-      return;
-    }
-    if (action === 'visit-share') {
-      appContext.ui.includeNote = false;
-      appContext.ui.includePhoto = false;
-      appContext.ui.includeTicket = false;
-      appContext.ui.shareTicket = '';
-      appContext.navigation.navigate(
-        'visit-share',
-        appContext.data.visits[appContext.ui.visitKey].venueId,
-      );
-      return;
-    }
-    if (action === 'share-edit-ticket') {
-      appContext.dialogs.openModal('ticket-editor');
-      return;
-    }
-    if (action === 'editor-mode' && appContext.runtime.modalState?.editor) {
-      appContext.runtime.modalState.mode = button.dataset.value;
-      appContext.runtime.modalState.editor.mode = button.dataset.value;
-      appContext.dom.modalRoot.querySelectorAll('[data-action="editor-mode"]').forEach((b) => {
-        const active = b === button;
-        b.classList.toggle('active', active);
-        b.setAttribute('aria-pressed', String(active));
-      });
-      return;
-    }
-    if (action === 'editor-undo') {
-      appContext.runtime.modalState?.editor?.undo();
-      return;
-    }
-    if (action === 'editor-reset') {
-      appContext.runtime.modalState?.editor?.reset();
-      return;
-    }
-    if (action === 'editor-apply' && appContext.runtime.modalState?.editor) {
-      appContext.ui.shareTicket = appContext.runtime.modalState.editor.export();
-      appContext.ui.includeTicket = true;
-      appContext.dialogs.closeModal(false);
-      appContext.render(true);
-      return;
-    }
-    if (action === 'back') {
-      appContext.navigation.goBack();
-      return;
-    }
-    if (action === 'preview-home') {
-      appContext.ui.collection = 'footprints';
-      appContext.navigation.navigate('passport');
-      return;
-    }
-    if (action === 'preview-stamp') {
-      appContext.navigation.navigate('stamp', appContext.selectors.collected()[0]?.id || 'museum');
-      return;
-    }
-    if (action === 'preview-scan') {
-      appContext.navigation.navigate('scan', 'museum');
-      return;
-    }
-    if (action === 'ticket-entry' || action === 'new-ticket' || action === 'preview-ticket') {
-      appContext.claims.clearTicketDraft();
-      appContext.ui.ticketContext = null;
-      appContext.ui.ticketResult = null;
-      appContext.navigation.navigate('ticket', action === 'ticket-entry' ? id : 'museum');
-      return;
-    }
-    if (action === 'ticket-camera') {
-      document.getElementById('ticket-camera-input').click();
-      return;
-    }
-    if (action === 'ticket-album') {
-      document.getElementById('ticket-album-input').click();
-      return;
-    }
-    if (action === 'recognize-ticket') {
-      appContext.claims.recognizeTicket();
-      return;
-    }
-    if (action === 'redeem-ticket') {
-      appContext.claims.redeemTicket();
-      return;
-    }
-    if (action === 'view-ticket-record') {
-      const d = appContext.ui.ticketDraft,
-        t = appContext.data.tickets[d.id];
-      appContext.navigation.openVisit(appContext.domain.key(t.venueId, t.visitedAt));
-      return;
-    }
-    if (action === 'ticket-passport') {
-      const result = appContext.ui.ticketResult;
-      appContext.ui.collection = 'footprints';
-      appContext.ui.highlightVisit = `${result.venueId}/${result.visitedAt}`;
-      appContext.navigation.navigate('passport', result.venueId);
-      requestAnimationFrame(() =>
-        appContext.dom.main
-          .querySelector(`[data-visit-key="${appContext.ui.highlightVisit}"]`)
-          ?.scrollIntoView({
-            block: 'center',
-          }),
-      );
-      return;
-    }
-    if (action === 'select-visit') {
-      if (appContext.data.records[appContext.ui.selected]?.visits.includes(button.dataset.value)) {
-        appContext.ui.visitDate = button.dataset.value;
-        appContext.render(true);
-      }
-      return;
-    }
-    if (action === 'toggle-first-use') {
-      if (!appContext.ui.firstMode) {
-        appContext.runtime.savedExperience = appContext.format.clone(appContext.data);
-        appContext.data = {
-          version: 3,
-          records: {},
-          wanted: [],
-          tickets: {},
-          visits: {},
-        };
-        appContext.ui.firstMode = true;
-        button.childNodes[0].textContent = '返回已有收藏';
-      } else {
-        appContext.media.clearTemporary();
-        appContext.data = appContext.runtime.savedExperience || appContext.storage.readData();
-        appContext.runtime.savedExperience = null;
-        appContext.ui.firstMode = false;
-        button.childNodes[0].textContent = '体验首次使用';
-        appContext.media.load(appContext.data.tickets).then(() => appContext.render(true));
-      }
-      appContext.ui.collection = 'collected';
-      appContext.ui.stampPage = appContext.ui.ticketPage = 0;
-      appContext.ui.visitKey = null;
-      appContext.navigation.navigate('passport');
-      return;
-    }
-    if (action === 'collection') {
-      const value = button.dataset.value,
-        book = appContext.runtime.pageBook;
-      // The album and the tickets are bookmarks in the same book: between them the pages turn.
-      // The bookmark of the open section goes back to its first page.
-      if (book && appContext.views.inBook(value)) {
-        if (value === appContext.ui.collection)
-          appContext.ui[value === 'tickets' ? 'ticketPage' : 'stampPage'] = 0;
-        book.goTo(appContext.views.bookIndex(value));
-        return;
-      }
-      // The tabs stay on screen while scrolling, so each tab opens where it was last left.
-      appContext.ui.collection = value;
-      appContext.render();
-      appContext.dom.main.scrollTop =
-        appContext.runtime.scrollPositions[`passport/${button.dataset.value}`] || 0;
-      return;
-    }
-    if (action === 'toggle-layout') {
-      appContext.ui.timeline = !appContext.ui.timeline;
-      appContext.render(true);
-      return;
-    }
-    if (action === 'zoom') {
-      appContext.dialogs.openModal('zoom', button.dataset.id);
-      return;
-    }
-    if (action === 'guide') {
-      appContext.dialogs.openModal('guide');
-      return;
-    }
-    if (action === 'choose-city') {
-      appContext.dialogs.openModal('city');
-      return;
-    }
-    if (action === 'set-city') {
-      appContext.ui.city = button.dataset.value;
-      appContext.dialogs.closeModal(false);
-      appContext.render();
-      appContext.dom.main.scrollTop = 0;
-      return;
-    }
-    if (action === 'scan-mode') {
-      if (button.dataset.value === 'ticket') {
-        appContext.navigation.navigate('ticket', appContext.ui.selected);
-        return;
-      }
-      appContext.ui.scanMode = button.dataset.value === 'nfc' ? 'nfc' : 'qr';
-      if (appContext.ui.screen !== 'scan') appContext.navigation.navigate('scan');
-      else appContext.render(true);
-      return;
-    }
-    if (action === 'collect') {
-      appContext.claims.collectStamp();
-      return;
-    }
-    if (action === 'share') {
-      appContext.ui.includeNote = false;
-      appContext.ui.includePhoto = false;
-      appContext.ui.includeTicket = false;
-      appContext.ui.shareTicket = '';
-      appContext.navigation.navigate('share');
-      return;
-    }
-    if (action === 'edit-memory') {
-      appContext.dialogs.openModal('memory');
-      return;
-    }
-    if (action === 'close-modal') {
-      appContext.dialogs.closeModal();
-      return;
-    }
-    if (action === 'remove-photo' && appContext.runtime.modalState?.kind === 'memory') {
-      appContext.runtime.modalState.draftPhoto = '';
-      document.getElementById('photo-draft').innerHTML = '';
-      return;
-    }
-    if (action === 'save-memory' && appContext.runtime.modalState?.kind === 'memory') {
-      if (appContext.runtime.modalState.photoBusy) return;
-      const v = appContext.data.visits[appContext.runtime.modalState.visitKey];
-      v.note = document.getElementById('memory-input').value.slice(0, 120);
-      v.photo = appContext.runtime.modalState.draftPhoto;
-      const stored = appContext.storage.persist();
-      appContext.dialogs.closeModal(false);
-      appContext.render(true);
-      if (stored) appContext.feedback.toast('这一刻，已好好收藏');
-      return;
-    }
-    if (action === 'want') {
-      const wanted = appContext.data.wanted.includes(appContext.ui.selected);
-      appContext.data.wanted = wanted
-        ? appContext.data.wanted.filter((v) => v !== appContext.ui.selected)
-        : [...appContext.data.wanted, appContext.ui.selected];
-      appContext.storage.persist();
-      button.classList.toggle('saved', !wanted);
-      button.setAttribute('aria-pressed', String(!wanted));
-      button.setAttribute('aria-label', wanted ? '收藏为想去' : '取消想去收藏');
-      appContext.feedback.toast(wanted ? '已从想去中移除' : '已加入想去，留给下一次出发');
-      return;
-    }
-    if (action === 'category') {
-      appContext.ui.category = button.dataset.value;
-      appContext.render(true);
-      return;
-    }
-    if (action === 'clear-search') {
-      appContext.ui.query = '';
-      const input = document.getElementById('venue-search');
-      input.value = '';
-      appContext.discovery.updateSearch();
-      input.focus();
-      return;
-    }
-    if (action === 'clear-filters') {
-      appContext.ui.query = '';
-      appContext.ui.category = 'all';
-      appContext.ui.city = '全部城市';
-      appContext.render();
-      return;
-    }
-    if (action === 'share-collection') {
-      appContext.navigation.navigate(
-        appContext.ui.collection === 'collected' ? 'share-album' : 'share-footprints',
-      );
-      return;
-    }
-    if (action === 'download-card') {
-      if (['share-footprints', 'share-album'].includes(appContext.ui.screen))
-        appContext.sharing.downloadJournalCard();
-      else appContext.sharing.downloadCard();
-      return;
-    }
+    await actions[button.dataset.action]?.(button, button.dataset.id || appContext.ui.selected);
   });
   listen(document, 'input', (event) => {
     if (event.target.id === 'venue-search') {
@@ -517,6 +61,21 @@ export function bindEvents(appContext) {
       appContext.claims.updateTicketConfirmation();
     }
   });
+  // A switch of the visibility dialog. Notes and photographs are shown with the visits they
+  // belong to, or not at all, so their switch follows the one of the footprints.
+  async function changeVisibility(input) {
+    const shown = await appContext.social.setVisibility(input.dataset.visibility, input.checked);
+    if (!shown) {
+      input.checked = !input.checked;
+      return;
+    }
+    const memories = appContext.dom.modalRoot.querySelector('[data-visibility="memories"]');
+    if (memories) {
+      memories.checked = shown.memories;
+      memories.disabled = !shown.footprints;
+    }
+    appContext.render(true);
+  }
   listen(document, 'change', (event) => {
     if (event.target.id === 'photo-input') appContext.memories.preparePhoto(event.target.files[0]);
     if (['ticket-camera-input', 'ticket-album-input'].includes(event.target.id))
@@ -527,20 +86,7 @@ export function bindEvents(appContext) {
     }
     if (event.target.id === 'share-ticket-select')
       appContext.dialogs.setupTicketEditor(event.target.value);
-    if (event.target.dataset.visibility) {
-      const shown = {
-        ...appContext.selectors.visibility(),
-        [event.target.dataset.visibility]: event.target.checked,
-      };
-      // Notes and photographs are shown with the visits they belong to, or not at all.
-      shown.memories &&= shown.footprints;
-      appContext.data.profile = { ...appContext.data.profile, public: shown };
-      appContext.storage.persist();
-      const memories = appContext.dom.modalRoot.querySelector('[data-visibility="memories"]');
-      memories.checked = shown.memories;
-      memories.disabled = !shown.footprints;
-      appContext.render(true);
-    }
+    if (event.target.dataset.visibility) changeVisibility(event.target);
     if (
       ['ticket-venue', 'ticket-date'].includes(event.target.id) &&
       appContext.ui.ticketDraft &&
@@ -624,6 +170,6 @@ export function bindEvents(appContext) {
     },
     true,
   );
-  listen(window, 'popstate', appContext.navigation.restorePage);
+  listen(window, 'popstate', () => appContext.data && appContext.navigation.restorePage());
   return () => disposers.reverse().forEach((dispose) => dispose());
 }

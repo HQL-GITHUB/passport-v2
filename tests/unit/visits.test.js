@@ -1,13 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { venues, stamps } from '../../src/data/catalog.js';
-import { ensureVisit, issueNumber, normalizeData, visitKey } from '../../src/domain/visits.js';
+import {
+  ensureVisit,
+  isValidDay,
+  issueNumber,
+  normalizeData,
+  visitKey,
+} from '../../src/domain/visits.js';
 import { createPresentation } from '../../src/lib/presentation.js';
 import { APP_CONFIG } from '../../src/config.js';
 
 const context = { config: APP_CONFIG, ui: { visitDate: null } };
 context.format = createPresentation(context);
-const validDay = context.format.validDay;
+const validDay = (value) => isValidDay(value, APP_CONFIG.demoDate);
 const normalize = (data) => normalizeData(data, venues, stamps, validDay);
 
 test('one venue and day merges multiple tickets and stamps without replacing personal memories', () => {

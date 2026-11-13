@@ -3,7 +3,8 @@ export function createDialogController(appContext) {
   function openModal(kind, stampId) {
     appContext.dialogs.closeModal(false);
     appContext.runtime.lastFocused = document.activeElement;
-    const stamp = appContext.catalog.byId(stampId || appContext.ui.selected),
+    const stamp = appContext.catalog.stamp(stampId) || appContext.selectors.stamp(),
+      venue = appContext.selectors.venue(),
       visit = appContext.selectors.currentVisit();
     let body = '',
       label = '',
@@ -104,13 +105,13 @@ ${appContext.format.safe(visit.note)}</textarea>
     } else if (kind === 'zoom') {
       const record = appContext.data.records[stamp.id],
         animate = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-      label = stamp.stamp;
+      label = stamp.title;
       extra = 'zoom-modal';
       appContext.runtime.modalState = { kind, viewer: null, canFlip: !!record, animate };
       body = /* HTML */ `<div class="zoom-medal">
           ${appContext.views.renderMedal(stamp, record)}${record ? appContext.views.renderMedalFlip() : ''}
         </div>
-        <p class="modal-sub">${stamp.name} · ${stamp.kind}</p>
+        <p class="modal-sub">${appContext.catalog.venueOf(stamp).name} · ${stamp.kind}</p>
         <p class="medal-hint">
           ${record ? (animate ? '拖动章面，翻看背面的到访印记。' : '背面刻着这次到访的日期与编号。') : animate ? '拖动可以倾斜章面，收藏后可翻看背面。' : '收藏后，可以翻看背面的到访印记。'}
         </p>`;
@@ -157,10 +158,10 @@ ${appContext.format.safe(visit.note)}</textarea>
         '<p class="modal-sub">撤回后别人不再看到它。这次到访、纪念章和你的记忆仍在护照里，以后可以重新发布。</p><button class="button secondary" data-action="close-modal">保留</button><button class="button" data-action="confirm-withdraw">撤回</button>';
     } else if (kind === 'city') {
       label = '选择下一站的城市';
-      body = `<div class="choice-list">${['全部城市', ...new Set(appContext.catalog.venues.map((v) => v.city))].map((city) => `<button data-action="set-city" data-value="${city}" class="${appContext.ui.city === city ? 'active' : ''}">${city}${appContext.ui.city === city ? appContext.format.icon('check') : ''}</button>`).join('')}</div>`;
+      body = `<div class="choice-list">${['全部城市', ...appContext.catalog.cities].map((city) => `<button data-action="set-city" data-value="${city}" class="${appContext.ui.city === city ? 'active' : ''}">${city}${appContext.ui.city === city ? appContext.format.icon('check') : ''}</button>`).join('')}</div>`;
     } else if (kind === 'guide') {
       label = '找到这枚纪念章';
-      body = /* HTML */ `<p class="modal-sub">${stamp.name} · 示例楼层指引</p>
+      body = /* HTML */ `<p class="modal-sub">${venue.name} · 示例楼层指引</p>
         <svg
           class="guide-map"
           viewBox="0 0 340 180"
@@ -193,7 +194,7 @@ ${appContext.format.safe(visit.note)}</textarea>
           <text x="227" y="64">参观出口</text>
         </svg>
         <p class="guide-description">
-          ${stamp.location}。<br />参观结束后，寻找“旅行护照”领取标识。
+          ${venue.location}。<br />参观结束后，寻找“旅行护照”领取标识。
         </p>
         <button class="button" data-action="close-modal">知道了</button>`;
     }

@@ -14,8 +14,11 @@ export function createPresentation(appContext) {
       ),
     icon: (name, cls = '') =>
       `<svg aria-hidden="true" class="${cls}"><use href="#i-${name}"/></svg>`,
-    art: (v, cls = '') =>
-      `<span class="badge-art badge-${v.art} ${v.edition ? 'badge-edition' : ''} ${cls}" ${v.edition ? `data-edition="特展 · ${v.edition}"` : ''} role="img" aria-label="${v.stamp}纪念章插画"></span>`,
+    // A stamp's illustration. Where there is no stamp to draw, nothing.
+    art: (s, cls = '') =>
+      s
+        ? `<span class="badge-art badge-${s.art} ${s.edition ? 'badge-edition' : ''} ${cls}" ${s.edition ? `data-edition="特展 · ${s.edition}"` : ''} role="img" aria-label="${s.title}纪念章插画"></span>`
+        : '',
     date: (value) => String(value).replaceAll('-', '.'),
     // A limited stamp shows its number against the edition size.
     issue: (record, stamp) =>
@@ -23,19 +26,6 @@ export function createPresentation(appContext) {
         ? `No. ${String(record.issue).padStart(String(stamp.limit).length, '0')} / ${stamp.limit}`
         : `No. ${String(record.issue).padStart(6, '0')}`,
     dateShort: (value) => appContext.format.date(value).slice(5),
-    clone: (value) => JSON.parse(JSON.stringify(value)),
-    validDay: (value) => {
-      if (
-        typeof value !== 'string' ||
-        !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
-        value < '1900-01-01' ||
-        value > appContext.config.demoDate
-      )
-        return false;
-      const [y, m, d] = value.split('-').map(Number),
-        day = new Date(Date.UTC(y, m - 1, d));
-      return day.getUTCFullYear() === y && day.getUTCMonth() === m - 1 && day.getUTCDate() === d;
-    },
     methodName: (method) =>
       ({
         ticket: '票根领取',
@@ -49,7 +39,7 @@ export function createPresentation(appContext) {
         ? appContext.ui.visitDate
         : appContext.format.firstVisit(r),
     displayVisit: (day) =>
-      day.slice(0, 4) === appContext.config.demoDate.slice(0, 4)
+      day.slice(0, 4) === appContext.clock.today().slice(0, 4)
         ? appContext.format.dateShort(day)
         : appContext.format.date(day),
     visitMethods: (r, day) =>

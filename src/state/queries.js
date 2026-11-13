@@ -1,5 +1,32 @@
 /** Application module. Dependencies are provided by createApp(). */
 export function createQueries(appContext) {
+  // The venue the page in view is about: the one its address names, the one of the stamp it
+  // names, or the one of the open visit if the catalogue knows it. Otherwise none.
+  function venue() {
+    const { screen, selected, visitKey } = appContext.ui,
+      { config, catalog } = appContext;
+    if (config.stampScreens.includes(screen)) return catalog.venueOf(catalog.stamp(selected));
+    if (config.visitScreens.includes(screen))
+      return catalog.venue(appContext.data.visits[visitKey]?.venueId);
+    return catalog.venue(selected);
+  }
+  // The stamp the page in view is about: the one its address names, or the one every visitor of
+  // the venue it names can collect.
+  function stamp() {
+    const { screen, selected } = appContext.ui,
+      { config, catalog } = appContext;
+    return config.stampScreens.includes(screen)
+      ? catalog.stamp(selected)
+      : catalog.stampOf(catalog.venue(selected));
+  }
+  // Where the demonstration claims when no venue is in view.
+  function defaultVenue() {
+    return appContext.catalog.venue(appContext.config.demoVenue) || appContext.catalog.venues[0];
+  }
+  // Whether the stamp of a venue is in the passport.
+  function owned(v) {
+    return !!appContext.data.records[v?.stampId];
+  }
   function collected() {
     return appContext.catalog.stamps
       .filter((v) => appContext.data.records[v.id])
@@ -46,23 +73,18 @@ export function createQueries(appContext) {
       }))
       .sort((a, b) => b.day.localeCompare(a.day) || a.name.localeCompare(b.name));
   }
+  // The visit a collected stamp is being looked at for: the chosen one of its days.
   function visitForStamp(v, r) {
-    return appContext.domain.ensure(
-      appContext.data,
-      appContext.catalog.venueOf(v),
-      appContext.format.selectedVisit(r),
-      [v.id],
-    );
+    return appContext.data.visits[
+      appContext.domain.key(v.venueId, appContext.format.selectedVisit(r))
+    ];
   }
   function currentVisit() {
-    return ['visit', 'visit-share'].includes(appContext.ui.screen)
-      ? appContext.data.visits[appContext.ui.visitKey]
-      : appContext.data.records[appContext.ui.selected]
-        ? appContext.selectors.visitForStamp(
-            appContext.catalog.byId(appContext.ui.selected),
-            appContext.data.records[appContext.ui.selected],
-          )
-        : null;
+    if (['visit', 'visit-share'].includes(appContext.ui.screen))
+      return appContext.data.visits[appContext.ui.visitKey];
+    const s = appContext.selectors.stamp(),
+      r = s && appContext.data.records[s.id];
+    return r ? appContext.selectors.visitForStamp(s, r) : null;
   }
   function savedTickets(v) {
     return (v?.ticketIds || []).filter((id) => appContext.data.tickets[id]?.saved);
@@ -77,36 +99,14 @@ export function createQueries(appContext) {
           .map((id) => ({ id, ticket: appContext.data.tickets[id], visit })),
       );
   }
-  function ticketVenue(d) {
-    const previous = appContext.data.tickets[d.id];
-    if (previous?.venueId.startsWith('custom-'))
-      return {
-        id: previous.venueId,
-        name: previous.name,
-        city: previous.city,
-        exhibit: previous.exhibit,
-      };
-    if (d.venueId !== 'other')
-      return (
-        appContext.catalog.venues.find((v) => v.id === d.venueId) || appContext.catalog.venues[0]
-      );
-    const name = d.customName.trim(),
-      city = d.customCity.trim();
-    return {
-      id: 'custom-' + appContext.domain.hash(name + '|' + city),
-      name,
-      city,
-      exhibit: d.customExhibit.trim(),
-    };
-  }
   function getShareContext() {
     const visit = appContext.selectors.currentVisit();
     return {
       visit,
       badges:
         appContext.ui.screen === 'share'
-          ? [appContext.catalog.byId(appContext.ui.selected)]
-          : visit.stampIds.map(appContext.catalog.byId),
+          ? [appContext.catalog.stamp(appContext.ui.selected)]
+          : appContext.catalog.stampsFor(visit.stampIds),
       note: visit.note,
       photo: visit.photo,
       tickets: appContext.selectors.savedTickets(visit),
@@ -116,16 +116,18 @@ export function createQueries(appContext) {
   // order stays.
   function filteredVenues() {
     const q = appContext.ui.query.trim().toLocaleLowerCase(),
-      owned = (v) => (appContext.data.records[v.id] ? 1 : 0);
+      held = (v) => (appContext.selectors.owned(v) ? 1 : 0);
     return appContext.catalog.venues
       .filter(
         (v) =>
           (appContext.ui.city === '全部城市' || v.city === appContext.ui.city) &&
           (appContext.ui.category === 'all' || v.category === appContext.ui.category) &&
           (!q ||
-            `${v.name}${v.stamp}${v.exhibit}${v.city}${v.type}`.toLocaleLowerCase().includes(q)),
+            `${v.name}${appContext.catalog.stampOf(v)?.title}${v.exhibit}${v.city}${v.type}`
+              .toLocaleLowerCase()
+              .includes(q)),
       )
-      .sort((a, b) => owned(a) - owned(b));
+      .sort((a, b) => held(a) - held(b));
   }
   // The venues the discover page features above its list: those in the chosen city that have a
   // photograph and a headline to set over it. A category does not narrow them.
@@ -133,7 +135,7 @@ export function createQueries(appContext) {
     return appContext.catalog.venues.filter(
       (v) =>
         v.headline &&
-        appContext.assets.venues[v.id] &&
+        v.photo &&
         (appContext.ui.city === '全部城市' || v.city === appContext.ui.city),
     );
   }
@@ -141,13 +143,11 @@ export function createQueries(appContext) {
   function heroHidden() {
     return !!appContext.ui.query;
   }
+  // The stamps a ticket can claim, as the confirmation offers them. The backend decides again
+  // when the ticket is redeemed.
   function ticketRewards(d) {
-    if (!d || !appContext.format.validDay(d.visitedAt) || d.venueId === 'other') return [];
-    return appContext.catalog.stamps.filter(
-      (v) =>
-        appContext.catalog.venueOf(v).id === d.venueId &&
-        (!v.period || (d.visitedAt >= v.period[0] && d.visitedAt <= v.period[1])),
-    );
+    if (!d || !appContext.domain.validDay(d.visitedAt) || d.venueId === 'other') return [];
+    return appContext.domain.eligible(appContext.catalog.stamps, d.venueId, d.visitedAt);
   }
   function selectedTicketRewards() {
     const d = appContext.ui.ticketDraft,
@@ -156,13 +156,11 @@ export function createQueries(appContext) {
       .ticketRewards(d)
       .filter((v) => d.selected.includes(v.id) && !redeemed.includes(v.id));
   }
-  // How far a limited stamp's edition has been issued; simulated up to the demo date.
+  // How far a limited stamp's edition has been issued: as far as the catalogue says, and at
+  // least to the holder's own number.
   function edition(v) {
     if (!v.limit) return null;
-    const issued = Math.max(
-      appContext.data.records[v.id]?.issue || 0,
-      appContext.domain.issue(v.id, appContext.config.demoDate, v.limit),
-    );
+    const issued = Math.max(appContext.data.records[v.id]?.issue || 0, v.issued || 0);
     return { limit: v.limit, issued, left: v.limit - issued };
   }
   // What a shared overview carries: places, dates and stamps. Tickets, photos and notes stay private.
@@ -191,11 +189,15 @@ export function createQueries(appContext) {
       stamps: album ? shown : [],
       visits: album
         ? []
-        : shown.map((v) => ({ ...v, badges: v.stampIds.map(appContext.catalog.byId) })),
+        : shown.map((v) => ({ ...v, badges: appContext.catalog.stampsFor(v.stampIds) })),
       more: (album ? stamps.length : rows.length) - shown.length,
     };
   }
   return {
+    venue,
+    stamp,
+    defaultVenue,
+    owned,
     collected,
     collectedInOrder,
     uncollected,
@@ -206,7 +208,6 @@ export function createQueries(appContext) {
     currentVisit,
     savedTickets,
     ticketRows,
-    ticketVenue,
     getShareContext,
     filteredVenues,
     featuredVenues,

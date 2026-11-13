@@ -17,7 +17,8 @@ export function createSquareViews(appContext) {
       const n = parseInt(appContext.domain.hash(p.id), 16),
         nth = (seen[p.venueId] = (seen[p.venueId] ?? -1) + 1),
         own = !!p.photo,
-        photo = own || (nth % 2 === 0 && !!appContext.assets.venueThumbs[p.venueId]),
+        venue = appContext.catalog.venue(p.venueId),
+        photo = own || (nth % 2 === 0 && !!venue?.thumb),
         [shape, tall] = photo ? shapes[n % 3] : shapes[1 + (n % 2)];
       result.set(p.id, {
         photo,
@@ -26,21 +27,21 @@ export function createSquareViews(appContext) {
         tall,
         // The part of a wide photograph that the cover looks at.
         at: [28, 50, 72][(n >> 2) % 3],
-        small: own ? p.photo : appContext.assets.venueThumbs[p.venueId],
-        large: own ? p.photo : appContext.assets.venues[p.venueId],
+        small: own ? p.photo : venue?.thumb,
+        large: own ? p.photo : venue?.photo,
       });
     }
     return result;
   }
   // A post says something even when its writer did not: what was collected, or where.
   function titleOf(p) {
-    return p.note || (p.stamps[0] ? `收藏了「${p.stamps[0].stamp.stamp}」` : `到访${p.name}`);
+    return p.note || (p.stamps[0] ? `收藏了「${p.stamps[0].stamp.title}」` : `到访${p.name}`);
   }
   // The stamp on a card of its own colour, with its name and its number: a travel card in small.
   function stampCard(p) {
     const first = p.stamps[0];
     return first
-      ? `${appContext.format.art(first.stamp)}<b>${first.stamp.stamp}</b><i>${appContext.format.issue(first, first.stamp)}</i>`
+      ? `${appContext.format.art(first.stamp)}<b>${first.stamp.title}</b><i>${appContext.format.issue(first, first.stamp)}</i>`
       : `${appContext.format.icon('book')}<b>${appContext.format.safe(p.name)}</b>`;
   }
   const tint = (p) =>
@@ -100,7 +101,7 @@ export function createSquareViews(appContext) {
       p = posts.find((item) => item.id === appContext.ui.post),
       cover = covers(posts).get(p.id),
       first = p.stamps[0],
-      owned = !!appContext.data.records[p.venueId],
+      owned = appContext.selectors.owned(appContext.catalog.venue(p.venueId)),
       wanted = appContext.data.wanted.includes(p.venueId),
       card = /* HTML */ `<span class="post-stamps"
           >${
@@ -117,7 +118,7 @@ export function createSquareViews(appContext) {
             >${appContext.format.safe(p.city)}${p.exhibit ? ` · ${appContext.format.safe(p.exhibit)}` : ''}</small
           >${
             first
-              ? `<small class="post-stamp">${first.stamp.stamp}${p.stamps.length > 1 ? ` 等 ${p.stamps.length} 枚` : ''}<b>${appContext.format.issue(first, first.stamp)}</b></small>`
+              ? `<small class="post-stamp">${first.stamp.title}${p.stamps.length > 1 ? ` 等 ${p.stamps.length} 枚` : ''}<b>${appContext.format.issue(first, first.stamp)}</b></small>`
               : ''
           }</span
         >`;

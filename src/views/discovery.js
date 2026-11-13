@@ -18,13 +18,13 @@ export function createDiscoveryViews(appContext) {
   // there is no photograph. The stamp says what can be collected there; one already collected
   // carries a tick on its rim. The places saved for later in the passport are the same cards.
   function venueCard(v) {
-    const photo = appContext.assets.venueThumbs[v.id],
-      owned = !!appContext.data.records[v.id];
+    const photo = v.thumb,
+      owned = appContext.selectors.owned(v);
     return /* HTML */ `<button class="venue-card" data-action="venue" data-id="${v.id}">
       <span class="venue-thumb ${photo ? 'has-photo' : ''}"
         >${photo ? `<img src="${photo}" alt="" loading="lazy" decoding="async" ${fade(photo)}>` : ''}<span
           class="venue-seal"
-          >${appContext.format.art(v)}${owned ? `<span class="venue-status" role="img" aria-label="馆章已收藏">${appContext.format.icon('check')}</span>` : ''}</span
+          >${appContext.format.art(appContext.catalog.stampOf(v))}${owned ? `<span class="venue-status" role="img" aria-label="馆章已收藏">${appContext.format.icon('check')}</span>` : ''}</span
         ></span
       ><span class="venue-copy"
         ><h3>${v.name}</h3>
@@ -50,11 +50,11 @@ export function createDiscoveryViews(appContext) {
             (v, n) =>
               /* HTML */ `<button class="hero-slide" data-action="venue" data-id="${v.id}">
                 <img
-                  src="${appContext.assets.venues[v.id]}"
+                  src="${v.photo}"
                   alt=""
                   ${n ? 'loading="lazy"' : ''}
                   decoding="async"
-                  ${fade(appContext.assets.venues[v.id])}
+                  ${fade(v.photo)}
                 /><span class="hero-copy"
                   ><strong>${v.headline.join('<br />')}</strong
                   ><span>${v.name} · ${v.exhibit}</span></span
@@ -126,14 +126,15 @@ export function createDiscoveryViews(appContext) {
     </section>`;
   }
   function renderVenue() {
-    const v = appContext.catalog.byId(appContext.ui.selected),
-      owned = !!appContext.data.records[v.id],
+    const v = appContext.selectors.venue(),
+      s = appContext.catalog.stampOf(v),
+      owned = appContext.selectors.owned(v),
       wanted = appContext.data.wanted.includes(v.id),
-      photo = appContext.assets.venues[v.id];
+      photo = v.photo;
     // Saving the place for later belongs to the venue, so it sits by its name. The stamp and the
     // way to claim it are one panel: what can be collected here, and the button that collects it.
     return /* HTML */ `<section class="page venue-page screen-enter">
-      ${photo ? `<img class="venue-photo" src="${photo}" alt="${v.name}概念建筑">` : `<div class="venue-poster" data-word="${v.word}">${appContext.format.art(v)}</div>`}
+      ${photo ? `<img class="venue-photo" src="${photo}" alt="${v.name}概念建筑">` : `<div class="venue-poster" data-word="${v.word}">${appContext.format.art(s)}</div>`}
       <div class="venue-inner">
         <div class="venue-heading">
           <div>
@@ -151,13 +152,13 @@ export function createDiscoveryViews(appContext) {
         </div>
         <p class="venue-intro">${v.intro}</p>
         <div class="venue-stamp">
-          <button class="venue-chapter" data-action="stamp">
-            ${appContext.format.art(v)}<span style="flex:1"
+          <button class="venue-chapter" data-action="stamp" data-id="${s.id}">
+            ${appContext.format.art(s)}<span style="flex:1"
               ><small>这次到访，可以收藏</small>
-              <h3>${v.stamp}</h3>
+              <h3>${s.title}</h3>
               <p>
-                ${v.kind} ·
-                ${owned ? '已在你的护照里' : v.limit ? `限量 ${v.limit} 枚` : '现场领取'}
+                ${s.kind} ·
+                ${owned ? '已在你的护照里' : s.limit ? `限量 ${s.limit} 枚` : '现场领取'}
               </p></span
             >${appContext.format.icon('chevron')}
           </button>

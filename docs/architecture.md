@@ -2,32 +2,65 @@
 
 ## 启动与模块边界
 
-`src/main.js` 加载样式并创建应用。`src/app/create-app.js` 是唯一组合根：创建配置、界面状态、运行时状态、存储服务与 DOM 引用，注册模块，再加载原图并渲染首屏。
+`src/main.js` 加载样式并创建应用。`src/app/create-app.js` 是唯一组合根：创建配置、时钟、后端、界面状态、运行时状态与 DOM 引用，注册模块，再通过 `store.load()` 向后端取回目录、社区与护照数据，最后渲染首屏。数据到达之前按钮不响应；等待超过 400 毫秒显示加载提示，失败时显示重试。
 
-页面通过事件委托触发 `app/events.js` 中的分发逻辑。导航负责 hash 与返回行为，控制器处理用户意图，领域模块处理到访归档规则，存储模块负责持久化，页面模块生成界面。
+页面通过事件委托触发 `app/events.js` 中的分发逻辑：按钮的 `data-action` 对应 `actions/` 中按功能分组的一张动作表。动作只处理界面状态与跳转；需要改动数据时调用控制器，控制器通过 `store` 把命令发给后端。导航负责 hash 与返回行为，领域模块是不依赖 DOM 的纯规则，页面模块生成界面。
 
 `appContext` 按职责分组：
 
-| 成员                                          | 职责                                           |
-| --------------------------------------------- | ---------------------------------------------- |
-| `config`、`catalog`、`fixtures`               | 配置、内容目录与演示初始数据                   |
-| `data`                                        | 可持久化的完整业务状态                         |
-| `ui`                                          | 当前页面、筛选、待提交票根、分享选择           |
-| `runtime`                                     | 取消令牌、计时器、弹窗状态、演示备份等临时对象 |
-| `dom`、`assets`                               | 挂载点与构建后资源地址                         |
-| `domain`、`selectors`                         | 数据规则及当前状态查询                         |
-| `storage`、`media`                            | 元数据持久化及原图存储                         |
-| `navigation`、`claims`、`memories`、`dialogs` | 交互控制器                                     |
-| `views`、`render`                             | 页面函数与渲染调度                             |
-| `sharing`、`images`、`format`、`feedback`     | 导出、图片、展示工具及反馈                     |
+| 成员                                                      | 职责                                                |
+| --------------------------------------------------------- | --------------------------------------------------- |
+| `config`、`clock`                                         | 配置；「今天」的唯一来源（演示中固定为 `demoDate`） |
+| `api`                                                     | 后端。当前是 `api/local.js` 的本机实现              |
+| `store`                                                   | 加载数据、发送命令，并把后端的回答写回 `data`       |
+| `catalog`、`community`、`data`                            | 后端返回的场馆与章、其他收藏家与动态、持有人的护照  |
+| `ui`                                                      | 当前页面、筛选、待提交票根、分享选择                |
+| `runtime`                                                 | 计时器、弹窗状态、翻页与轮播实例等临时对象          |
+| `dom`、`assets`、`media`                                  | 挂载点、章面插画的资源地址、票根图片的地址          |
+| `domain`、`selectors`                                     | 纯规则，以及对当前数据的查询                        |
+| `navigation`、`claims`、`memories`、`social`、`discovery` | 交互控制器                                          |
+| `dialogs`、`views`、`render`                              | 弹窗、页面函数与渲染调度                            |
+| `sharing`、`images`、`format`、`feedback`                 | 导出、图片、展示工具及反馈                          |
 
-模块工厂只注册函数，业务数据在注册完成后读取。所有模块动态访问 `appContext.data`，因此首次使用演示替换整份数据时，不会有模块继续操作旧对象。
+模块工厂只注册函数，数据在注册完成后读取。所有模块动态访问 `appContext.data`、`appContext.catalog` 与 `appContext.community`：它们会被整体替换（加载、每次命令返回、切换首次使用演示），不要在模块初始化时缓存。
 
 `createApp().destroy()` 会解绑事件、取消待提交操作、关闭弹窗并释放对象 URL。Vite 开发热更新可以调用此生命周期方法。
+
+## 后端接口
+
+页面读取的 `appContext.data` 是后端所存内容的副本，只在后端回答之后改变。任何模块都不直接改它，也不直接读写 `localStorage`。
+
+`api` 的全部方法都是异步的，构成接入服务端时需要保持的契约：
+
+| 方法                                               | 作用                                 | 回答                                                 |
+| -------------------------------------------------- | ------------------------------------ | ---------------------------------------------------- |
+| `loadCatalog()`                                    | 场馆与纪念章                         | `{ venues, stamps }`                                 |
+| `loadCommunity()`                                  | 其他收藏家与广场动态                 | `{ collectors, posts }`                              |
+| `load()`                                           | 持有人的护照                         | 完整的 `data`                                        |
+| `claimStamp({ stampId, method }, { signal })`      | 现场领取                             | `records` `visits` `wanted`，以及 `duplicate`、`day` |
+| `recognizeTicket({ file, hint }, { signal })`      | 识别票根                             | `ticket`：编号、场馆、日期                           |
+| `redeemTicket({ id, venueId, … }, { signal })`     | 票根入册并领取所选的章               | `records` `visits` `tickets` `wanted`，以及 `claim`  |
+| `removeTicket(id)`                                 | 移除票根图片，保留到访与章           | `tickets`                                            |
+| `saveMemory(visitKey, { note, photo })`            | 保存感想与照片                       | `visits`                                             |
+| `setWanted(venueId, on)`                           | 想去                                 | `wanted`                                             |
+| `publishPost({ visitKey, stampIds, note, photo })` | 发布到广场（同一次到访覆盖旧的一条） | `posts`                                              |
+| `withdrawPost(visitKey)`                           | 撤回                                 | `posts`                                              |
+| `setLiked(postId, on)`                             | 点赞                                 | `liked`                                              |
+| `setVisibility({ album, footprints, memories })`   | 公开设置                             | `profile`                                            |
+
+命令的回答形如 `{ data, ...result }`：`data` 只含这次改动涉及的顶层字段，`store.send()` 用它替换 `appContext.data` 中的同名字段，其余原样返回给调用方。命令失败时以带 `code` 的错误拒绝，`data` 保持不变；`store.attempt()` 在此之上统一给出失败提示。领取与识别接受 `AbortSignal`，离开页面时由 `claims.cancel()` 取消，取消的请求不写入任何内容。
+
+以下规则只存在于 `api/local.js`，是服务端将要接管的部分：领取日期、收藏编号与发行进度、票根可领哪些章、票根与自定义场馆的标识、领取如何合并为到访，以及其他收藏家持有什么。其中两段写成了 `domain/` 里的纯函数（`applyClaim`、`eligibleStamps`），本机实现用它们充当服务端，页面只用后者来预览可领的章。
+
+`startTrial()`、`endTrial()` 只属于本机实现，供评审侧栏的「体验首次使用」使用：换上一本不保存的空护照，再换回来。
 
 ## 数据模型
 
 ```text
+catalog
+├─ venues[]                   场馆：名称、城市、类别、展览、地图位置、照片，以及馆章 stampId
+└─ stamps[]                   纪念章：章名、所属场馆 venueId、章面、型号、限量与领取期限
+
 data
 ├─ records[stampId]            已收藏的章、收藏编号、首次领取日期及到访日期
 ├─ visits[venueId/date]        到访主体：场馆、日期、票根、徽章、照片、感想
@@ -36,13 +69,21 @@ data
 ├─ profile.public             对别人公开的部分：章册、足迹、感想与照片
 ├─ posts[]                    发布到广场的到访：每次到访一条，保存发布时的感想与照片副本
 └─ liked[]                    赞过的广场动态
+
+community
+├─ collectors[]               其他收藏家：公开范围、持有的章（stampId、编号、日期、方式）与到访
+└─ posts[]                    他们发布的到访：作者、场馆、日期、章与编号、感想、赞数
 ```
 
-其他收藏家与他们在广场上的动态是 `fixtures.collectors`、`fixtures.posts` 中的演示数据，不进入 `data`；榜单、名次、收藏者名录与广场的信息流由 `state/community.js` 在读取时计算。
+场馆与纪念章是两种对象，各有自己的 id，通过 `venue.stampId` 与 `stamp.venueId` 互相指向；演示数据里馆章与场馆恰好同名，代码不依赖这一点。`domain/catalog.js` 的 `createCatalog()` 提供 `venue(id)`、`stamp(id)`、`venueOf(stamp)`、`stampOf(venue)` 与 `stampsFor(ids)`，查不到时返回 `undefined`，不会用别的场馆顶替。
+
+每个页面的地址带一个 id，它是什么由页面决定（`config.js` 的 `venueScreens`、`stampScreens`、`visitScreens`）：场馆页、盖章页、票根页带场馆 id，章页、领取成功页、单章分享页带章 id，到访页带场馆与日期。页面通过 `selectors.venue()` 与 `selectors.stamp()` 取得当前的场馆与章。
+
+其他收藏家与广场动态由后端以 id 的形式返回；榜单、名次、收藏者名录与广场的信息流仍由 `state/community.js` 在读取时计算。
 
 一条到访可以引用多张票根和多枚章。同一场馆、同一天始终合为一次到访。感想和照片归属于到访，不会因为同馆的另一段参观被覆盖。
 
-`domain/visits.js` 不依赖 DOM。它负责字段规范化、旧数据迁移、关联校验与合并。元数据存储与 IndexedDB 存储位于 `storage/`，原图不会进入 JSON 元数据或网站构建。
+`domain/visits.js` 不依赖 DOM。它负责字段规范化、旧数据迁移、关联校验与合并，只被本机实现调用。本机实现把元数据存入 `localStorage`，票根原图经 `storage/ticket-media.js` 存入 IndexedDB，原图不会进入 JSON 元数据或网站构建。
 
 第一次读取新版时，可以从旧版键迁移数据。旧版感想归入原参观日期，较早的补录日期保持独立；已经主动清空的新版感想不会被旧备份重新填回。
 
@@ -89,6 +130,15 @@ data
 
 ## 测试与服务接入
 
-领域规则用 Node.js 原生测试运行，浏览器行为用 Playwright 验证。浏览器测试使用隔离上下文及专用端口；`scripts/test-e2e.mjs` 在进程内管理 Vite 测试服务器，运行结束后主动关闭，避免 Windows shell 子进程清理挂起。
+领域规则与本机后端用 Node.js 原生测试运行（`tests/unit/api.test.js` 按上面的契约逐个方法检查），浏览器行为用 Playwright 验证。浏览器测试使用隔离上下文及专用端口；`scripts/test-e2e.mjs` 在进程内管理 Vite 测试服务器，运行结束后主动关闭，避免 Windows shell 子进程清理挂起。
 
-接入真实服务时，优先替换 `storage/` 的本地数据源和 `controllers/claims.js` 中的模拟识别、匹配与领取逻辑；保留 `visits` 的归档关系。客户端的文件指纹只能用于当前演示的重复图片提示，不能承担票根真实性验证。
+接入真实服务时，新写一个与 `createLocalApi()` 返回相同方法的实现，在 `create-app.js` 的 `api:` 一处换上；演示版与单文件离线版继续使用本机实现。还需要一并处理的有：
+
+- **登录**：目前没有账号。`load()` 就是「当前登录者的护照」，持有人在社区查询里固定写作 `me`；接入时由会话决定身份，未登录的入口需要另行设计。
+- **今天**：把 `createClock()` 的固定日期去掉即可使用设备日期；领取日期应以服务端回答的 `day`、`receivedAt` 为准。
+- **图片**：票根图片随 `redeemTicket` 的 `file` 上传，页面只通过 `media.url(id)` 取地址，服务端返回地址后改这一处；到访照片目前是压缩后的 data URL，随 `saveMemory` 提交，接入时改为上传后保存地址。场馆照片已是 `venue.photo`、`venue.thumb` 字段。
+- **章面**：章的插画与配色仍按 `stamp.art` 对应到样式表里的类名与图集，服务端新增的章需要先在前端补上章面，或改为由数据提供图片地址。
+- **社区**：榜单与名录现在由前端对全部收藏家计算，数据量大时应改为服务端的榜单、信息流与名录接口。
+- **本机已有数据**：`domain/visits.js` 的规范化与迁移保留在本机实现里，届时可用来把浏览器中的记录整理后上传。
+
+客户端的文件指纹只能用于当前演示的重复图片提示，不能承担票根真实性验证。

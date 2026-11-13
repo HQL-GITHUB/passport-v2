@@ -145,7 +145,7 @@ export function createCollectorViews(appContext) {
     if (!p.public.album) return hidden(p, '章册');
     if (!p.stamps.length)
       return /* HTML */ `<div class="empty-state">
-        <div class="empty-art">${appContext.format.art(appContext.catalog.venues[0])}</div>
+        <div class="empty-art">${appContext.format.art(appContext.catalog.stamps[0])}</div>
         <h3>章册还是空的</h3>
         <p>收藏第一枚纪念章以后，它会出现在这里。</p>
       </div>`;
@@ -183,7 +183,7 @@ export function createCollectorViews(appContext) {
   function heldSlot(s) {
     return /* HTML */ `<button class="badge-card" data-action="stamp" data-id="${s.stamp.id}">
       <div class="badge-frame">${appContext.format.art(s.stamp)}</div>
-      <h3>${s.stamp.stamp}</h3>
+      <h3>${s.stamp.title}</h3>
       <p class="badge-issue">${appContext.format.issue(s, s.stamp)}</p>
       <p class="badge-date">${month(s.at)}${s.method === 'ticket' ? ' · 补领' : ''}</p>
     </button>`;
@@ -220,7 +220,7 @@ export function createCollectorViews(appContext) {
     </div>`;
   }
   function publicStop(v, memories) {
-    const known = appContext.catalog.venues.some((item) => item.id === v.venueId),
+    const known = !!appContext.catalog.venue(v.venueId),
       note = memories && v.note,
       row = /* HTML */ `<span class="footprint-mark"
           >${

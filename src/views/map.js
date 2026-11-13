@@ -79,7 +79,7 @@ export function createMapViews(appContext) {
     </div>`;
   }
   function mapPin(v, shown) {
-    const owned = !!appContext.data.records[v.id],
+    const owned = appContext.selectors.owned(v),
       wanted = appContext.data.wanted.includes(v.id),
       selected = appContext.ui.mapVenue === v.id;
     return /* HTML */ `<button
@@ -92,7 +92,7 @@ export function createMapViews(appContext) {
       ${shown ? '' : 'inert'}
     >
       <span class="pin-seal"
-        >${appContext.format.art(v)}${
+        >${appContext.format.art(appContext.catalog.stampOf(v))}${
           owned
             ? `<i class="pin-mark">${appContext.format.icon('check')}</i>`
             : wanted
@@ -106,18 +106,19 @@ export function createMapViews(appContext) {
   // chosen, that venue as a card that opens it. Should the screen be too short for the whole map,
   // it stays in view while the map scrolls under it.
   function mapPanel() {
-    const v = appContext.catalog.venues.find((item) => item.id === appContext.ui.mapVenue),
+    const v = appContext.catalog.venue(appContext.ui.mapVenue),
       list = appContext.selectors.filteredVenues();
     if (v) {
-      const photo = appContext.assets.venueThumbs[v.id],
-        owned = !!appContext.data.records[v.id];
+      const photo = v.thumb,
+        s = appContext.catalog.stampOf(v),
+        owned = appContext.selectors.owned(v);
       return /* HTML */ `<button class="map-card" data-action="venue" data-id="${v.id}">
         <span class="map-thumb"
-          >${photo ? `<img src="${photo}" alt="" />` : appContext.format.art(v)}</span
+          >${photo ? `<img src="${photo}" alt="" />` : appContext.format.art(s)}</span
         ><span class="map-copy"
           ><strong>${v.name}</strong><small>${v.city} · ${v.exhibit}</small
           ><small class="map-state ${owned ? 'owned' : ''}"
-            >${owned ? '馆章已收藏' : `${appContext.data.wanted.includes(v.id) ? '想去 · ' : ''}到馆可领取「${v.stamp}」`}</small
+            >${owned ? '馆章已收藏' : `${appContext.data.wanted.includes(v.id) ? '想去 · ' : ''}到馆可领取「${s.title}」`}</small
           ></span
         >${appContext.format.icon('chevron')}
       </button>`;
@@ -129,8 +130,7 @@ export function createMapViews(appContext) {
       </div>`;
     return /* HTML */ `<div class="map-summary">
       <strong
-        >已点亮 <b>${list.filter((item) => appContext.data.records[item.id]).length}</b> /
-        ${list.length}</strong
+        >已点亮 <b>${list.filter(appContext.selectors.owned).length}</b> / ${list.length}</strong
       ><span class="map-legend"
         ><i class="owned">${appContext.format.icon('check')}</i>已收藏<i class="open"></i>待出发<i
           class="want"

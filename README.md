@@ -50,12 +50,14 @@ passport-v2/
 │  ├─ main.js                 # 应用入口与样式加载
 │  ├─ config.js               # 演示日期、路由、存储键
 │  ├─ app/                    # 应用组装、事件分发、导航、渲染调度
+│  ├─ actions/                # 按钮动作表，按功能分组
+│  ├─ api/                    # 后端接口；当前为保存在本机的演示实现
 │  ├─ assets/                 # 纪念章插画、建筑图片与数字字体
-│  ├─ data/                   # 场馆、纪念章目录及初始演示记录
-│  ├─ domain/                 # 到访合并、数据规范化与旧记录迁移
-│  ├─ state/                  # 界面状态、运行时状态和数据查询
-│  ├─ storage/                # localStorage 元数据、IndexedDB 原图
-│  ├─ controllers/            # 领取、记忆编辑、弹窗与搜索交互
+│  ├─ data/                   # 演示内容：场馆、纪念章、收藏家与初始记录
+│  ├─ domain/                 # 目录查询、领取规则、到访合并与旧记录迁移
+│  ├─ state/                  # 界面状态、数据仓库和数据查询
+│  ├─ storage/                # IndexedDB 票根原图
+│  ├─ controllers/            # 领取、记忆编辑、发布、弹窗与搜索交互
 │  ├─ views/                  # 各页面的 HTML 渲染函数
 │  ├─ services/               # 分享卡绘制与文件导出
 │  ├─ lib/                    # 展示工具、图片工具、票根裁剪遮挡
@@ -100,7 +102,7 @@ passport-v2/
 
 ## 测试
 
-单元测试覆盖同次到访合并、旧记录迁移、独立记忆、已清空记录保持、无章到访和日期校验。
+单元测试覆盖同次到访合并、旧记录迁移、独立记忆、已清空记录保持、无章到访和日期校验，以及后端接口的每个方法：领取、票根识别与入册、取消、发布、公开设置和首次使用演示。
 
 浏览器测试覆盖原图恢复、独立移除、无章到访、分享遮挡与下载、首次使用状态切换，以及单文件离线运行。
 
@@ -113,7 +115,7 @@ npx playwright install chromium
 npm run verify
 ```
 
-如果本机已有 Google Chrome，也可以指定使用已安装的浏览器：
+如果本机已有 Google Chrome 或 Microsoft Edge，也可以指定使用已安装的浏览器（Edge 为 `msedge`）：
 
 ```powershell
 $env:PLAYWRIGHT_BROWSER_CHANNEL = 'chrome'
@@ -136,14 +138,16 @@ npm run test:e2e
 - 增加或修改场馆、纪念章：`src/data/catalog.js`。
 - 调整页面布局：`src/views/` 与 `src/styles/`。
 - 修改示意地图与场馆在图上的位置：`src/views/map.js` 与 `src/data/catalog.js` 的 `at` 字段。
-- 修改领取规则与票根识别流程：`src/controllers/claims.js`。
+- 增加按钮动作：`src/actions/` 中对应功能的动作表。
+- 修改领取与票根入册的交互流程：`src/controllers/claims.js`。
+- 修改领取规则、编号与票根识别（演示中由本机后端决定）：`src/api/local.js` 与 `src/domain/claims.js`。
 - 修改到访归档、数据迁移：`src/domain/visits.js`。
-- 接入账号与服务端存储：从 `src/storage/` 开始。
+- 接入账号与服务端存储：按 [架构说明](docs/architecture.md) 的「后端接口」另写一个实现，在 `src/app/create-app.js` 换上。
 - 修改分享卡：`src/services/share-card.js` 与 `src/lib/ticket-editor.js`。
 - 修改榜单规则、公开范围与演示收藏家：`src/state/community.js`、`src/views/collectors.js` 与 `src/data/collectors.js`。
 - 修改广场的信息流、发布与留言簿：`src/views/square.js`，以及 `src/state/community.js` 中的 `posts`。
 
-应用依赖在 `src/app/create-app.js` 中统一组装。模块通过同一个 `appContext` 读取当前状态；不要在模块初始化时缓存可被替换的 `data`。详细关系见 [架构说明](docs/architecture.md)。
+应用依赖在 `src/app/create-app.js` 中统一组装。模块通过同一个 `appContext` 读取当前状态；不要在模块初始化时缓存可被替换的 `data`、`catalog` 与 `community`，也不要直接改动 `data`：改动一律通过 `store` 发给后端。详细关系见 [架构说明](docs/architecture.md)。
 
 ## 原型边界
 
@@ -151,6 +155,6 @@ npm run test:e2e
 
 纪念章的收藏编号由本机按章与领取日期模拟生成，不是真实的发行序号，也不保证跨设备唯一。展览纪念章的发行量与发行进度同样是演示数据，发行量在 `src/data/catalog.js` 的 `limit` 字段中设置。接入服务后，编号与发行进度应由服务端在领取时签发并随记录返回。
 
-`src/config.js` 中的演示日期固定为 **2026-11-10**，用于重现历史票根匹配与日期校验。接入真实服务时，需要一并替换演示日期、数据目录与验证逻辑。
+`src/config.js` 中的演示日期固定为 **2026-11-10**，用于重现历史票根匹配与日期校验；代码一律通过 `clock.today()` 读取。接入真实服务时，需要一并替换演示日期、数据目录与验证逻辑。
 
 设计记录见 [design-notes.txt](docs/design-notes.txt)，插画生成记录见 [asset-prompts.json](docs/asset-prompts.json) 与 [asset-prompts-expansion.json](docs/asset-prompts-expansion.json)。工具文档：[Vite](https://vite.dev/guide/)、[Playwright](https://playwright.dev/docs/test-configuration)。
