@@ -1,3 +1,5 @@
+import { createSubjects } from './subjects.js';
+
 /**
  * The pages of the app, by the name their address begins with. A row says everything that sets
  * its page apart from the others:
@@ -5,7 +7,8 @@
  * - `view`, the function that draws it, and `actions`, the one that draws its buttons into the
  *   `#page-actions` slot the view leaves for them. Both are named among `appContext.views`.
  * - `about`, which is the id its address carries: a venue, a stamp, a visit addressed by its
- *   venue and day, a person or a post. The others carry along the last venue or stamp.
+ *   venue and day, a person or a post. The others carry along the last venue or stamp. What
+ *   follows from the kind of thing is in `subjects.js`.
  * - `root`, for a page of the navigation: its header shows the brand, and no way back.
  * - `caption`, of the header that is a way back, and `title`, of the browser's tab, which is the
  *   caption unless the page has one of its own. Either may be a function of what is open.
@@ -183,13 +186,15 @@ export function createScreens(appContext) {
         !appContext.selectors.posts().some((p) => p.id === appContext.ui.post) && 'square',
     },
   };
-  const say = (text) => (typeof text === 'function' ? text() : text),
+  const subjects = createSubjects(appContext),
+    say = (text) => (typeof text === 'function' ? text() : text),
     current = () => table[appContext.ui.screen],
     // What a view named by the page in view draws, or nothing where the page names none.
     draw = (name) => (name ? appContext.views[name]() : '');
   return {
     known: (screen) => Object.hasOwn(table, screen),
-    about: (screen = appContext.ui.screen) => table[screen]?.about,
+    // What the page is about, as `subjects.js` tells of that kind of thing.
+    subject: (screen = appContext.ui.screen) => subjects[table[screen]?.about || 'none'],
     root: (screen = appContext.ui.screen) => !!table[screen]?.root,
     keepsDraft: (screen) => !!table[screen]?.keepsDraft,
     place: (page) => table[page.screen].place?.(page) || [],

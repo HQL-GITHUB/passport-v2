@@ -14,17 +14,13 @@ export function createShellViews(appContext) {
   // #page-actions slot its view leaves for them, so they can be refreshed without a full render.
   function renderFooter() {
     const screen = appContext.ui.screen,
-      about = appContext.screens.about(),
       current = (name) => (screen === name ? 'aria-current="page" class="active"' : ''),
       // Already claiming: the middle button marks the place instead of starting over.
       claiming = appContext.screens.claiming(),
       // Where the middle button claims: at the venue in view, or else at the demonstration's.
       // A page of the navigation has none in view, nor has a collector's passport or a post.
       here =
-        (!appContext.screens.root() &&
-          about !== 'person' &&
-          about !== 'post' &&
-          appContext.selectors.venue()) ||
+        (!appContext.screens.root() && appContext.selectors.venue()) ||
         appContext.selectors.defaultVenue();
     appContext.dom.footer.innerHTML = `<nav class="bottom-nav" aria-label="主要导航"><button data-action="discover" ${current('discover')}>${icon('compass')}发现</button><button data-action="square" ${current('square')}>${icon('plaza')}广场</button><button class="nav-claim" ${claiming ? 'aria-current="page"' : `data-action="scan" data-id="${here.id}"`} aria-label="现场盖章">${icon('scan')}<span>盖章</span></button><button data-action="collectors" ${current('collectors')}>${icon('medal')}收藏家</button><button data-action="passport" ${current('passport')}>${icon('passport')}护照</button></nav>`;
     const slot = document.getElementById('page-actions');

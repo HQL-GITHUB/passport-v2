@@ -1,7 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-const back = (page) => page.getByRole('button', { name: '返回', exact: true }).click();
-
 test('a collected stamp turns over to its visit record, an uncollected one stays face up', async ({
   page,
 }) => {

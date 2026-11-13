@@ -3,21 +3,12 @@ export function createSelectors(appContext) {
   // The venue the page in view is about: the one its address names, the one of the stamp it
   // names, or the one of the open visit if the catalogue knows it. Otherwise none.
   function venue() {
-    const { screen, selected, visitKey } = appContext.ui,
-      { catalog } = appContext,
-      about = appContext.screens.about(screen);
-    if (about === 'stamp') return catalog.venueOf(catalog.stamp(selected));
-    if (about === 'visit') return catalog.venue(appContext.data.visits[visitKey]?.venueId);
-    return catalog.venue(selected);
+    return appContext.screens.subject().venue();
   }
   // The stamp the page in view is about: the one its address names, or the one every visitor of
   // the venue it names can collect.
   function stamp() {
-    const { screen, selected } = appContext.ui,
-      { catalog } = appContext;
-    return appContext.screens.about(screen) === 'stamp'
-      ? catalog.stamp(selected)
-      : catalog.stampOf(catalog.venue(selected));
+    return appContext.screens.subject().stamp();
   }
   // Where the demonstration claims when no venue is in view.
   function defaultVenue() {
@@ -127,11 +118,7 @@ export function createSelectors(appContext) {
   }
   // The visit in view: the one the page is about, or the one its stamp is being looked at for.
   function currentVisit() {
-    if (appContext.screens.about() === 'visit')
-      return appContext.data.visits[appContext.ui.visitKey];
-    const s = appContext.selectors.stamp(),
-      r = s && appContext.data.records[s.id];
-    return r ? appContext.selectors.visitForStamp(s, r) : null;
+    return appContext.screens.subject().visit();
   }
   function savedTickets(v) {
     return (v?.ticketIds || []).filter((id) => appContext.data.tickets[id]?.saved);

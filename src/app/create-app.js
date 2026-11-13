@@ -145,9 +145,7 @@ export function createApp() {
       clearTimeout(waiting);
       clearTimeout(appContext.runtime.toastTimer);
       appContext.ceremony.finish();
-      appContext.runtime.pageMedal?.destroy();
-      appContext.runtime.pageCarousel?.destroy();
-      appContext.runtime.pageBook?.destroy();
+      appContext.clearPage();
       appContext.claims.cancel();
       appContext.dialogs.closeModal(false);
       for (const id of appContext.media.urls.keys()) appContext.media.revoke(id);
