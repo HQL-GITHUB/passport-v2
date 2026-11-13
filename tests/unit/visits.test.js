@@ -1,18 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { venues, stamps } from '../../src/data/catalog.js';
-import {
-  ensureVisit,
-  isValidDay,
-  issueNumber,
-  normalizeData,
-  visitKey,
-} from '../../src/domain/visits.js';
-import { createPresentation } from '../../src/lib/presentation.js';
+import { venues, stamps } from '../../src/api/local/data/catalog.js';
+import { isValidDay, visitKey } from '../../src/domain/visits.js';
+import { ensureVisit, issueNumber, normalizeData } from '../../src/api/local/passport.js';
+import * as format from '../../src/lib/format.js';
 import { APP_CONFIG } from '../../src/config.js';
 
-const context = { config: APP_CONFIG, ui: { visitDate: null } };
-context.format = createPresentation(context);
 const validDay = (value) => isValidDay(value, APP_CONFIG.demoDate);
 const normalize = (data) => normalizeData(data, venues, stamps, validDay);
 
@@ -148,7 +141,7 @@ test('every collected stamp keeps one collector number, issued once and growing 
   });
   assert.equal(repaired.records.artmuseum.issue, issued);
   assert.equal(issueNumber('artmuseum', '2026-10-25') > issued, true);
-  assert.equal(context.format.issue({ issue: 42 }), 'No. 000042');
+  assert.equal(format.issue({ issue: 42 }), 'No. 000042');
 });
 
 test('a limited stamp numbers within its edition and shows the edition size', () => {
@@ -162,7 +155,7 @@ test('a limited stamp numbers within its edition and shows the edition size', ()
   const repaired = normalize({ version: 3, records: { [limited.id]: record(limited.limit + 1) } });
   assert.equal(repaired.records[limited.id].issue <= limited.limit, true);
   assert.equal(
-    context.format.issue({ issue: 77 }, limited),
+    format.issue({ issue: 77 }, limited),
     `No. ${'77'.padStart(String(limited.limit).length, '0')} / ${limited.limit}`,
   );
 });

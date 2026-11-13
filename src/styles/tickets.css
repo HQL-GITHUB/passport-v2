@@ -524,12 +524,6 @@
   font: 10px var(--font);
   color: var(--faint);
 }
-.timeline-item.visit-highlight {
-  background: var(--accent-soft);
-  border-radius: 11px;
-  padding: 12px 8px;
-  border-bottom-color: transparent;
-}
 .timeline-item > svg {
   width: 15px;
   color: var(--faint);

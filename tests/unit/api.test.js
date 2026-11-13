@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createLocalApi } from '../../src/api/local.js';
+import { createLocalApi } from '../../src/api/local/index.js';
 import { createCatalog } from '../../src/domain/catalog.js';
-import { applyClaim, eligibleStamps } from '../../src/domain/claims.js';
-import { normalizeData, isValidDay } from '../../src/domain/visits.js';
-import { venues, stamps } from '../../src/data/catalog.js';
+import { eligibleStamps } from '../../src/domain/claims.js';
+import { isValidDay } from '../../src/domain/visits.js';
+import { applyClaim, normalizeData } from '../../src/api/local/passport.js';
+import { venues, stamps } from '../../src/api/local/data/catalog.js';
 import { APP_CONFIG } from '../../src/config.js';
 
 const today = APP_CONFIG.demoDate;

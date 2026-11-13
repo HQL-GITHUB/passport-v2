@@ -1,10 +1,12 @@
+import { safe, icon, art, date, issue } from '../lib/format.js';
+
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createCollectorViews(appContext) {
   // Other people's days are shown to the month, never to the day.
-  const month = (day) => appContext.format.date(day).slice(0, 7);
+  const month = (day) => date(day).slice(0, 7);
   // A collector's face: the first letter of the name, on a tint of the collector's own.
   function avatar(p) {
-    return `<span class="avatar ${p.me ? 'me' : ''}" style="--hue:${parseInt(appContext.domain.hash(p.id), 16) % 360}" aria-hidden="true">${appContext.format.safe([...p.name][0])}</span>`;
+    return `<span class="avatar ${p.me ? 'me' : ''}" style="--hue:${parseInt(appContext.domain.hash(p.id), 16) % 360}" aria-hidden="true">${safe([...p.name][0])}</span>`;
   }
   // The boards are the way in to other people's passports: each row is a collector, with the
   // stamps that put them there.
@@ -30,6 +32,40 @@ export function createCollectorViews(appContext) {
         ${current.yearly ? '只计现场领取，票根补领不计入；每年一月重新开始。' : '只计现场领取的纪念章，票根补领的不计入。'}
       </p>
     </section>`;
+  }
+  // In the header: what the holder shows of the passport. On a passport it is offered only where
+  // the holder looks at their own as others see it.
+  function collectorsTools() {
+    return `<button class="ticket-home-entry" data-action="visibility">${icon('lock')}公开设置</button>`;
+  }
+  function collectorTools() {
+    return appContext.ui.person === 'me'
+      ? '<button class="ticket-home-entry header-setting" data-action="visibility">公开设置</button>'
+      : '';
+  }
+  // The switches for what the holder shows of the passport. Notes and photographs are shown with
+  // the visits they belong to, so their switch waits for the one of the footprints.
+  function visibilityDialog() {
+    const shown = appContext.selectors.visibility(),
+      row = (key, title, text, disabled = false) =>
+        `<label class="visibility-row"><span><strong>${title}</strong><small>${text}</small></span><input type="checkbox" role="switch" data-change="set-visibility" data-visibility="${key}" ${shown[key] ? 'checked' : ''} ${disabled ? 'disabled' : ''}></label>`;
+    return {
+      title: '公开设置',
+      body: /* HTML */ `<p class="modal-sub">
+          公开的部分，其他收藏家可以在你的护照里翻看。不打开的，只有你自己看得到。
+        </p>
+        <div class="visibility-list">
+          ${row('album', '章册', '纪念章、收藏编号与收藏月份。公开后，现场领取的章计入榜单。')}
+          ${row('footprints', '足迹', '去过的场馆与月份，不显示具体日期。')}
+          ${row('memories', '感想与照片', '随足迹一起展示，需要先公开足迹。', !shown.footprints)}
+        </div>
+        <p class="privacy">${icon('lock')}票根始终仅自己可见，只能通过遮挡后的旅行卡分享</p>
+        ${
+          appContext.ui.screen === 'collector'
+            ? ''
+            : '<button class="button secondary" data-action="collector" data-person="me">看看别人眼中的我的护照</button>'
+        }`,
+    };
   }
   // Where the holder stands on the open board. A passport that is not shown is on no board, and
   // the card says how to change that.
@@ -58,9 +94,9 @@ export function createCollectorViews(appContext) {
         ><strong>${current.label}第 <b>${mine.rank}</b> 位</strong
         ><small
           >现场收藏 ${mine.count}
-          枚${ahead ? ` · 再收 ${ahead.count - mine.count} 枚，追上${appContext.format.safe(ahead.person.name)}` : ''}</small
+          枚${ahead ? ` · 再收 ${ahead.count - mine.count} 枚，追上${safe(ahead.person.name)}` : ''}</small
         ></span
-      >${appContext.format.icon('chevron')}
+      >${icon('chevron')}
     </button>`;
   }
   function boardRow(row, current) {
@@ -69,14 +105,14 @@ export function createCollectorViews(appContext) {
     return /* HTML */ `<li class="board-row ${p.me ? 'me' : ''}">
       <button data-action="collector" data-person="${p.id}">
         <b class="board-rank ${row.rank <= 3 ? `medal medal-${row.rank}` : ''}"
-          >${row.rank <= 3 ? appContext.format.icon('laurel') : ''}${row.rank}</b
+          >${row.rank <= 3 ? icon('laurel') : ''}${row.rank}</b
         >${avatar(p)}<span class="board-who"
-          ><strong>${appContext.format.safe(p.name)}</strong
+          ><strong>${safe(p.name)}</strong
           ><small
             >${row.complete ? `已集齐${current.label}` : `最近 ${month(row.reached)}`}</small
           ></span
         ><span class="board-stamps" aria-hidden="true"
-          >${row.latest.map((v) => appContext.format.art(v)).join('')}</span
+          >${row.latest.map((v) => art(v)).join('')}</span
         ><span class="board-count"><b>${row.count}</b>枚</span>
       </button>
     </li>`;
@@ -90,19 +126,16 @@ export function createCollectorViews(appContext) {
       row = appContext.selectors.board(current.id).find((r) => r.person.id === p.id),
       since = [...p.stamps.map((s) => s.at), ...p.visits.map((v) => v.day)].sort()[0],
       book = tab === 'album' && p.public.album && p.stamps.length > 0,
-      count = (shown, n) => (shown ? n : appContext.format.icon('lock'));
+      count = (shown, n) => (shown ? n : icon('lock'));
     return /* HTML */ `<section
       class="page passport-page collector-page screen-enter ${book ? 'book-open' : ''}"
     >
       <div class="collector-head">
         ${avatar(p)}
         <div>
-          <h1>${appContext.format.safe(p.name)}</h1>
+          <h1>${safe(p.name)}</h1>
           <p>
-            ${[p.city, since ? `${month(since)} 启用` : '']
-              .filter(Boolean)
-              .map(appContext.format.safe)
-              .join(' · ')}
+            ${[p.city, since ? `${month(since)} 启用` : ''].filter(Boolean).map(safe).join(' · ')}
           </p>
         </div>
         ${
@@ -131,7 +164,7 @@ export function createCollectorViews(appContext) {
   }
   function hidden(p, what) {
     return /* HTML */ `<div class="empty-state">
-      <div class="empty-art">${appContext.format.icon('lock')}</div>
+      <div class="empty-art">${icon('lock')}</div>
       <h3>${p.me ? `你的${what}没有公开` : `${what}没有公开`}</h3>
       <p>
         ${p.me ? '别人翻开你的护照时，看不到这一部分。' : '每位收藏家自己决定，护照里的哪些内容给别人看。'}
@@ -145,7 +178,7 @@ export function createCollectorViews(appContext) {
     if (!p.public.album) return hidden(p, '章册');
     if (!p.stamps.length)
       return /* HTML */ `<div class="empty-state">
-        <div class="empty-art">${appContext.format.art(appContext.catalog.stamps[0])}</div>
+        <div class="empty-art">${art(appContext.catalog.stamps[0])}</div>
         <h3>章册还是空的</h3>
         <p>收藏第一枚纪念章以后，它会出现在这里。</p>
       </div>`;
@@ -153,9 +186,9 @@ export function createCollectorViews(appContext) {
         p.stamps.slice(n * 4, (n + 1) * 4),
       ),
       shared = p.stamps.filter((s) => appContext.data.records[s.stamp.id]).length;
-    appContext.ui.collectorPage = Math.min(appContext.ui.collectorPage, pages.length - 1);
     return appContext.views.bookFrame(
-      appContext.ui.collectorPage,
+      // The page the album was left on, as far as it has pages.
+      Math.min(appContext.ui.collectorPage, pages.length - 1),
       pages
         .map(
           (items, n) =>
@@ -182,9 +215,9 @@ export function createCollectorViews(appContext) {
   // A stamp in someone's album opens the stamp's own page: what it is, and how to collect it.
   function heldSlot(s) {
     return /* HTML */ `<button class="badge-card" data-action="stamp" data-id="${s.stamp.id}">
-      <div class="badge-frame">${appContext.format.art(s.stamp)}</div>
+      <div class="badge-frame">${art(s.stamp)}</div>
       <h3>${s.stamp.title}</h3>
-      <p class="badge-issue">${appContext.format.issue(s, s.stamp)}</p>
+      <p class="badge-issue">${issue(s, s.stamp)}</p>
       <p class="badge-date">${month(s.at)}${s.method === 'ticket' ? ' · 补领' : ''}</p>
     </button>`;
   }
@@ -194,7 +227,7 @@ export function createCollectorViews(appContext) {
     if (!p.public.footprints) return hidden(p, '足迹');
     if (!p.visits.length)
       return /* HTML */ `<div class="empty-state">
-        <div class="empty-art">${appContext.format.icon('ticket')}</div>
+        <div class="empty-art">${icon('ticket')}</div>
         <h3>还没有足迹</h3>
         <p>第一次到访以后，它会出现在这里。</p>
       </div>`;
@@ -214,9 +247,7 @@ export function createCollectorViews(appContext) {
               </ol>`,
         )
         .join('')}
-      <p class="privacy">
-        ${appContext.format.icon('lock')}足迹只显示到月份，票根不会出现在公开的护照里
-      </p>
+      <p class="privacy">${icon('lock')}足迹只显示到月份，票根不会出现在公开的护照里</p>
     </div>`;
   }
   function publicStop(v, memories) {
@@ -227,28 +258,24 @@ export function createCollectorViews(appContext) {
             v.stamps.length
               ? v.stamps
                   .slice(0, 2)
-                  .map((s) => appContext.format.art(s))
+                  .map((s) => art(s))
                   .join('')
-              : appContext.format.icon('book')
+              : icon('book')
           }</span
         ><span class="footprint-brief"
-          ><h2>${appContext.format.safe(v.name)}</h2>
-          <p class="footprint-exhibit">
-            ${appContext.format.safe(v.exhibit || '一次与文化的相遇')}
-          </p>
-          ${note ? `<p class="footprint-note">“${appContext.format.safe(note)}”</p>` : ''}</span
+          ><h2>${safe(v.name)}</h2>
+          <p class="footprint-exhibit">${safe(v.exhibit || '一次与文化的相遇')}</p>
+          ${note ? `<p class="footprint-note">“${safe(note)}”</p>` : ''}</span
         >`;
     return /* HTML */ `<li class="footprint-stop">
-      <p class="footprint-when">
-        <b>${Number(v.day.slice(5, 7))}</b>月 · ${appContext.format.safe(v.city)}
-      </p>
+      <p class="footprint-when"><b>${Number(v.day.slice(5, 7))}</b>月 · ${safe(v.city)}</p>
       <article class="footprint-card compact">
         ${
           known
-            ? `<button class="footprint-open" data-action="venue" data-id="${v.venueId}">${row}${appContext.format.icon('chevron')}</button>`
+            ? `<button class="footprint-open" data-action="venue" data-id="${v.venueId}">${row}${icon('chevron')}</button>`
             : `<div class="footprint-open">${row}</div>`
         }
-        ${memories && v.photo ? `<img class="public-photo" src="${appContext.format.safe(v.photo)}" alt="这次参观的照片">` : ''}
+        ${memories && v.photo ? `<img class="public-photo" src="${safe(v.photo)}" alt="这次参观的照片">` : ''}
       </article>
     </li>`;
   }
@@ -271,7 +298,7 @@ export function createCollectorViews(appContext) {
               /* HTML */ `<li class="${h.person.me ? 'me' : ''}">
                 <button data-action="collector" data-person="${h.person.id}">
                   <b>No. ${String(h.issue).padStart(digits, '0')}</b>${avatar(h.person)}<strong
-                    >${appContext.format.safe(h.person.name)}</strong
+                    >${safe(h.person.name)}</strong
                   ><small>${month(h.at)} · ${h.method === 'ticket' ? '补领' : '现场'}</small>
                 </button>
               </li>`,
@@ -287,7 +314,10 @@ export function createCollectorViews(appContext) {
   return {
     avatar,
     renderCollectors,
+    collectorsTools,
     renderCollector,
+    collectorTools,
+    visibilityDialog,
     renderHolders,
   };
 }

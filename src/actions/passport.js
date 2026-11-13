@@ -6,21 +6,21 @@ export function createPassportActions(appContext) {
         book = appContext.runtime.pageBook;
       // The album and the tickets are bookmarks in the same book: between them the pages turn.
       // The bookmark of the open section goes back to its first page.
-      if (book && appContext.views.inBook(value)) {
+      if (book && appContext.selectors.inBook(value)) {
         if (value === appContext.ui.collection)
           appContext.ui[value === 'tickets' ? 'ticketPage' : 'stampPage'] = 0;
-        book.goTo(appContext.views.bookIndex(value));
+        book.goTo(appContext.selectors.bookIndex(value));
         return;
       }
       // The tabs stay on screen while scrolling, so each tab opens where it was last left.
       appContext.ui.collection = value;
       appContext.render();
-      appContext.dom.main.scrollTop = appContext.runtime.scrollPositions[`passport/${value}`] || 0;
+      appContext.dom.main.scrollTop = appContext.navigation.savedScroll();
     },
     // From a claim the album opens on the page that holds the stamp.
     'open-album'() {
       appContext.ui.collection = 'collected';
-      appContext.ui.stampPage = appContext.views.stampPageOf(appContext.ui.selected);
+      appContext.ui.stampPage = appContext.selectors.stampPageOf(appContext.ui.selected);
       appContext.navigation.navigate('passport');
     },
     'share-collection'() {

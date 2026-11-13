@@ -6,10 +6,7 @@ export function createMemoryController(appContext) {
     const state = appContext.runtime.modalState,
       error = document.getElementById('memory-error');
     error.hidden = true;
-    if (
-      !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
-      file.size > 10 * 1024 * 1024
-    ) {
+    if (!appContext.images.importable(file)) {
       error.textContent = '请选择 10 MB 以内的 JPG、PNG 或 WebP 照片。';
       error.hidden = false;
       return;

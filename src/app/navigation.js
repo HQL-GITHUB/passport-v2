@@ -1,44 +1,33 @@
+import { PAGE_FIELDS } from '../state/state.js';
+
 /** Application module. Dependencies are provided by createApp(). */
 export function createNavigation(appContext) {
-  const pageFields = [
-    'screen',
-    'selected',
-    'collection',
-    'stampPage',
-    'ticketPage',
-    'city',
-    'category',
-    'query',
-    'discoverView',
-    'mapVenue',
-    'scanMode',
-    'visitKey',
-    'visitDate',
-    'stampReturn',
-    'board',
-    'person',
-    'collectorTab',
-    'collectorPage',
-    'post',
-  ];
   const entries = new Map();
   const session = Date.now().toString(36);
   let sequence = 0;
   let currentEntry = null;
 
   function pageState() {
-    return Object.fromEntries(pageFields.map((field) => [field, appContext.ui[field]]));
+    return Object.fromEntries(PAGE_FIELDS.map((field) => [field, appContext.ui[field]]));
   }
+  // What a scroll position belongs to: the page, what it is about, and whatever else the page
+  // says. A page of the navigation is about nothing, whatever venue it carries along.
   function scrollKey(page) {
-    if (page.screen === 'passport') return `passport/${page.collection}`;
-    if (page.screen === 'discover')
-      return JSON.stringify(['discover', page.city, page.category, page.query, page.discoverView]);
-    if (page.screen === 'square') return 'square';
-    if (page.screen === 'post') return `post/${page.post}`;
-    if (page.screen === 'collectors') return `collectors/${page.board}`;
-    if (page.screen === 'collector') return `collector/${page.person}/${page.collectorTab}`;
-    if (appContext.screens.about(page.screen) === 'visit') return `${page.screen}/${page.visitKey}`;
-    return `${page.screen}/${page.selected}/${page.screen === 'stamp' ? page.visitDate || '' : ''}`;
+    const about = appContext.screens.about(page.screen),
+      subject = appContext.screens.root(page.screen)
+        ? ''
+        : about === 'visit'
+          ? page.visitKey
+          : about === 'person'
+            ? page.person
+            : about === 'post'
+              ? page.post
+              : page.selected;
+    return JSON.stringify([page.screen, subject, ...appContext.screens.place(page)]);
+  }
+  // Where the page in view was last scrolled to.
+  function savedScroll() {
+    return appContext.runtime.scrollPositions[scrollKey(pageState())] || 0;
   }
   function rememberScroll() {
     if (!currentEntry) return;
@@ -68,7 +57,7 @@ export function createNavigation(appContext) {
     const stored = history.state?.passportNavigation;
     const entry = entries.get(stored?.id) || stored;
     if (entry?.page)
-      for (const field of pageFields)
+      for (const field of PAGE_FIELDS)
         if (Object.hasOwn(entry.page, field)) appContext.ui[field] = entry.page[field];
     let parts = [];
     try {
@@ -76,48 +65,21 @@ export function createNavigation(appContext) {
     } catch {}
     appContext.ui.screen = appContext.screens.known(parts[0]) ? parts[0] : 'passport';
     appContext.ui.selected = subject(appContext.ui.screen, parts[1]);
-    // A post is addressed by its writer, its venue and the day of the visit.
-    if (appContext.ui.screen === 'post') {
-      const id = parts.slice(1).join('/');
-      if (appContext.selectors.posts().some((p) => p.id === id)) appContext.ui.post = id;
-      else appContext.ui.screen = 'square';
-    }
-    // A collector's passport is addressed by its collector.
-    if (appContext.ui.screen === 'collector') {
-      if (appContext.selectors.person(parts[1])) appContext.ui.person = parts[1];
-      else appContext.ui.screen = 'collectors';
-    }
-    if (appContext.screens.about(appContext.ui.screen) === 'visit' && parts[2]) {
-      const key = appContext.domain.key(parts[1], parts[2]);
-      if (appContext.data.visits[key]) {
-        appContext.ui.visitKey = key;
+    // What is not a venue or a stamp is addressed in its own way: a collector's passport by its
+    // collector, a post by its writer, its venue and the day of the visit, and a visit by its
+    // venue and its day.
+    const about = appContext.screens.about();
+    if (about === 'person') appContext.ui.person = parts[1];
+    if (about === 'post') appContext.ui.post = parts.slice(1).join('/');
+    if (about === 'visit' && parts[2]) {
+      appContext.ui.visitKey = appContext.domain.key(parts[1], parts[2]);
+      if (appContext.data.visits[appContext.ui.visitKey]) {
         appContext.ui.selected = parts[1];
         appContext.ui.visitDate = parts[2];
-        if (appContext.ui.screen === 'ticket-success' && !appContext.ui.ticketResult)
-          appContext.ui.screen = 'visit';
-      } else appContext.ui.screen = 'passport';
+      }
     }
-    if (appContext.ui.screen === 'share' && !appContext.data.records[appContext.ui.selected])
-      appContext.ui.screen = 'stamp';
-    if (appContext.ui.screen === 'success' && !appContext.data.records[appContext.ui.selected]) {
-      appContext.ui.screen = 'scan';
-      appContext.ui.selected = appContext.catalog.stamp(appContext.ui.selected).venueId;
-    }
-    if (appContext.ui.screen === 'ticket-confirm' && !appContext.ui.ticketDraft)
-      appContext.ui.screen = 'ticket';
-    if (
-      (appContext.ui.screen === 'share-footprints' &&
-        !Object.keys(appContext.data.visits).length) ||
-      (appContext.ui.screen === 'share-album' && !Object.keys(appContext.data.records).length)
-    )
-      appContext.ui.screen = 'passport';
-    if (appContext.ui.screen === 'ticket-success' && !appContext.ui.ticketResult)
-      appContext.ui.screen = 'passport';
-    if (
-      ['visit', 'visit-share'].includes(appContext.ui.screen) &&
-      !appContext.data.visits[appContext.ui.visitKey]
-    )
-      appContext.ui.screen = 'passport';
+    // An address may name what is not there, or no longer.
+    appContext.screens.settle();
     currentEntry = {
       id: entry?.id || `${session}-${sequence++}`,
       depth: entry?.depth || 0,
@@ -127,34 +89,33 @@ export function createNavigation(appContext) {
     entries.set(currentEntry.id, currentEntry);
     history.replaceState({ ...history.state, passportNavigation: currentEntry }, '');
   }
-  function navigate(screen, id = appContext.ui.selected, replace = false) {
-    if (!appContext.screens.known(screen)) return;
-    rememberScroll();
+  // Whatever was under way on the page that is left is called off with it.
+  function leave() {
     appContext.claims.cancel();
     appContext.ui.ticketBusy = false;
     appContext.ui.claimBusy = false;
     appContext.dialogs.closeModal(false);
+  }
+  function navigate(screen, id = appContext.ui.selected, replace = false) {
+    if (!appContext.screens.known(screen)) return;
+    rememberScroll();
+    leave();
     if (!appContext.screens.keepsDraft(screen)) appContext.claims.clearTicketDraft();
     appContext.ui.screen = screen;
-    const memoryScreen = appContext.screens.about(screen) === 'visit';
-    appContext.ui.selected = memoryScreen ? id : subject(screen, id);
-    const day = memoryScreen
-      ? screen === 'ticket-success'
-        ? appContext.ui.ticketResult?.visitedAt
-        : appContext.data.visits[appContext.ui.visitKey]?.day
-      : null;
-    const hash =
-      screen === 'collector'
-        ? `#/collector/${appContext.ui.person}`
-        : screen === 'post'
-          ? `#/post/${appContext.ui.post}`
-          : `#/${screen}/${appContext.ui.selected}${day ? '/' + day : ''}`;
-    const page = pageState();
+    const about = appContext.screens.about(),
+      day = about === 'visit' && appContext.data.visits[appContext.ui.visitKey]?.day;
+    appContext.ui.selected = about === 'visit' ? id : subject(screen, id);
+    const address =
+      about === 'person'
+        ? appContext.ui.person
+        : about === 'post'
+          ? appContext.ui.post
+          : `${appContext.ui.selected}${day ? '/' + day : ''}`;
     currentEntry = {
       id: `${session}-${sequence++}`,
       depth: (currentEntry?.depth || 0) + (replace ? 0 : 1),
-      page,
-      scrollTop: appContext.runtime.scrollPositions[scrollKey(page)] || 0,
+      page: pageState(),
+      scrollTop: savedScroll(),
     };
     entries.set(currentEntry.id, currentEntry);
     history[replace ? 'replaceState' : 'pushState'](
@@ -162,7 +123,7 @@ export function createNavigation(appContext) {
         passportNavigation: currentEntry,
       },
       '',
-      hash,
+      `#/${screen}/${address}`,
     );
     appContext.render();
     appContext.dom.main.scrollTop = currentEntry.scrollTop;
@@ -173,10 +134,7 @@ export function createNavigation(appContext) {
   function restorePage() {
     // The location already points to the destination; retain the outgoing entry in memory.
     rememberPage();
-    appContext.claims.cancel();
-    appContext.ui.claimBusy = false;
-    appContext.ui.ticketBusy = false;
-    appContext.dialogs.closeModal(false);
+    leave();
     routeFromLocation();
     if (!appContext.screens.keepsDraft(appContext.ui.screen)) appContext.claims.clearTicketDraft();
     appContext.render();
@@ -188,55 +146,11 @@ export function createNavigation(appContext) {
       history.back();
       return;
     }
-    if (appContext.ui.screen === 'visit-share') {
-      appContext.navigation.navigate(
-        'visit',
-        appContext.data.visits[appContext.ui.visitKey].venueId,
-        true,
-      );
-      return;
-    }
-    if (appContext.ui.screen === 'share') {
-      appContext.navigation.navigate('stamp', appContext.ui.selected, true);
-      return;
-    }
-    if (
-      appContext.ui.screen === 'stamp' &&
-      appContext.ui.stampReturn &&
-      appContext.data.visits[appContext.ui.stampReturn]
-    ) {
-      appContext.navigation.openVisit(appContext.ui.stampReturn, true);
-      return;
-    }
-    if (appContext.ui.screen === 'ticket-confirm') {
-      appContext.navigation.navigate(
-        'ticket',
-        appContext.ui.ticketDraft?.venueId || appContext.ui.selected,
-        true,
-      );
-      return;
-    }
-    if (appContext.ui.screen === 'scan') {
-      appContext.navigation.navigate('venue', appContext.ui.selected, true);
-      return;
-    }
-    if (appContext.ui.screen === 'venue') {
-      appContext.navigation.navigate('discover', appContext.ui.selected, true);
-      return;
-    }
-    if (appContext.ui.screen === 'collector') {
-      appContext.navigation.navigate('collectors', appContext.ui.selected, true);
-      return;
-    }
-    if (appContext.ui.screen === 'post') {
-      appContext.navigation.navigate('square', appContext.ui.selected, true);
-      return;
-    }
-    // An overview share opened directly returns to the tab it shares.
-    if (['share-footprints', 'share-album'].includes(appContext.ui.screen))
-      appContext.ui.collection =
-        appContext.ui.screen === 'share-album' ? 'collected' : 'footprints';
-    appContext.navigation.navigate('passport', appContext.ui.selected, true);
+    // Opened directly, a page has nothing behind it: the way back leads to the page it belongs
+    // under, in place of it.
+    const parent = appContext.screens.parent();
+    if (typeof parent === 'function') parent();
+    else navigate(parent, appContext.ui.selected, true);
   }
   function openVisit(key, replace = false) {
     const v = appContext.data.visits[key];
@@ -252,6 +166,7 @@ export function createNavigation(appContext) {
     routeFromLocation,
     rememberPage,
     restorePage,
+    savedScroll,
     navigate,
     goBack,
     openVisit,

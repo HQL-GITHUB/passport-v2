@@ -1,0 +1,238 @@
+import { hashIdentity, visitKey } from '../../domain/visits.js';
+
+/**
+ * How the local backend writes the passport it keeps: the number a stamp is issued, how claims
+ * gather into visits, and how what the browser kept before is checked and brought up to date.
+ * A server will do all of this in its place.
+ */
+const cleanText = (v, max = 120) => (typeof v === 'string' ? v.slice(0, max) : '');
+
+const photo = (v) =>
+  typeof v === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(v) ? v : '';
+
+// Stand-in for the number a venue service would issue with each claim: later claims get larger numbers,
+// and a limited stamp never numbers past its edition size.
+function issueNumber(stampId, claimedAt, limit = Infinity) {
+  const perDay = 7 + (parseInt(hashIdentity(stampId), 16) % 12),
+    days = Math.max(0, Math.round((Date.parse(claimedAt) - Date.parse('2025-01-01')) / 86400000));
+  return Math.min(
+    limit,
+    1 + days * perDay + (parseInt(hashIdentity(stampId + claimedAt), 16) % perDay),
+  );
+}
+
+function ensure(data, venue, day, stampIds = [], ticketId = null) {
+  data.visits ||= {};
+  const id = visitKey(venue.id, day);
+  const row = (data.visits[id] ||= {
+    key: id,
+    venueId: venue.id,
+    name: venue.name,
+    city: venue.city,
+    exhibit: venue.exhibit || '',
+    day,
+    stampIds: [],
+    ticketIds: [],
+    note: '',
+    photo: '',
+  });
+  row.stampIds = [...new Set([...row.stampIds, ...stampIds])];
+  if (ticketId && !row.ticketIds.includes(ticketId)) row.ticketIds.push(ticketId);
+  return row;
+}
+
+/**
+ * Writes one claim into the passport: the stamps collected for a visit to `venue` on `day`, by
+ * `method`, on the day of the claim. A stamp held already keeps its number and its first day and
+ * gains the visit; a new one is numbered here, which is what a venue service will do in its place.
+ * The visit of that venue and day takes the stamps and, if there is one, the ticket.
+ */
+function applyClaim(data, { venue, stamps, day, method, claimedAt, ticketId = null }) {
+  const newIds = [];
+  for (const s of stamps) {
+    let r = data.records[s.id];
+    if (!r) {
+      newIds.push(s.id);
+      r = data.records[s.id] = {
+        firstAt: claimedAt,
+        issue: issueNumber(s.id, claimedAt, s.limit),
+        visits: [],
+        method,
+        events: [],
+        note: '',
+        photo: '',
+      };
+    }
+    r.events ||= r.visits.map((date) => ({
+      date,
+      method: r.method || 'qr',
+      claimedAt: r.firstAt,
+    }));
+    if (!r.visits.includes(day)) r.visits.push(day);
+    if (!r.events.some((e) => e.date === day && e.method === method))
+      r.events.push({ date: day, method, claimedAt });
+  }
+  const visit = ensure(
+    data,
+    venue,
+    day,
+    stamps.map((s) => s.id),
+    ticketId,
+  );
+  return { newIds, visit };
+}
+
+function normalize(raw, venues, stamps, validDay) {
+  const result = {
+    version: 3,
+    records: {},
+    wanted: [],
+    tickets: {},
+    visits: {},
+    posts: [],
+  };
+  const stampById = (id) => stamps.find((s) => s.id === id);
+  const base = (s) => venues.find((v) => v.id === s?.venueId);
+  const validVenue = (id) => venues.some((v) => v.id === id) || /^custom-[a-f0-9]+$/.test(id);
+  const methods = ['ticket', 'qr', 'nfc', 'legacy'];
+  // Records keep the order they were made in: stamps collected on the same day fill the album
+  // in that order.
+  for (const id of Object.keys(raw?.records || {})) {
+    const s = stampById(id),
+      r = raw.records[id];
+    if (!s || !r || !validDay(r.firstAt) || !Array.isArray(r.visits)) continue;
+    const visits = [...new Set(r.visits.filter(validDay))];
+    if (!visits.length) visits.push(r.firstAt);
+    const method = methods.includes(r.method) ? r.method : 'qr';
+    result.records[s.id] = {
+      firstAt: r.firstAt,
+      issue:
+        Number.isInteger(r.issue) && r.issue > 0 && r.issue <= (s.limit || Infinity)
+          ? r.issue
+          : issueNumber(s.id, r.firstAt, s.limit),
+      visits,
+      method,
+      events: Array.isArray(r.events)
+        ? r.events
+            .filter((e) => e && visits.includes(e.date))
+            .map((e) => ({
+              date: e.date,
+              method: methods.includes(e.method) ? e.method : method,
+              claimedAt: validDay(e.claimedAt) ? e.claimedAt : r.firstAt,
+            }))
+        : visits.map((day) => ({
+            date: day,
+            method,
+            claimedAt: r.firstAt,
+          })),
+      note: cleanText(r.note),
+      photo: photo(r.photo),
+    };
+  }
+  result.wanted = Array.isArray(raw?.wanted)
+    ? [...new Set(raw.wanted.filter((id) => venues.some((v) => v.id === id)))]
+    : [];
+  for (const [id, t] of Object.entries(raw?.tickets || {})) {
+    if (
+      !/^(demo|ticket)-[a-z0-9-]{1,100}$/.test(id) ||
+      !t ||
+      !validVenue(t.venueId) ||
+      !validDay(t.visitedAt)
+    )
+      continue;
+    result.tickets[id] = {
+      venueId: t.venueId,
+      visitedAt: t.visitedAt,
+      receivedAt: validDay(t.receivedAt) ? t.receivedAt : t.visitedAt,
+      redeemed: Array.isArray(t.redeemed)
+        ? [
+            ...new Set(
+              t.redeemed.filter((s) => result.records[s] && base(stampById(s))?.id === t.venueId),
+            ),
+          ]
+        : [],
+      saved: t.saved === true,
+      kind: t.kind === 'image' || (!t.kind && id.startsWith('ticket-')) ? 'image' : 'sample',
+      name: cleanText(t.name),
+      city: cleanText(t.city, 60),
+      exhibit: cleanText(t.exhibit),
+    };
+  }
+  for (const [id, v] of Object.entries(raw?.visits || {})) {
+    if (!v || !validVenue(v.venueId) || !validDay(v.day) || id !== visitKey(v.venueId, v.day))
+      continue;
+    const known = venues.find((item) => item.id === v.venueId);
+    if (!known && !cleanText(v.name).trim()) continue;
+    const row = ensure(
+      result,
+      {
+        id: v.venueId,
+        name: known?.name || cleanText(v.name),
+        city: known?.city || cleanText(v.city, 60),
+        exhibit: cleanText(v.exhibit),
+      },
+      v.day,
+    );
+    row.note = cleanText(v.note);
+    row.photo = photo(v.photo);
+    row.stampIds = Array.isArray(v.stampIds)
+      ? v.stampIds.filter(
+          (s) => result.records[s]?.visits.includes(v.day) && base(stampById(s))?.id === v.venueId,
+        )
+      : [];
+    row.ticketIds = Array.isArray(v.ticketIds)
+      ? v.ticketIds.filter(
+          (t) => result.tickets[t]?.venueId === v.venueId && result.tickets[t]?.visitedAt === v.day,
+        )
+      : [];
+  }
+  for (const s of stamps) {
+    const r = result.records[s.id];
+    if (!r) continue;
+    for (const day of r.visits) ensure(result, base(s), day, [s.id]);
+    const origin = r.visits.includes(r.firstAt) ? r.firstAt : [...r.visits].sort()[0];
+    const row = result.visits[visitKey(base(s).id, origin)];
+    if (raw?.version !== 3) {
+      if (!row.note) row.note = r.note;
+      if (!row.photo) row.photo = r.photo;
+    }
+  }
+  for (const [id, t] of Object.entries(result.tickets)) {
+    const venue = venues.find((v) => v.id === t.venueId) || {
+      id: t.venueId,
+      name: t.name,
+      city: t.city,
+      exhibit: t.exhibit,
+    };
+    if (venue.name) ensure(result, venue, t.visitedAt, t.redeemed, id);
+  }
+  // What the holder has put on the square: one post to a visit, with a copy of what was chosen to
+  // go with it. And the posts of others the holder liked.
+  for (const p of Array.isArray(raw?.posts) ? raw.posts : []) {
+    const v = p && result.visits[p.key];
+    if (!v || !validDay(p.at)) continue;
+    result.posts = result.posts.filter((item) => item.key !== p.key);
+    result.posts.push({
+      key: p.key,
+      stampIds: Array.isArray(p.stampIds) ? p.stampIds.filter((s) => v.stampIds.includes(s)) : [],
+      note: cleanText(p.note),
+      photo: photo(p.photo),
+      at: p.at,
+    });
+  }
+  result.liked = Array.isArray(raw?.liked)
+    ? [...new Set(raw.liked.filter((id) => typeof id === 'string' && /^[\w/-]{1,80}$/.test(id)))]
+    : [];
+  // What the holder shows of the passport to others: only what was switched on. Notes and
+  // photographs are shown with the visits they belong to, so not without the footprints.
+  const shown = raw?.profile?.public || {};
+  result.profile = {
+    public: {
+      album: shown.album === true,
+      footprints: shown.footprints === true,
+      memories: shown.footprints === true && shown.memories === true,
+    },
+  };
+  return result;
+}
+export { issueNumber, ensure as ensureVisit, applyClaim, normalize as normalizeData };

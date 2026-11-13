@@ -1,3 +1,5 @@
+import { icon, art, date, issue } from '../lib/format.js';
+
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createScanViews(appContext) {
   function renderScan() {
@@ -10,7 +12,7 @@ export function createScanViews(appContext) {
       <p class="scan-subtitle">${venue.name} · ${v.kind}</p>
       <div class="scan-area ${nfc ? 'nfc' : ''} ${appContext.ui.claimBusy ? 'claim-progress' : ''}">
         <div class="scan-brackets"></div>
-        ${appContext.format.art(v)}<span class="scan-line" aria-hidden="true"></span>
+        ${art(v)}<span class="scan-line" aria-hidden="true"></span>
       </div>
       <p class="scan-help">
         ${nfc ? '将手机靠近场馆的纪念章感应点' : '对准场馆内的纪念章领取码'}<small
@@ -19,7 +21,7 @@ export function createScanViews(appContext) {
       </p>
       <div id="page-actions"></div>
       <div class="scan-place">
-        ${appContext.format.icon('pin')}
+        ${icon('pin')}
         <div>
           <strong>${venue.location}</strong>
           <p>纪念章领取点</p>
@@ -28,13 +30,28 @@ export function createScanViews(appContext) {
       </div>
     </section>`;
   }
+  function scanActions() {
+    const owned = appContext.selectors.owned(appContext.selectors.venue());
+    return /* HTML */ `<div class="page-actions">
+      <button
+        class="button ${appContext.ui.claimBusy ? 'loading-dots' : ''}"
+        data-action="collect"
+        ${appContext.ui.claimBusy ? 'disabled' : ''}
+      >
+        ${appContext.ui.claimBusy ? '正在收入护照…' : owned ? '模拟再次到访' : '模拟现场领取'}
+      </button>
+    </div>`;
+  }
+  function successActions() {
+    return `<div class="page-actions success-footer"><button class="button" data-action="share">${icon('share')}分享这一刻</button><button class="button secondary" data-action="edit-memory">${icon('edit')}记录此刻的心情</button></div>`;
+  }
   function renderSuccess() {
     const v = appContext.selectors.stamp(),
       r = appContext.data.records[v.id],
       again = appContext.ui.duplicate,
       count = appContext.selectors.collected().length,
       total = appContext.catalog.stamps.length,
-      [, serial, edition = ''] = appContext.format.issue(r, v).match(/^No\. (\d+)(.*)$/);
+      [, serial, edition = ''] = issue(r, v).match(/^No\. (\d+)(.*)$/);
     // The stamp leads. Under it, what belongs to the stamp: its name and its number, set in the
     // stamp's own colour. Then what belongs to the collector: its place among their own stamps, or
     // the date of a return visit. The ceremony brings these in one by one and ends on the closing line.
@@ -54,7 +71,7 @@ export function createScanViews(appContext) {
       <p class="success-moment">
         ${
           again
-            ? `<b>${appContext.format.date(appContext.clock.today())}</b> · ${r.visits.length > 1 ? `第 ${r.visits.length} 次到访` : '今日到访'}`
+            ? `<b>${date(appContext.clock.today())}</b> · ${r.visits.length > 1 ? `第 ${r.visits.length} 次到访` : '今日到访'}`
             : `我的第 <strong>${count}</strong> 枚 · 已收入护照`
         }
       </p>
@@ -81,12 +98,14 @@ export function createScanViews(appContext) {
       aria-label="我的第 ${at + 1} 枚纪念章${again ? '' : '，已收入护照'}。查看章册"
     >
       ${first ? more : ''}
-      ${shown.map((s, i) => `<span class="shelf-item ${s === v ? 'shelf-current' : ''}">${appContext.format.art(s)}<i>${place(first + i + 1)}</i></span>`).join('')}
+      ${shown.map((s, i) => `<span class="shelf-item ${s === v ? 'shelf-current' : ''}">${art(s)}<i>${place(first + i + 1)}</i></span>`).join('')}
       ${first + shown.length < mine.length ? more : ''}
     </button>`;
   }
   return {
     renderScan,
+    scanActions,
     renderSuccess,
+    successActions,
   };
 }

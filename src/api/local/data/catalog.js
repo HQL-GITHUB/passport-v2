@@ -120,7 +120,7 @@ export const venues = [
 ];
 
 // The standing stamp of each venue, in the order of the venues. The first four are drawn on the
-// atlas and name their tile; the others have images of their own in data/assets.js.
+// atlas and name their tile; the others have images of their own in assets/index.js.
 export const stamps = [
   {
     id: 'museum',

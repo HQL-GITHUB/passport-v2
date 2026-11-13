@@ -1,15 +1,9 @@
 /** Application module. Dependencies are provided by createApp(). */
-export function createCommunityQueries(appContext) {
+export function createCommunitySelectors(appContext) {
   const onSite = (method) => method === 'qr' || method === 'nfc';
   // What the holder shows of the passport: nothing, until it is switched on.
   function visibility() {
     return { album: false, footprints: false, memories: false, ...appContext.data.profile?.public };
-  }
-  // The line under a note or a photograph, about who sees it: locked, unless its writer shows them.
-  function memoryPrivacy(kept) {
-    return appContext.selectors.visibility().memories
-      ? `${appContext.format.icon('check')}已随足迹公开，可在公开设置中关闭`
-      : `${appContext.format.icon('lock')}${kept}`;
   }
   // The other collectors as the pages read one: the stamps in the order they were collected,
   // each with its number, and the visits those stamps tell of. The backend answers them by id;
@@ -185,7 +179,6 @@ export function createCommunityQueries(appContext) {
   }
   return {
     visibility,
-    memoryPrivacy,
     me,
     person,
     people,

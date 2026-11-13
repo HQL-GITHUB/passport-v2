@@ -1,119 +1,34 @@
+import { icon } from '../lib/format.js';
+
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createShellViews(appContext) {
+  // A page of the navigation carries the brand; any other is a way back under its caption. Either
+  // ends with the buttons the page puts there.
   function renderHeader() {
-    if (['passport', 'discover', 'square', 'collectors'].includes(appContext.ui.screen)) {
-      // On the passport the header shares the open tab: the footprints or the album, once there
-      // is something in them. Among the collectors it leads to what the holder shows of it.
-      const tab = appContext.ui.collection,
-        // The discover page changes between its list and its map from here.
-        map = appContext.ui.discoverView === 'map',
-        share =
-          tab === 'footprints' && Object.keys(appContext.data.visits).length
-            ? '分享我的足迹'
-            : tab === 'collected' && Object.keys(appContext.data.records).length
-              ? '分享我的章册'
-              : '';
-      appContext.dom.header.innerHTML = `<div class="app-brand">${appContext.format.icon('passport', 'brand-icon')}旅行护照</div>${appContext.ui.screen === 'discover' ? `<div class="header-actions"><button class="ticket-home-entry view-toggle" data-action="discover-view">${appContext.format.icon(map ? 'list' : 'map')}${map ? '列表' : '地图'}</button><button class="city-button" data-action="choose-city">${appContext.format.icon('pin')}${appContext.format.safe(appContext.ui.city)}${appContext.format.icon('chevron')}</button></div>` : appContext.ui.screen === 'collectors' ? `<div class="header-actions"><button class="ticket-home-entry" data-action="visibility">${appContext.format.icon('lock')}公开设置</button></div>` : appContext.ui.screen === 'square' ? `<div class="header-actions"><button class="ticket-home-entry" data-action="publish-pick">${appContext.format.icon('edit')}分享到访</button></div>` : `<div class="header-actions">${share ? `<button class="collection-share" data-action="share-collection" aria-label="${share}">${appContext.format.icon('share')}</button>` : ''}<button class="ticket-home-entry" data-action="ticket-entry" data-id="${appContext.config.demoVenue}">${appContext.format.icon('ticket')}添加票根</button></div>`}`;
-      return;
-    }
-    // Looking at the passport as others see it, the header leads to what it shows.
-    const preview = appContext.ui.screen === 'collector' && appContext.ui.person === 'me';
-    appContext.dom.header.innerHTML = `<button class="header-back" data-action="back" aria-label="返回">${appContext.format.icon('back')}</button><span class="header-caption">${appContext.screens.caption()}</span>${preview ? '<button class="ticket-home-entry header-setting" data-action="visibility">公开设置</button>' : '<span style="width:28px" aria-hidden="true"></span>'}`;
+    const tools = appContext.screens.tools();
+    appContext.dom.header.innerHTML = appContext.screens.root()
+      ? `<div class="app-brand">${icon('passport', 'brand-icon')}旅行护照</div><div class="header-actions">${tools}</div>`
+      : `<button class="header-back" data-action="back" aria-label="返回">${icon('back')}</button><span class="header-caption">${appContext.screens.caption()}</span>${tools || '<span style="width:28px" aria-hidden="true"></span>'}`;
   }
   // The navigation stays under every page. A page's own actions sit in its content, in the
   // #page-actions slot its view leaves for them, so they can be refreshed without a full render.
   function renderFooter() {
     const screen = appContext.ui.screen,
-      root = ['passport', 'discover', 'square', 'post', 'collectors', 'collector'].includes(screen),
+      about = appContext.screens.about(),
       current = (name) => (screen === name ? 'aria-current="page" class="active"' : ''),
       // Already claiming: the middle button marks the place instead of starting over.
-      claiming = ['scan', 'ticket', 'ticket-confirm'].includes(screen),
+      claiming = appContext.screens.claiming(),
       // Where the middle button claims: at the venue in view, or else at the demonstration's.
-      here = (!root && appContext.selectors.venue()) || appContext.selectors.defaultVenue();
-    appContext.dom.footer.innerHTML = `<nav class="bottom-nav" aria-label="主要导航"><button data-action="discover" ${current('discover')}>${appContext.format.icon('compass')}发现</button><button data-action="square" ${current('square')}>${appContext.format.icon('plaza')}广场</button><button class="nav-claim" ${claiming ? 'aria-current="page"' : `data-action="scan" data-id="${here.id}"`} aria-label="现场盖章">${appContext.format.icon('scan')}<span>盖章</span></button><button data-action="collectors" ${current('collectors')}>${appContext.format.icon('medal')}收藏家</button><button data-action="passport" ${current('passport')}>${appContext.format.icon('passport')}护照</button></nav>`;
+      // A page of the navigation has none in view, nor has a collector's passport or a post.
+      here =
+        (!appContext.screens.root() &&
+          about !== 'person' &&
+          about !== 'post' &&
+          appContext.selectors.venue()) ||
+        appContext.selectors.defaultVenue();
+    appContext.dom.footer.innerHTML = `<nav class="bottom-nav" aria-label="主要导航"><button data-action="discover" ${current('discover')}>${icon('compass')}发现</button><button data-action="square" ${current('square')}>${icon('plaza')}广场</button><button class="nav-claim" ${claiming ? 'aria-current="page"' : `data-action="scan" data-id="${here.id}"`} aria-label="现场盖章">${icon('scan')}<span>盖章</span></button><button data-action="collectors" ${current('collectors')}>${icon('medal')}收藏家</button><button data-action="passport" ${current('passport')}>${icon('passport')}护照</button></nav>`;
     const slot = document.getElementById('page-actions');
-    if (slot) slot.innerHTML = pageActions();
-  }
-  function pageActions() {
-    const s = appContext.selectors.stamp(),
-      owned = !!s && !!appContext.data.records[s.id];
-    if (
-      ['passport', 'discover', 'square', 'post', 'collectors', 'collector'].includes(
-        appContext.ui.screen,
-      )
-    )
-      return '';
-    if (appContext.ui.screen === 'venue') {
-      return `<div class="page-actions"><button class="button" data-action="scan">${appContext.format.icon('scan')}${owned ? '再次到馆盖章' : '到馆领取纪念章'}</button></div>`;
-    }
-    if (appContext.ui.screen === 'stamp') {
-      const historic = s.period && s.period[1] < appContext.clock.today();
-      return `<div class="page-actions"><button class="button" data-action="${owned ? 'share' : historic ? 'ticket-entry' : 'scan'}" ${owned ? '' : `data-id="${s.venueId}"`}>${appContext.format.icon(owned ? 'share' : historic ? 'ticket' : 'scan')}${owned ? '分享这枚纪念' : historic ? '用票根补领这枚章' : '到馆领取这枚章'}</button></div>`;
-    }
-    if (appContext.ui.screen === 'scan') {
-      return /* HTML */ `<div class="page-actions">
-        <button
-          class="button ${appContext.ui.claimBusy ? 'loading-dots' : ''}"
-          data-action="collect"
-          ${appContext.ui.claimBusy ? 'disabled' : ''}
-        >
-          ${appContext.ui.claimBusy ? '正在收入护照…' : owned ? '模拟再次到访' : '模拟现场领取'}
-        </button>
-      </div>`;
-    }
-    if (appContext.ui.screen === 'success') {
-      return `<div class="page-actions success-footer"><button class="button" data-action="share">${appContext.format.icon('share')}分享这一刻</button><button class="button secondary" data-action="edit-memory">${appContext.format.icon('edit')}记录此刻的心情</button></div>`;
-    }
-    if (
-      ['share', 'visit-share', 'share-footprints', 'share-album'].includes(appContext.ui.screen)
-    ) {
-      // The card of a single visit can also go to the square; the overviews are only saved.
-      const single = ['share', 'visit-share'].includes(appContext.ui.screen),
-        posted = single && appContext.selectors.myPost(appContext.selectors.currentVisit().key);
-      return `<div class="page-actions"><button class="button" data-action="download-card">${appContext.format.icon('download')}保存旅行卡</button>${single ? `<button class="button secondary" data-action="publish-post">${appContext.format.icon('plaza')}${posted ? '重新发布到广场' : '发布到广场'}</button><p class="publish-note">发布的是纪念章、到访日期和勾选的感想、照片，不包含票根</p>` : ''}</div>`;
-    }
-    if (appContext.ui.screen === 'visit') {
-      return `<div class="page-actions"><button class="button" data-action="visit-share">${appContext.format.icon('share')}分享这次到访</button></div>`;
-    }
-    if (appContext.ui.screen === 'ticket') {
-      return /* HTML */ `<div class="page-actions">
-        <button
-          class="button ${appContext.ui.ticketBusy ? 'loading-dots' : ''}"
-          data-action="recognize-ticket"
-          ${appContext.ui.ticketBusy ? 'disabled' : ''}
-        >
-          ${appContext.ui.ticketBusy ? (appContext.ui.ticketBusy === 'image' ? '正在准备票根…' : '正在演示识别…') : appContext.ui.ticketDraft?.image ? '模拟识别票根' : '用示例票根体验'}${appContext.ui.ticketBusy ? '' : appContext.format.icon('arrow')}
-        </button>
-      </div>`;
-    }
-    if (appContext.ui.screen === 'ticket-confirm') {
-      const d = appContext.ui.ticketDraft,
-        r = appContext.data.tickets[d.id],
-        rewards = appContext.selectors.selectedTicketRewards(),
-        complete =
-          !!r && appContext.selectors.ticketRewards(d).every((s) => r.redeemed.includes(s.id)),
-        viewOnly = complete && (!d.saveTicket || r.saved),
-        label = viewOnly
-          ? '查看这次到访'
-          : rewards.length
-            ? `确认收藏 ${rewards.length} 枚纪念章`
-            : '保存这次到访';
-      return /* HTML */ `<div class="page-actions">
-        <p class="demo-notice">
-          ${viewOnly ? '到访与已领取的纪念章均已保留' : d.saveTicket ? '票根同时入册 · 默认仅自己可见' : '只保存到访信息与所选纪念章'}
-        </p>
-        <button
-          class="button ${appContext.ui.claimBusy ? 'loading-dots' : ''}"
-          data-action="${viewOnly ? 'view-ticket-record' : 'redeem-ticket'}"
-          ${appContext.ui.claimBusy ? 'disabled' : ''}
-        >
-          ${appContext.ui.claimBusy ? '正在收藏这一页…' : label}${appContext.ui.claimBusy ? '' : appContext.format.icon('arrow')}
-        </button>
-      </div>`;
-    }
-    if (appContext.ui.screen === 'ticket-success')
-      return `<div class="page-actions success-footer"><button class="button" data-action="ticket-visit">查看这次到访${appContext.format.icon('arrow')}</button><button class="button secondary" data-action="passport">回到我的护照</button></div>`;
-    return '';
+    if (slot) slot.innerHTML = appContext.screens.actions();
   }
   function renderClaimModes() {
     const active = appContext.ui.screen === 'ticket' ? 'ticket' : appContext.ui.scanMode;
@@ -124,7 +39,7 @@ export function createShellViews(appContext) {
     ]
       .map(
         ([value, mark, label]) =>
-          `<button class="${active === value ? 'active' : ''}" data-action="scan-mode" data-value="${value}" aria-pressed="${active === value}">${appContext.format.icon(mark)}${label}</button>`,
+          `<button class="${active === value ? 'active' : ''}" data-action="scan-mode" data-value="${value}" aria-pressed="${active === value}">${icon(mark)}${label}</button>`,
       )
       .join('')}</div>`;
   }

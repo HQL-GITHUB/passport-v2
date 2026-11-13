@@ -35,19 +35,6 @@ export function createClaimActions(appContext) {
       appContext.navigation.openVisit(appContext.domain.key(t.venueId, t.visitedAt));
     },
     'ticket-visit': () => appContext.navigation.openVisit(appContext.ui.ticketResult.visitKey),
-    'ticket-passport'() {
-      const result = appContext.ui.ticketResult;
-      appContext.ui.collection = 'footprints';
-      appContext.ui.highlightVisit = result.visitKey;
-      appContext.navigation.navigate('passport', result.venueId);
-      requestAnimationFrame(() =>
-        appContext.dom.main
-          .querySelector(`[data-visit-key="${appContext.ui.highlightVisit}"]`)
-          ?.scrollIntoView({
-            block: 'center',
-          }),
-      );
-    },
     'view-ticket'(button) {
       appContext.ui.viewingTicket = button.dataset.ticketId;
       appContext.dialogs.openModal('ticket-view');

@@ -1,3 +1,5 @@
+import { icon, art } from '../lib/format.js';
+
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createMapViews(appContext) {
   // The two invented cities on one drawn map, 360 across and 540 down: 云川 among the hills where
@@ -5,7 +7,7 @@ export function createMapViews(appContext) {
   // white, water is a pale blue; the band at the top stays clear for the panel laid over it. It is
   // a sketch to find the venues on, not the map of any real place, so it is free to stretch: the
   // sheet takes whatever room the screen has, and the drawing is pulled to fit it.
-  const art = /* HTML */ `<svg
+  const drawing = /* HTML */ `<svg
     class="map-art"
     viewBox="0 0 360 540"
     preserveAspectRatio="none"
@@ -75,7 +77,7 @@ export function createMapViews(appContext) {
     if (!shown.has(appContext.ui.mapVenue)) appContext.ui.mapVenue = null;
     return /* HTML */ `<div id="venue-map" class="venue-map" role="group" aria-label="目的地地图">
       <div class="map-panel" aria-live="polite">${mapPanel()}</div>
-      ${art}${cities}${appContext.catalog.venues.map((v) => mapPin(v, shown.has(v.id))).join('')}
+      ${drawing}${cities}${appContext.catalog.venues.map((v) => mapPin(v, shown.has(v.id))).join('')}
     </div>`;
   }
   function mapPin(v, shown) {
@@ -92,11 +94,11 @@ export function createMapViews(appContext) {
       ${shown ? '' : 'inert'}
     >
       <span class="pin-seal"
-        >${appContext.format.art(appContext.catalog.stampOf(v))}${
+        >${art(appContext.catalog.stampOf(v))}${
           owned
-            ? `<i class="pin-mark">${appContext.format.icon('check')}</i>`
+            ? `<i class="pin-mark">${icon('check')}</i>`
             : wanted
-              ? `<i class="pin-mark want">${appContext.format.icon('heart')}</i>`
+              ? `<i class="pin-mark want">${icon('heart')}</i>`
               : ''
         }</span
       ><span class="pin-name">${v.name}</span>
@@ -113,14 +115,13 @@ export function createMapViews(appContext) {
         s = appContext.catalog.stampOf(v),
         owned = appContext.selectors.owned(v);
       return /* HTML */ `<button class="map-card" data-action="venue" data-id="${v.id}">
-        <span class="map-thumb"
-          >${photo ? `<img src="${photo}" alt="" />` : appContext.format.art(s)}</span
+        <span class="map-thumb">${photo ? `<img src="${photo}" alt="" />` : art(s)}</span
         ><span class="map-copy"
           ><strong>${v.name}</strong><small>${v.city} · ${v.exhibit}</small
           ><small class="map-state ${owned ? 'owned' : ''}"
             >${owned ? '馆章已收藏' : `${appContext.data.wanted.includes(v.id) ? '想去 · ' : ''}到馆可领取「${s.title}」`}</small
           ></span
-        >${appContext.format.icon('chevron')}
+        >${icon('chevron')}
       </button>`;
     }
     if (!list.length)
@@ -132,9 +133,8 @@ export function createMapViews(appContext) {
       <strong
         >已点亮 <b>${list.filter(appContext.selectors.owned).length}</b> / ${list.length}</strong
       ><span class="map-legend"
-        ><i class="owned">${appContext.format.icon('check')}</i>已收藏<i class="open"></i>待出发<i
-          class="want"
-          >${appContext.format.icon('heart')}</i
+        ><i class="owned">${icon('check')}</i>已收藏<i class="open"></i>待出发<i class="want"
+          >${icon('heart')}</i
         >想去</span
       >
     </div>`;

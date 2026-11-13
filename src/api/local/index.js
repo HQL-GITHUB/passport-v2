@@ -1,16 +1,11 @@
-import { venues, stamps } from '../data/catalog.js';
-import { collectors, posts } from '../data/collectors.js';
-import { createDemoData } from '../data/demo-data.js';
-import { createCatalog } from '../domain/catalog.js';
-import { applyClaim, eligibleStamps } from '../domain/claims.js';
-import {
-  hashIdentity,
-  isValidDay,
-  issueNumber,
-  normalizeData,
-  visitKey,
-} from '../domain/visits.js';
-import { imageUrl } from '../lib/images.js';
+import { venues, stamps } from './data/catalog.js';
+import { collectors, posts } from './data/collectors.js';
+import { createDemoData } from './data/demo-data.js';
+import { createCatalog } from '../../domain/catalog.js';
+import { eligibleStamps } from '../../domain/claims.js';
+import { hashIdentity, isValidDay, visitKey } from '../../domain/visits.js';
+import { createImageUrls } from '../../lib/images.js';
+import { applyClaim, issueNumber, normalizeData } from './passport.js';
 
 class ApiError extends Error {
   constructor(code) {
@@ -62,13 +57,7 @@ export function createLocalApi({ config, clock, media, photos = {}, pace = 1 }) 
     normalize = (raw) => normalizeData(raw, venues, stamps, validDay),
     // The single-file build inlines every image as a data URL of several megabytes. The pages,
     // which are written as HTML strings, refer to each by a short URL instead.
-    blobUrls = [],
-    short = (src) => {
-      if (!src) return '';
-      const url = imageUrl(src);
-      if (url !== src) blobUrls.push(url);
-      return url;
-    };
+    urls = createImageUrls();
 
   function read() {
     let raw;
@@ -136,8 +125,8 @@ export function createLocalApi({ config, clock, media, photos = {}, pace = 1 }) 
       return {
         venues: venues.map((v) => ({
           ...v,
-          photo: short(photos.venues?.[v.id]),
-          thumb: short(photos.venueThumbs?.[v.id]),
+          photo: urls.short(photos.venues?.[v.id]),
+          thumb: urls.short(photos.venueThumbs?.[v.id]),
         })),
         stamps: stamps.map((s) => ({
           ...s,
@@ -394,8 +383,6 @@ export function createLocalApi({ config, clock, media, photos = {}, pace = 1 }) 
       return { data: structuredClone(db) };
     },
 
-    dispose() {
-      blobUrls.forEach((url) => URL.revokeObjectURL(url));
-    },
+    dispose: urls.dispose,
   };
 }

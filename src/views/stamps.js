@@ -1,3 +1,5 @@
+import { safe, icon, art, date, issue, visitMethods } from '../lib/format.js';
+
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createStampViews(appContext) {
   function renderStamp() {
@@ -12,28 +14,26 @@ export function createStampViews(appContext) {
             data-key="${visit.key}"
           >
             <span
-              >${appContext.format.icon('book')}翻开这次到访的记忆<small
+              >${icon('book')}翻开这次到访的记忆<small
                 >${appContext.selectors.savedTickets(visit).length} 张票根 · 照片与感想</small
               ></span
-            >${appContext.format.icon('chevron')}
+            >${icon('chevron')}
           </button>
           <section class="memory-block">
             <div class="memory-header">
               <h3>这一站的记忆</h3>
               <button data-action="edit-memory">
-                ${appContext.format.icon('edit')}${visit.note || visit.photo ? '编辑记忆' : '留下一笔'}
+                ${icon('edit')}${visit.note || visit.photo ? '编辑记忆' : '留下一笔'}
               </button>
             </div>
-            ${visit.note ? /* HTML */ `<p class="memory-note">${appContext.format.safe(visit.note)}</p>` : !visit.photo ? '<p class="memory-empty">一张照片，一句话。<br>把当时的心情，也一起收藏。</p>' : ''}${visit.photo ? `<img class="memory-photo" src="${appContext.format.safe(visit.photo)}" alt="这次参观的个人照片">` : ''}
-            <p class="privacy">
-              ${appContext.selectors.memoryPrivacy('仅自己可见，分享时可自行选择')}
-            </p>
+            ${visit.note ? /* HTML */ `<p class="memory-note">${safe(visit.note)}</p>` : !visit.photo ? '<p class="memory-empty">一张照片，一句话。<br>把当时的心情，也一起收藏。</p>' : ''}${visit.photo ? `<img class="memory-photo" src="${safe(visit.photo)}" alt="这次参观的个人照片">` : ''}
+            <p class="privacy">${appContext.views.memoryPrivacy('仅自己可见，分享时可自行选择')}</p>
           </section>`
       : `<div class="stamp-unowned">${v.period ? '展览已经结束，可以用当时的票根补领纪念。' : `前往${venue.name}，把这枚纪念收入护照。`}</div>`;
     return /* HTML */ `<section class="page stamp-page ${r ? '' : 'unowned'} screen-enter">
       <div class="stamp-intro">
-        <span class="stamp-category">${appContext.format.icon('book')}${v.kind}</span
-        >${r ? '' : `<span class="stamp-category pending">${appContext.format.icon('lock')}尚未收藏</span>`}
+        <span class="stamp-category">${icon('book')}${v.kind}</span
+        >${r ? '' : `<span class="stamp-category pending">${icon('lock')}尚未收藏</span>`}
         <h1 class="stamp-title">${v.title}</h1>
         <p class="stamp-subtitle">${venue.name} · ${venue.city}</p>
       </div>
@@ -44,15 +44,21 @@ export function createStampViews(appContext) {
           aria-label="放大欣赏${v.title}纪念章"
         >
           <span class="stamp-ground" aria-hidden="true"></span>${renderMedal(v, r)}</button
-        ><span class="zoom-hint"
-          >${appContext.format.icon('search')}${r ? '点击翻看章面' : '点击预览章面'}</span
-        >
+        ><span class="zoom-hint">${icon('search')}${r ? '点击翻看章面' : '点击预览章面'}</span>
       </div>
       <p class="stamp-description">${v.description}</p>
       ${renderEdition(v)}
       ${r ? `<div id="page-actions"></div>${memory}` : `${memory}<div id="page-actions"></div>`}
       ${appContext.views.renderHolders(v)}
     </section>`;
+  }
+  // A stamp in the passport is shared; one still to collect says how to get it: on site, or with
+  // a ticket once its exhibition has ended.
+  function stampActions() {
+    const s = appContext.selectors.stamp(),
+      owned = !!appContext.data.records[s.id],
+      historic = s.period && s.period[1] < appContext.clock.today();
+    return `<div class="page-actions"><button class="button" data-action="${owned ? 'share' : historic ? 'ticket-entry' : 'scan'}" ${owned ? '' : `data-id="${s.venueId}"`}>${icon(owned ? 'share' : historic ? 'ticket' : 'scan')}${owned ? '分享这枚纪念' : historic ? '用票根补领这枚章' : '到馆领取这枚章'}</button></div>`;
   }
   function renderEdition(v) {
     const e = appContext.selectors.edition(v);
@@ -67,7 +73,7 @@ export function createStampViews(appContext) {
         <i style="width:${((e.issued / e.limit) * 100).toFixed(1)}%"></i>
       </div>
       <p>
-        ${e.left > 0 ? `还剩 ${count(e.left)} 枚，发完即止。` : '已全部发行完毕。'}${v.period ? `仅限 ${appContext.format.date(v.period[0])} – ${appContext.format.date(v.period[1])} 的参观领取。` : ''}
+        ${e.left > 0 ? `还剩 ${count(e.left)} 枚，发完即止。` : '已全部发行完毕。'}${v.period ? `仅限 ${date(v.period[0])} – ${date(v.period[1])} 的参观领取。` : ''}
       </p>
     </div>`;
   }
@@ -81,7 +87,7 @@ export function createStampViews(appContext) {
           ${Array.from({ length: 30 }, (_, n) => `<i style="transform:rotate(${n * 6}deg);--lit:${Math.cos((n * Math.PI) / 30).toFixed(2)}"></i>`).join('')}
         </div>
         <div class="medal-face medal-front">
-          ${appContext.format.art(v)}<span class="medal-sheen"></span
+          ${art(v)}<span class="medal-sheen"></span
           ><span class="stamp-sheen" aria-hidden="true"></span>
         </div>
         ${
@@ -90,8 +96,8 @@ export function createStampViews(appContext) {
                 <small>旅行护照</small>
                 <strong>${v.title}</strong>
                 <span>${venue.name} · ${venue.city}</span>
-                <b>${appContext.format.date(appContext.format.selectedVisit(r))}</b>
-                <em>${appContext.format.issue(r, v)}</em>
+                <b>${date(appContext.selectors.selectedVisit(r))}</b>
+                <em>${issue(r, v)}</em>
                 <svg class="medal-rim" viewBox="0 0 200 200" aria-hidden="true">
                   <defs><path id="medal-rim-arc" d="M7 100A93 93 0 0 0 193 100" /></defs>
                   <text>
@@ -111,25 +117,40 @@ export function createStampViews(appContext) {
   // Turns the medal over for those who cannot tap or drag it. It sits at the medal's lower right;
   // MedalViewer wires it up and keeps its label in step with the side shown.
   function renderMedalFlip() {
-    return `<button class="medal-flip" data-medal-flip aria-pressed="false" aria-label="翻到背面" title="翻到背面">${appContext.format.icon('flip')}</button>`;
+    return `<button class="medal-flip" data-medal-flip aria-pressed="false" aria-label="翻到背面" title="翻到背面">${icon('flip')}</button>`;
+  }
+  // A stamp at full size, to tilt and, once it is collected, to turn over: the one named, or the
+  // one the page is about. What it opens with is also what its MedalViewer is set up with.
+  function zoomDialog(stampId) {
+    const stamp = appContext.catalog.stamp(stampId) || appContext.selectors.stamp(),
+      record = appContext.data.records[stamp.id],
+      animate = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return {
+      title: stamp.title,
+      state: { viewer: null, canFlip: !!record, animate },
+      body: /* HTML */ `<div class="zoom-medal">
+          ${renderMedal(stamp, record)}${record ? renderMedalFlip() : ''}
+        </div>
+        <p class="modal-sub">${appContext.catalog.venueOf(stamp).name} · ${stamp.kind}</p>
+        <p class="medal-hint">
+          ${record ? (animate ? '拖动章面，翻看背面的到访印记。' : '背面刻着这次到访的日期与编号。') : animate ? '拖动可以倾斜章面，收藏后可翻看背面。' : '收藏后，可以翻看背面的到访印记。'}
+        </p>`,
+    };
   }
   function renderVisitTicket(v, r) {
-    const day = appContext.format.selectedVisit(r);
+    const day = appContext.selectors.selectedVisit(r);
     return /* HTML */ `<div class="visit-ticket">
         <div class="visit-ticket-top">
-          <span>我的到访印记</span
-          ><span class="subtle-label">${appContext.format.icon('check')}已收藏</span>
+          <span>我的到访印记</span><span class="subtle-label">${icon('check')}已收藏</span>
         </div>
         <div class="visit-ticket-body">
           <div>
-            <p class="visit-date">${appContext.format.date(day)}</p>
-            <p class="visit-city">
-              ${appContext.format.icon('pin')}${appContext.catalog.venueOf(v).city} · 参观日期
-            </p>
+            <p class="visit-date">${date(day)}</p>
+            <p class="visit-city">${icon('pin')}${appContext.catalog.venueOf(v).city} · 参观日期</p>
           </div>
           <div class="visit-ticket-number">
             <div class="visit-number-bars" aria-hidden="true"></div>
-            <b>${appContext.format.issue(r, v)}</b>
+            <b>${issue(r, v)}</b>
           </div>
         </div>
         <dl class="visit-provenance">
@@ -139,11 +160,11 @@ export function createStampViews(appContext) {
           </div>
           <div>
             <dt>领取方式</dt>
-            <dd>${appContext.format.visitMethods(r, day)}</dd>
+            <dd>${visitMethods(r, day)}</dd>
           </div>
           <div>
             <dt>首次领取</dt>
-            <dd>${appContext.format.date(r.firstAt)}</dd>
+            <dd>${date(r.firstAt)}</dd>
           </div>
         </dl>
       </div>
@@ -157,7 +178,7 @@ export function createStampViews(appContext) {
                   .reverse()
                   .map(
                     (value) =>
-                      `<button data-action="select-visit" data-value="${value}" class="${value === day ? 'active' : ''}" aria-pressed="${value === day}">${appContext.format.date(value)}</button>`,
+                      `<button data-action="select-visit" data-value="${value}" class="${value === day ? 'active' : ''}" aria-pressed="${value === day}">${date(value)}</button>`,
                   )
                   .join('')}
               </div>
@@ -167,8 +188,10 @@ export function createStampViews(appContext) {
   }
   return {
     renderStamp,
+    stampActions,
     renderMedal,
     renderMedalFlip,
+    zoomDialog,
     renderVisitTicket,
   };
 }

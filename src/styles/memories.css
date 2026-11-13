@@ -70,9 +70,6 @@
   overflow: hidden;
   box-shadow: 0 3px 9px color-mix(in srgb, var(--shadow) 2%, transparent);
 }
-.footprint-card.visit-highlight {
-  border-color: var(--accent-line);
-}
 .footprint-open {
   width: 100%;
   display: block;

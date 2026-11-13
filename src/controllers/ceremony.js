@@ -1,3 +1,5 @@
+import { art } from '../lib/format.js';
+
 /** Plays the stamping ceremony once after a claim. Timing lives here; the stylesheet only holds keyframes. */
 export function createCeremony(appContext) {
   const DROP = 620,
@@ -90,7 +92,7 @@ export function createCeremony(appContext) {
         el.className = `claim-mark medal-${v.art} ${v.edition ? 'medal-edition' : ''}`;
         // No two stamps sit quite straight on the page; this one comes down as it will lie.
         el.style.cssText = `left:${box.left - frame.left}px;top:${box.top - frame.top}px;width:${box.width}px;height:${box.height}px;--lean:${lean === 'none' ? '0deg' : lean}`;
-        el.innerHTML = `<i class="claim-seat"></i><i class="claim-shadow"></i><i class="claim-ring"></i><span class="claim-die">${appContext.format.art(v)}</span>`;
+        el.innerHTML = `<i class="claim-seat"></i><i class="claim-shadow"></i><i class="claim-ring"></i><span class="claim-die">${art(v)}</span>`;
         holder.append(el);
         return {
           el,

@@ -10,6 +10,29 @@ export function imageUrl(src) {
   return URL.createObjectURL(new Blob([bytes], { type: head.slice(5).split(';')[0] }));
 }
 
+/** Makes the short URLs of inlined images, and keeps them to let go of together. */
+export function createImageUrls() {
+  const made = [];
+  return {
+    short(src) {
+      if (!src) return '';
+      const url = imageUrl(src);
+      if (url !== src) made.push(url);
+      return url;
+    },
+    dispose() {
+      made.forEach((url) => URL.revokeObjectURL(url));
+    },
+  };
+}
+
+// A picture a visitor can bring in: a photograph or a screenshot, of a size a phone takes.
+export function importable(file) {
+  return (
+    ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) && file.size <= 10 * 1024 * 1024
+  );
+}
+
 export function loadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();

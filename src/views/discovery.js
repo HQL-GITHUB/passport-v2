@@ -1,3 +1,5 @@
+import { safe, icon, art } from '../lib/format.js';
+
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createDiscoveryViews(appContext) {
   // A photograph fades in when it arrives; one that has been shown before is simply there, so
@@ -24,7 +26,7 @@ export function createDiscoveryViews(appContext) {
       <span class="venue-thumb ${photo ? 'has-photo' : ''}"
         >${photo ? `<img src="${photo}" alt="" loading="lazy" decoding="async" ${fade(photo)}>` : ''}<span
           class="venue-seal"
-          >${appContext.format.art(appContext.catalog.stampOf(v))}${owned ? `<span class="venue-status" role="img" aria-label="馆章已收藏">${appContext.format.icon('check')}</span>` : ''}</span
+          >${art(appContext.catalog.stampOf(v))}${owned ? `<span class="venue-status" role="img" aria-label="馆章已收藏">${icon('check')}</span>` : ''}</span
         ></span
       ><span class="venue-copy"
         ><h3>${v.name}</h3>
@@ -77,14 +79,13 @@ export function createDiscoveryViews(appContext) {
     return /* HTML */ `<section class="page discover-page ${map ? 'map-open' : ''} screen-enter">
       <h1 class="sr-only">发现下一站</h1>
       <div class="search-box">
-        ${appContext.format.icon('search')}<label class="sr-only" for="venue-search"
-          >搜索场馆或展览</label
+        ${icon('search')}<label class="sr-only" for="venue-search">搜索场馆或展览</label
         ><input
           id="venue-search"
           data-input="search"
           type="search"
           placeholder="每一次探索，都值得留下印记"
-          value="${appContext.format.safe(appContext.ui.query)}"
+          value="${safe(appContext.ui.query)}"
           autocomplete="off"
         /><button
           class="icon-button"
@@ -92,7 +93,7 @@ export function createDiscoveryViews(appContext) {
           aria-label="清空搜索"
           ${appContext.ui.query ? '' : 'hidden'}
         >
-          ${appContext.format.icon('close')}
+          ${icon('close')}
         </button>
       </div>
       ${
@@ -126,6 +127,64 @@ export function createDiscoveryViews(appContext) {
       }
     </section>`;
   }
+  // In the header: the change between the list and the map, and the city.
+  function discoverTools() {
+    const map = appContext.ui.discoverView === 'map';
+    return `<button class="ticket-home-entry view-toggle" data-action="discover-view">${icon(map ? 'list' : 'map')}${map ? '列表' : '地图'}</button><button class="city-button" data-action="choose-city">${icon('pin')}${safe(appContext.ui.city)}${icon('chevron')}</button>`;
+  }
+  function cityDialog() {
+    return {
+      title: '选择下一站的城市',
+      body: `<div class="choice-list">${['全部城市', ...appContext.catalog.cities].map((city) => `<button data-action="set-city" data-value="${city}" class="${appContext.ui.city === city ? 'active' : ''}">${city}${appContext.ui.city === city ? icon('check') : ''}</button>`).join('')}</div>`,
+    };
+  }
+  // Where in the venue in view its stamp is collected, on a sketch of the floor.
+  function guideDialog() {
+    const venue = appContext.selectors.venue();
+    return {
+      title: '找到这枚纪念章',
+      body: /* HTML */ `<p class="modal-sub">${venue.name} · 示例楼层指引</p>
+        <svg
+          class="guide-map"
+          viewBox="0 0 340 180"
+          role="img"
+          aria-label="从入口经过大厅，到参观出口的纪念章台"
+        >
+          <rect
+            x="20"
+            y="23"
+            width="300"
+            height="134"
+            rx="8"
+            fill="var(--paper)"
+            stroke="var(--line-strong)"
+          />
+          <path d="M127 23v57h70v-57M127 157V99h70v58" stroke="var(--line-strong)" fill="none" />
+          <path
+            d="M55 116h72V90h92v27h47"
+            stroke="var(--accent)"
+            stroke-width="2"
+            stroke-dasharray="5 5"
+            fill="none"
+          />
+          <circle cx="55" cy="116" r="5" fill="var(--accent-line)" stroke="none" />
+          <circle cx="269" cy="117" r="11" fill="var(--accent)" stroke="none" />
+          <path d="m264 117 3 3 6-6" stroke="var(--on-fill)" fill="none" stroke-width="2" />
+          <text x="43" y="138">入口</text>
+          <text x="145" y="58">公共大厅</text>
+          <text x="220" y="138" class="guide-label">纪念章台</text>
+          <text x="227" y="64">参观出口</text>
+        </svg>
+        <p class="guide-description">
+          ${venue.location}。<br />参观结束后，寻找“旅行护照”领取标识。
+        </p>
+        <button class="button" data-action="close-modal">知道了</button>`,
+    };
+  }
+  function venueActions() {
+    const owned = appContext.selectors.owned(appContext.selectors.venue());
+    return `<div class="page-actions"><button class="button" data-action="scan">${icon('scan')}${owned ? '再次到馆盖章' : '到馆领取纪念章'}</button></div>`;
+  }
   function renderVenue() {
     const v = appContext.selectors.venue(),
       s = appContext.catalog.stampOf(v),
@@ -135,7 +194,7 @@ export function createDiscoveryViews(appContext) {
     // Saving the place for later belongs to the venue, so it sits by its name. The stamp and the
     // way to claim it are one panel: what can be collected here, and the button that collects it.
     return /* HTML */ `<section class="page venue-page screen-enter">
-      ${photo ? `<img class="venue-photo" src="${photo}" alt="${v.name}概念建筑">` : `<div class="venue-poster" data-word="${v.word}">${appContext.format.art(s)}</div>`}
+      ${photo ? `<img class="venue-photo" src="${photo}" alt="${v.name}概念建筑">` : `<div class="venue-poster" data-word="${v.word}">${art(s)}</div>`}
       <div class="venue-inner">
         <div class="venue-heading">
           <div>
@@ -148,33 +207,33 @@ export function createDiscoveryViews(appContext) {
             aria-label="${wanted ? '取消想去收藏' : '收藏为想去'}"
             aria-pressed="${wanted}"
           >
-            ${appContext.format.icon('heart')}想去
+            ${icon('heart')}想去
           </button>
         </div>
         <p class="venue-intro">${v.intro}</p>
         <div class="venue-stamp">
           <button class="venue-chapter" data-action="stamp" data-id="${s.id}">
-            ${appContext.format.art(s)}<span style="flex:1"
+            ${art(s)}<span style="flex:1"
               ><small>这次到访，可以收藏</small>
               <h3>${s.title}</h3>
               <p>
                 ${s.kind} ·
                 ${owned ? '已在你的护照里' : s.limit ? `限量 ${s.limit} 枚` : '现场领取'}
               </p></span
-            >${appContext.format.icon('chevron')}
+            >${icon('chevron')}
           </button>
           <div id="page-actions"></div>
         </div>
         <div class="info-row">
-          ${appContext.format.icon('book')}
+          ${icon('book')}
           <div>正在展出：${v.exhibit}<small>留一点时间，慢慢看一场展。</small></div>
         </div>
         <div class="info-row">
-          ${appContext.format.icon('clock')}
+          ${icon('clock')}
           <div>周二至周日 09:00–17:00<small>16:30 停止入馆 · 示例开放信息</small></div>
         </div>
         <div class="info-row">
-          ${appContext.format.icon('pin')}
+          ${icon('pin')}
           <div>${v.location}<small>纪念章领取点位于场馆内部</small></div>
           <button data-action="guide">查看位置</button>
         </div>
@@ -187,6 +246,10 @@ export function createDiscoveryViews(appContext) {
     venueRows,
     venueCard,
     renderDiscover,
+    discoverTools,
+    cityDialog,
+    guideDialog,
     renderVenue,
+    venueActions,
   };
 }

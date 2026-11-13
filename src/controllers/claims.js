@@ -61,10 +61,7 @@ export function createClaimController(appContext) {
     // A new image takes the place of whatever was being read.
     cancel();
     const token = picking;
-    if (
-      !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
-      file.size > 10 * 1024 * 1024
-    ) {
+    if (!appContext.images.importable(file)) {
       appContext.ui.ticketBusy = false;
       appContext.ui.ticketError = '请选择 10 MB 以内的 JPG、PNG 或 WebP 票根图片。';
       appContext.render(true);

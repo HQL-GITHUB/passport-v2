@@ -1,4 +1,6 @@
-export function createUiState(config) {
+// What says where a visitor is: the page, what it is about and how it is set. A history entry
+// keeps all of it, so going back finds the page as it was left.
+function createPageState(config) {
   return {
     screen: 'passport',
     selected: config.demoVenue,
@@ -14,6 +16,27 @@ export function createUiState(config) {
     discoverView: 'list',
     mapVenue: null,
     scanMode: 'qr',
+    visitKey: null,
+    visitDate: null,
+    stampReturn: null,
+    // The board the collectors page is open on; the first one until another is chosen.
+    board: '',
+    // The collector whose passport is open, the tab it is on and the page of its album.
+    person: null,
+    collectorTab: 'album',
+    collectorPage: 0,
+    // The post that is open.
+    post: null,
+  };
+}
+
+/** The names of what a history entry keeps of the interface's state. */
+export const PAGE_FIELDS = Object.keys(createPageState({}));
+
+/** The state of the interface: where the visitor is, and what is under way there. */
+export function createUiState(config) {
+  return {
+    ...createPageState(config),
     claimBusy: false,
     duplicate: false,
     firstMode: false,
@@ -21,10 +44,7 @@ export function createUiState(config) {
     includePhoto: false,
     includeTicket: false,
     shareTicket: '',
-    visitKey: null,
-    stampReturn: null,
     ticketContext: null,
-    visitDate: null,
     ticketDraft: null,
     ticketBusy: false,
     ticketError: '',
@@ -33,15 +53,7 @@ export function createUiState(config) {
     // an unsaved ticket is confirmed.
     viewingTicket: null,
     leaveTo: null,
-    highlightVisit: null,
-    // The board the collectors page is open on; the first one until another is chosen.
-    board: '',
-    // The collector whose passport is open, the tab it is on and the page of its album.
-    person: null,
-    collectorTab: 'album',
-    collectorPage: 0,
-    // The post that is open, and the one of the holder's own about to be taken off the square.
-    post: null,
+    // The post of the holder's own about to be taken off the square.
     withdrawing: null,
   };
 }

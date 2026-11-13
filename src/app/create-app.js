@@ -2,25 +2,24 @@ import { APP_CONFIG } from '../config.js';
 import { createCatalog } from '../domain/catalog.js';
 import { visitKey, hashIdentity, isValidDay } from '../domain/visits.js';
 import { eligibleStamps } from '../domain/claims.js';
-import { createLocalApi } from '../api/local.js';
+import { createLocalApi } from '../api/local/index.js';
 import { createClock } from '../lib/clock.js';
-import { TicketMedia } from '../storage/ticket-media.js';
+import { TicketMedia } from '../api/local/ticket-media.js';
 import { TicketEditor } from '../lib/ticket-editor.js';
 import { MedalViewer } from '../lib/medal-viewer.js';
 import { Carousel } from '../lib/carousel.js';
 import { PageBook } from '../lib/page-flip.js';
 import * as images from '../lib/images.js';
-import { createPresentation } from '../lib/presentation.js';
 import { createUiState, createRuntimeState } from '../state/state.js';
 import { bindEvents } from './events.js';
-import { assets } from '../data/assets.js';
+import { assets } from '../assets/index.js';
 import { createStore } from '../state/store.js';
-import { createQueries } from '../state/queries.js';
-import { createCommunityQueries } from '../state/community.js';
+import { createSelectors } from '../state/selectors.js';
+import { createCommunitySelectors } from '../state/community.js';
 import { createScreens } from '../app/screens.js';
 import { createNavigation } from '../app/navigation.js';
-import { createFeedback } from '../ui/feedback.js';
-import { createCeremony } from '../ui/ceremony.js';
+import { createFeedback } from '../controllers/feedback.js';
+import { createCeremony } from '../controllers/ceremony.js';
 import { createShellViews } from '../views/shell.js';
 import { createPassportViews } from '../views/passport.js';
 import { createStampViews } from '../views/stamps.js';
@@ -38,18 +37,13 @@ import { createDialogController } from '../controllers/dialogs.js';
 import { createClaimController } from '../controllers/claims.js';
 import { createMemoryController } from '../controllers/memories.js';
 import { createSocialController } from '../controllers/social.js';
-import { createShareCardService } from '../services/share-card.js';
+import { createShareCardService } from '../controllers/share-card.js';
 
 /** Composition root. Modules use the same context so replacing demo data stays consistent. */
 export function createApp() {
   // The single-file build inlines every image as a data URL of several megabytes. The
   // stylesheet refers to each by a short URL instead.
-  const blobUrls = [],
-    short = (src) => {
-      const url = images.imageUrl(src);
-      if (url !== src) blobUrls.push(url);
-      return url;
-    };
+  const urls = images.createImageUrls();
   const clock = createClock(APP_CONFIG.demoDate),
     media = new TicketMedia(APP_CONFIG.mediaDbName);
   const appContext = {
@@ -92,10 +86,9 @@ export function createApp() {
       modalRoot: document.getElementById('modal-root'),
     },
   };
-  appContext.format = createPresentation(appContext);
   Object.assign((appContext.store ||= {}), createStore(appContext));
-  Object.assign((appContext.selectors ||= {}), createQueries(appContext));
-  Object.assign((appContext.selectors ||= {}), createCommunityQueries(appContext));
+  Object.assign((appContext.selectors ||= {}), createSelectors(appContext));
+  Object.assign((appContext.selectors ||= {}), createCommunitySelectors(appContext));
   Object.assign((appContext.screens ||= {}), createScreens(appContext));
   Object.assign((appContext.navigation ||= {}), createNavigation(appContext));
   Object.assign((appContext.feedback ||= {}), createFeedback(appContext));
@@ -121,7 +114,7 @@ export function createApp() {
   // The stylesheet reads the stamp illustrations from custom properties: the atlas, and one for
   // each stamp that has an image of its own.
   for (const [name, src] of Object.entries({ atlas: assets.atlas, ...assets.badges }))
-    document.documentElement.style.setProperty(`--badge-${name}-url`, `url("${short(src)}")`);
+    document.documentElement.style.setProperty(`--badge-${name}-url`, `url("${urls.short(src)}")`);
   const unbind = bindEvents(appContext);
   let waiting;
   // Nothing can be drawn before the backend has answered. A wait that can be felt says so; one
@@ -158,7 +151,7 @@ export function createApp() {
       appContext.claims.cancel();
       appContext.dialogs.closeModal(false);
       for (const id of appContext.media.urls.keys()) appContext.media.revoke(id);
-      blobUrls.forEach((url) => URL.revokeObjectURL(url));
+      urls.dispose();
       appContext.api.dispose();
     },
   };

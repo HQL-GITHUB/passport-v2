@@ -1,3 +1,5 @@
+import { icon, date, dateShort, issue } from '../lib/format.js';
+
 /** Application module. Dependencies are provided by createApp(). */
 export function createShareCardService(appContext) {
   const numerals = '"Passport Numerals", Georgia, serif';
@@ -123,7 +125,7 @@ export function createShareCardService(appContext) {
       ctx.stroke();
       if (c.id.stamp) ctx.drawImage(badge(c.id.stamp), 158, 218, 200, 200);
       [
-        ['启用日期', appContext.format.date(c.id.since), `38px ${numerals}`],
+        ['启用日期', date(c.id.since), `38px ${numerals}`],
         ['最近一站', c.id.latest, `500 32px ${sans}`],
       ].forEach(([label, value, font], i) => {
         const top = 178 + i * 96;
@@ -176,11 +178,7 @@ export function createShareCardService(appContext) {
           ctx.fillText(fit(s.title, size + gap - 8), x + size / 2, top + size + 12);
           ctx.fillStyle = '#5f6b80';
           ctx.font = `23px ${numerals}`;
-          ctx.fillText(
-            appContext.format.issue(appContext.data.records[s.id], s),
-            x + size / 2,
-            top + size + 52,
-          );
+          ctx.fillText(issue(appContext.data.records[s.id], s), x + size / 2, top + size + 52);
         });
         y += body;
       } else {
@@ -196,7 +194,7 @@ export function createShareCardService(appContext) {
           }
           ctx.fillStyle = '#20242c';
           ctx.font = `40px ${numerals}`;
-          ctx.fillText(appContext.format.dateShort(v.day), 90, y + 22);
+          ctx.fillText(dateShort(v.day), 90, y + 22);
           ctx.font = `500 36px ${sans}`;
           ctx.fillText(fit(v.name, 500), 260, y + 8);
           ctx.fillStyle = '#7f899a';
@@ -226,7 +224,7 @@ export function createShareCardService(appContext) {
       appContext.runtime.cardBusy = false;
       if (button.isConnected) {
         button.disabled = false;
-        button.innerHTML = `${appContext.format.icon('download')}保存旅行卡`;
+        button.innerHTML = `${icon('download')}保存旅行卡`;
       }
     }
   }
@@ -300,18 +298,14 @@ export function createShareCardService(appContext) {
           ctx.fillText(s.title, x + size / 2, y + size + 5);
           ctx.font = `23px ${numerals}`;
           ctx.fillStyle = '#5f6b80';
-          ctx.fillText(
-            appContext.format.issue(appContext.data.records[s.id], s),
-            x + size / 2,
-            y + size + 40,
-          );
+          ctx.fillText(issue(appContext.data.records[s.id], s), x + size / 2, y + size + 40);
         }
         y += badgeH + 35;
       } else if (!ticket) {
         ctx.textAlign = 'center';
         ctx.fillStyle = '#1c212c';
         ctx.font = `110px ${numerals}`;
-        ctx.fillText(appContext.format.dateShort(v.day), 540, y + 35);
+        ctx.fillText(dateShort(v.day), 540, y + 35);
         y += 260;
       }
       ctx.textAlign = 'center';
@@ -324,7 +318,7 @@ export function createShareCardService(appContext) {
       }
       ctx.fillStyle = '#7f899a';
       ctx.font = '25px "Microsoft YaHei", sans-serif';
-      ctx.fillText(`${appContext.format.date(v.day)} / ${v.city}`, 540, y + 8);
+      ctx.fillText(`${date(v.day)} / ${v.city}`, 540, y + 8);
       y += 72;
       ctx.font = '30px "Microsoft YaHei", sans-serif';
       ctx.fillStyle = '#5f6b80';
@@ -357,7 +351,7 @@ export function createShareCardService(appContext) {
       appContext.runtime.cardBusy = false;
       if (button.isConnected) {
         button.disabled = false;
-        button.innerHTML = `${appContext.format.icon('download')}保存旅行卡`;
+        button.innerHTML = `${icon('download')}保存旅行卡`;
       }
     }
   }
@@ -387,7 +381,7 @@ export function createShareCardService(appContext) {
     ctx.fillText('参观日期', 65, 345);
     ctx.fillStyle = '#20242c';
     ctx.font = `40px ${numerals}`;
-    ctx.fillText(appContext.format.date(v.day), 660, 345);
+    ctx.fillText(date(v.day), 660, 345);
     ctx.setLineDash([8, 8]);
     ctx.strokeStyle = '#d8e1f1';
     ctx.beginPath();

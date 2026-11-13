@@ -1,5 +1,5 @@
 /** Application module. Dependencies are provided by createApp(). */
-export function createQueries(appContext) {
+export function createSelectors(appContext) {
   // The venue the page in view is about: the one its address names, the one of the stamp it
   // names, or the one of the open visit if the catalogue knows it. Otherwise none.
   function venue() {
@@ -52,6 +52,45 @@ export function createQueries(appContext) {
   function uncollected() {
     return appContext.catalog.stamps.filter((v) => !appContext.data.records[v.id]);
   }
+  // The album and the tickets are the two sections of one book.
+  function inBook(section = appContext.ui.collection) {
+    return section === 'collected' || section === 'tickets';
+  }
+  // The album fills like a passport: the stamps in the order they were collected, then the places
+  // still empty. A new stamp takes the first empty place and nothing before it moves.
+  function albumStamps() {
+    return [...appContext.selectors.collectedInOrder(), ...appContext.selectors.uncollected()];
+  }
+  // The pages of the book, by section: four stamps to a page, or two tickets.
+  function bookPages() {
+    const pages = (list, size) =>
+      Array.from({ length: Math.ceil(list.length / size) }, (_, n) =>
+        list.slice(n * size, (n + 1) * size),
+      );
+    return {
+      collected: pages(albumStamps(), 4),
+      // After the last ticket there is always a place for the next one.
+      tickets: pages([...appContext.selectors.ticketRows(), null], 2),
+    };
+  }
+  // The page a section opens on, counted through the whole book. Each section keeps its own
+  // place, as far as it has pages.
+  function bookIndex(section = appContext.ui.collection) {
+    const pages = bookPages(),
+      within = (page, list) => Math.min(page, list.length - 1);
+    return section === 'tickets'
+      ? pages.collected.length + within(appContext.ui.ticketPage, pages.tickets)
+      : within(appContext.ui.stampPage, pages.collected);
+  }
+  // The page of the album a stamp lies on.
+  function stampPageOf(id) {
+    return Math.floor(
+      Math.max(
+        0,
+        albumStamps().findIndex((v) => v.id === id),
+      ) / 4,
+    );
+  }
   function visitRows() {
     return Object.values(appContext.data.visits)
       .map((v) => ({
@@ -73,14 +112,22 @@ export function createQueries(appContext) {
       }))
       .sort((a, b) => b.day.localeCompare(a.day) || a.name.localeCompare(b.name));
   }
-  // The visit a collected stamp is being looked at for: the chosen one of its days.
+  // The day a collected stamp is being looked at for: the chosen one of its visits, or else the
+  // first.
+  function selectedVisit(r) {
+    return r.visits.includes(appContext.ui.visitDate)
+      ? appContext.ui.visitDate
+      : [...r.visits].sort()[0] || r.firstAt;
+  }
+  // The visit a collected stamp is being looked at for: the one of that day.
   function visitForStamp(v, r) {
     return appContext.data.visits[
-      appContext.domain.key(v.venueId, appContext.format.selectedVisit(r))
+      appContext.domain.key(v.venueId, appContext.selectors.selectedVisit(r))
     ];
   }
+  // The visit in view: the one the page is about, or the one its stamp is being looked at for.
   function currentVisit() {
-    if (['visit', 'visit-share'].includes(appContext.ui.screen))
+    if (appContext.screens.about() === 'visit')
       return appContext.data.visits[appContext.ui.visitKey];
     const s = appContext.selectors.stamp(),
       r = s && appContext.data.records[s.id];
@@ -201,9 +248,14 @@ export function createQueries(appContext) {
     collected,
     collectedInOrder,
     uncollected,
+    inBook,
+    bookPages,
+    bookIndex,
+    stampPageOf,
     edition,
     journalShare,
     visitRows,
+    selectedVisit,
     visitForStamp,
     currentVisit,
     savedTickets,
