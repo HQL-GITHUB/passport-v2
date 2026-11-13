@@ -21,7 +21,7 @@ export function createCollectorViews(appContext) {
           .boards()
           .map(
             (b) =>
-              `<button data-action="board" data-value="${b.id}" class="${b.id === current.id ? 'active' : ''}" aria-pressed="${b.id === current.id}">${b.label}</button>`,
+              `<button data-action="board" data-value="${safe(b.id)}" class="${b.id === current.id ? 'active' : ''}" aria-pressed="${b.id === current.id}">${safe(b.label)}</button>`,
           )
           .join('')}
       </div>
@@ -85,13 +85,13 @@ export function createCollectorViews(appContext) {
         <span
           ><strong>还没有上榜</strong
           ><small
-            >${current.yearly ? '今年在现场' : `在${current.label}现场`}领取一枚纪念章，就会出现在这里。</small
+            >${current.yearly ? '今年在现场' : `在${safe(current.label)}现场`}领取一枚纪念章，就会出现在这里。</small
           ></span
         ><button data-action="discover">去发现</button>
       </div>`;
     return /* HTML */ `<button class="standing-card" data-action="collector" data-person="me">
       <span
-        ><strong>${current.label}第 <b>${mine.rank}</b> 位</strong
+        ><strong>${safe(current.label)}第 <b>${mine.rank}</b> 位</strong
         ><small
           >现场收藏 ${mine.count}
           枚${ahead ? ` · 再收 ${ahead.count - mine.count} 枚，追上${safe(ahead.person.name)}` : ''}</small
@@ -109,7 +109,7 @@ export function createCollectorViews(appContext) {
         >${avatar(p)}<span class="board-who"
           ><strong>${safe(p.name)}</strong
           ><small
-            >${row.complete ? `已集齐${current.label}` : `最近 ${month(row.reached)}`}</small
+            >${row.complete ? `已集齐${safe(current.label)}` : `最近 ${month(row.reached)}`}</small
           ></span
         ><span class="board-stamps" aria-hidden="true"
           >${row.latest.map((v) => art(v)).join('')}</span
@@ -140,7 +140,7 @@ export function createCollectorViews(appContext) {
         </div>
         ${
           row
-            ? `<span class="collector-standing">${current.label}<span>第 <b>${row.rank}</b> 位</span></span>`
+            ? `<span class="collector-standing">${safe(current.label)}<span>第 <b>${row.rank}</b> 位</span></span>`
             : ''
         }
       </div>
@@ -216,7 +216,7 @@ export function createCollectorViews(appContext) {
   function heldSlot(s) {
     return /* HTML */ `<button class="badge-card" data-action="stamp" data-id="${s.stamp.id}">
       <div class="badge-frame">${art(s.stamp)}</div>
-      <h3>${s.stamp.title}</h3>
+      <h3>${safe(s.stamp.title)}</h3>
       <p class="badge-issue">${issue(s, s.stamp)}</p>
       <p class="badge-date">${month(s.at)}${s.method === 'ticket' ? ' · 补领' : ''}</p>
     </button>`;

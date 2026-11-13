@@ -12,7 +12,7 @@ export function createSharingViews(appContext) {
       <h1 class="share-headline">此行，<br />有迹可循。</h1>
       ${appContext.ui.includeTicket && appContext.ui.shareTicket ? `<img class="share-ticket-preview" src="${appContext.ui.shareTicket}" alt="手动确认后加入分享的票根">` : ''}
       <div class="share-memory-badges ${c.badges.length > 1 ? 'multiple' : ''}">
-        ${c.badges.map((s) => `<div>${art(s)}<small>${s.title}</small><small class="share-issue">${issue(appContext.data.records[s.id], s)}</small></div>`).join('')}${!c.badges.length && !appContext.ui.includeTicket ? `<div class="share-date-emblem"><span>${v.day.slice(0, 4)}</span><strong>${dateShort(v.day)}</strong></div>` : ''}
+        ${c.badges.map((s) => `<div>${art(s)}<small>${safe(s.title)}</small><small class="share-issue">${issue(appContext.data.records[s.id], s)}</small></div>`).join('')}${!c.badges.length && !appContext.ui.includeTicket ? `<div class="share-date-emblem"><span>${v.day.slice(0, 4)}</span><strong>${dateShort(v.day)}</strong></div>` : ''}
       </div>
       <p class="share-venue">${safe(v.name)}</p>
       <p class="share-date">${date(v.day)} / ${safe(v.city)}</p>
@@ -110,7 +110,7 @@ export function createSharingViews(appContext) {
         </h1>
         ${
           c.album
-            ? `<div class="share-album">${c.stamps.map((s) => `<div>${art(s)}<small>${s.title}</small><small class="share-issue">${issue(appContext.data.records[s.id], s)}</small></div>`).join('')}</div>`
+            ? `<div class="share-album">${c.stamps.map((s) => `<div>${art(s)}<small>${safe(s.title)}</small><small class="share-issue">${issue(appContext.data.records[s.id], s)}</small></div>`).join('')}</div>`
             : `<div class="share-journal">${c.visits
                 .map((v) => {
                   const heading =

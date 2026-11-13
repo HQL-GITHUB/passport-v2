@@ -24,13 +24,13 @@ export function createDiscoveryViews(appContext) {
       owned = appContext.selectors.owned(v);
     return /* HTML */ `<button class="venue-card" data-action="venue" data-id="${v.id}">
       <span class="venue-thumb ${photo ? 'has-photo' : ''}"
-        >${photo ? `<img src="${photo}" alt="" loading="lazy" decoding="async" ${fade(photo)}>` : ''}<span
+        >${photo ? `<img src="${safe(photo)}" alt="" loading="lazy" decoding="async" ${fade(photo)}>` : ''}<span
           class="venue-seal"
           >${art(appContext.catalog.stampOf(v))}${owned ? `<span class="venue-status" role="img" aria-label="馆章已收藏">${icon('check')}</span>` : ''}</span
         ></span
       ><span class="venue-copy"
-        ><h3>${v.name}</h3>
-        <p>${v.city} · ${v.exhibit}</p></span
+        ><h3>${safe(v.name)}</h3>
+        <p>${safe(v.city)} · ${safe(v.exhibit)}</p></span
       >
     </button>`;
   }
@@ -52,14 +52,14 @@ export function createDiscoveryViews(appContext) {
             (v, n) =>
               /* HTML */ `<button class="hero-slide" data-action="venue" data-id="${v.id}">
                 <img
-                  src="${v.photo}"
+                  src="${safe(v.photo)}"
                   alt=""
                   ${n ? 'loading="lazy"' : ''}
                   decoding="async"
                   ${fade(v.photo)}
                 /><span class="hero-copy"
-                  ><strong>${v.headline.join('<br />')}</strong
-                  ><span>${v.name} · ${v.exhibit}</span></span
+                  ><strong>${v.headline.map(safe).join('<br />')}</strong
+                  ><span>${safe(v.name)} · ${safe(v.exhibit)}</span></span
                 >
               </button>`,
           )
@@ -67,7 +67,7 @@ export function createDiscoveryViews(appContext) {
       </div>
       ${
         slides.length > 1
-          ? `<div class="hero-dots">${slides.map((v, n) => `<button data-carousel-dot aria-label="第 ${n + 1} 张，共 ${slides.length} 张：${v.name}" aria-current="${!n}"></button>`).join('')}</div>`
+          ? `<div class="hero-dots">${slides.map((v, n) => `<button data-carousel-dot aria-label="第 ${n + 1} 张，共 ${slides.length} 张：${safe(v.name)}" aria-current="${!n}"></button>`).join('')}</div>`
           : ''
       }
     </div>`;
@@ -135,7 +135,7 @@ export function createDiscoveryViews(appContext) {
   function cityDialog() {
     return {
       title: '选择下一站的城市',
-      body: `<div class="choice-list">${['全部城市', ...appContext.catalog.cities].map((city) => `<button data-action="set-city" data-value="${city}" class="${appContext.ui.city === city ? 'active' : ''}">${city}${appContext.ui.city === city ? icon('check') : ''}</button>`).join('')}</div>`,
+      body: `<div class="choice-list">${['全部城市', ...appContext.catalog.cities].map((city) => `<button data-action="set-city" data-value="${safe(city)}" class="${appContext.ui.city === city ? 'active' : ''}">${safe(city)}${appContext.ui.city === city ? icon('check') : ''}</button>`).join('')}</div>`,
     };
   }
   // Where in the venue in view its stamp is collected, on a sketch of the floor.
@@ -143,7 +143,7 @@ export function createDiscoveryViews(appContext) {
     const venue = appContext.selectors.venue();
     return {
       title: '找到这枚纪念章',
-      body: /* HTML */ `<p class="modal-sub">${venue.name} · 示例楼层指引</p>
+      body: /* HTML */ `<p class="modal-sub">${safe(venue.name)} · 示例楼层指引</p>
         <svg
           class="guide-map"
           viewBox="0 0 340 180"
@@ -176,7 +176,7 @@ export function createDiscoveryViews(appContext) {
           <text x="227" y="64">参观出口</text>
         </svg>
         <p class="guide-description">
-          ${venue.location}。<br />参观结束后，寻找“旅行护照”领取标识。
+          ${safe(venue.location)}。<br />参观结束后，寻找“旅行护照”领取标识。
         </p>
         <button class="button" data-action="close-modal">知道了</button>`,
     };
@@ -194,12 +194,12 @@ export function createDiscoveryViews(appContext) {
     // Saving the place for later belongs to the venue, so it sits by its name. The stamp and the
     // way to claim it are one panel: what can be collected here, and the button that collects it.
     return /* HTML */ `<section class="page venue-page screen-enter">
-      ${photo ? `<img class="venue-photo" src="${photo}" alt="${v.name}概念建筑">` : `<div class="venue-poster" data-word="${v.word}">${art(s)}</div>`}
+      ${photo ? `<img class="venue-photo" src="${safe(photo)}" alt="${safe(v.name)}概念建筑">` : `<div class="venue-poster" data-word="${safe(v.word)}">${art(s)}</div>`}
       <div class="venue-inner">
         <div class="venue-heading">
           <div>
-            <p class="venue-category">${v.city} / ${v.type}</p>
-            <h1 class="venue-title">${v.name}</h1>
+            <p class="venue-category">${safe(v.city)} / ${safe(v.type)}</p>
+            <h1 class="venue-title">${safe(v.name)}</h1>
           </div>
           <button
             class="heart-button ${wanted ? 'saved' : ''}"
@@ -210,14 +210,14 @@ export function createDiscoveryViews(appContext) {
             ${icon('heart')}想去
           </button>
         </div>
-        <p class="venue-intro">${v.intro}</p>
+        <p class="venue-intro">${safe(v.intro)}</p>
         <div class="venue-stamp">
           <button class="venue-chapter" data-action="stamp" data-id="${s.id}">
             ${art(s)}<span style="flex:1"
               ><small>这次到访，可以收藏</small>
-              <h3>${s.title}</h3>
+              <h3>${safe(s.title)}</h3>
               <p>
-                ${s.kind} ·
+                ${safe(s.kind)} ·
                 ${owned ? '已在你的护照里' : s.limit ? `限量 ${s.limit} 枚` : '现场领取'}
               </p></span
             >${icon('chevron')}
@@ -226,7 +226,7 @@ export function createDiscoveryViews(appContext) {
         </div>
         <div class="info-row">
           ${icon('book')}
-          <div>正在展出：${v.exhibit}<small>留一点时间，慢慢看一场展。</small></div>
+          <div>正在展出：${safe(v.exhibit)}<small>留一点时间，慢慢看一场展。</small></div>
         </div>
         <div class="info-row">
           ${icon('clock')}
@@ -234,7 +234,7 @@ export function createDiscoveryViews(appContext) {
         </div>
         <div class="info-row">
           ${icon('pin')}
-          <div>${v.location}<small>纪念章领取点位于场馆内部</small></div>
+          <div>${safe(v.location)}<small>纪念章领取点位于场馆内部</small></div>
           <button data-action="guide">查看位置</button>
         </div>
         ${appContext.views.renderGuestbook(v)}

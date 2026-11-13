@@ -209,7 +209,7 @@ export function createPassportViews(appContext) {
           ${awaited ? `<span class="slot-seat">${art(v)}</span>` : ''}
           ${record.firstAt === appContext.clock.today() ? '<span class="badge-kind new">新</span>' : ''}${art(v)}
         </div>
-        <h3>${v.title}</h3>
+        <h3>${safe(v.title)}</h3>
         <p class="badge-issue">${issue(record, v)}</p>
         <p class="badge-date">${date(record.firstAt)}</p>
       </button>`;
@@ -217,7 +217,7 @@ export function createPassportViews(appContext) {
       ended = v.period && v.period[1] < appContext.clock.today();
     return /* HTML */ `<button class="badge-card unowned" data-action="stamp" data-id="${v.id}">
       <div class="badge-frame">${art(v)}</div>
-      <h3>${v.title}</h3>
+      <h3>${safe(v.title)}</h3>
       <p class="badge-pending">
         ${ended ? '可用票根补领' : !e ? '到馆领取' : e.left > 0 ? `限量 · 还剩 ${e.left.toLocaleString('en-US')} 枚` : '已全部发行完毕'}
       </p>
@@ -293,7 +293,7 @@ export function createPassportViews(appContext) {
       .filter((s) => appContext.data.records[s.id])
       .map(
         (s) =>
-          `<span class="footprint-stamp"><span>${s.title}</span>${s.edition ? '<i>特展</i>' : s.limit ? '<i>限量</i>' : ''}<b>${issue(appContext.data.records[s.id], s)}</b></span>`,
+          `<span class="footprint-stamp"><span>${safe(s.title)}</span>${s.edition ? '<i>特展</i>' : s.limit ? '<i>限量</i>' : ''}<b>${issue(appContext.data.records[s.id], s)}</b></span>`,
       );
     return lines.length ? `<span class="footprint-stamps">${lines.join('')}</span>` : '';
   }

@@ -12,7 +12,7 @@ export const icon = (name, cls = '') =>
 // A stamp's illustration. Where there is no stamp to draw, nothing.
 export const art = (s, cls = '') =>
   s
-    ? `<span class="badge-art badge-${s.art} ${s.edition ? 'badge-edition' : ''} ${cls}" ${s.edition ? `data-edition="特展 · ${s.edition}"` : ''} role="img" aria-label="${s.title}纪念章插画"></span>`
+    ? `<span class="badge-art badge-${s.art} ${s.edition ? 'badge-edition' : ''} ${cls}" ${s.edition ? `data-edition="特展 · ${safe(s.edition)}"` : ''} role="img" aria-label="${safe(s.title)}纪念章插画"></span>`
     : '';
 
 export const date = (value) => String(value).replaceAll('-', '.');

@@ -26,7 +26,7 @@ export function createVisitViews(appContext) {
               .stampsFor(v.stampIds)
               .map(
                 (s) =>
-                  `<button data-action="stamp" data-id="${s.id}" data-visit-date="${v.day}" data-from-visit="${v.key}">${art(s)}<strong>${s.title}</strong><small>${s.kind}</small><small class="badge-issue">${issue(appContext.data.records[s.id], s)}</small></button>`,
+                  `<button data-action="stamp" data-id="${s.id}" data-visit-date="${v.day}" data-from-visit="${v.key}">${art(s)}<strong>${safe(s.title)}</strong><small>${safe(s.kind)}</small><small class="badge-issue">${issue(appContext.data.records[s.id], s)}</small></button>`,
               )
               .join('')}</div>`
           : '<p class="visit-no-stamps">这一站暂时没有纪念章。<br>票根与到访记忆，已经好好保存。</p>'

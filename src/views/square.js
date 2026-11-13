@@ -43,7 +43,7 @@ export function createSquareViews(appContext) {
   function stampCard(p) {
     const first = p.stamps[0];
     return first
-      ? `${art(first.stamp)}<b>${first.stamp.title}</b><i>${issue(first, first.stamp)}</i>`
+      ? `${art(first.stamp)}<b>${safe(first.stamp.title)}</b><i>${issue(first, first.stamp)}</i>`
       : `${icon('book')}<b>${safe(p.name)}</b>`;
   }
   const tint = (p) =>
@@ -147,7 +147,7 @@ export function createSquareViews(appContext) {
           ><strong>${safe(p.name)}</strong
           ><small>${safe(p.city)}${p.exhibit ? ` · ${safe(p.exhibit)}` : ''}</small>${
             first
-              ? `<small class="post-stamp">${first.stamp.title}${p.stamps.length > 1 ? ` 等 ${p.stamps.length} 枚` : ''}<b>${issue(first, first.stamp)}</b></small>`
+              ? `<small class="post-stamp">${safe(first.stamp.title)}${p.stamps.length > 1 ? ` 等 ${p.stamps.length} 枚` : ''}<b>${issue(first, first.stamp)}</b></small>`
               : ''
           }</span
         >`;

@@ -52,6 +52,7 @@ passport-v2/
 │  ├─ config.js               # 演示日期、存储键
 │  ├─ app/                    # 应用组装、页面表、页面主体表、事件分发、导航、渲染调度
 │  ├─ actions/                # 按钮动作表与字段表，按功能分组
+│  ├─ api/contract.d.ts       # 后端接口的类型定义，以及分页社区接口的草案
 │  ├─ api/local/              # 后端接口的本机演示实现：规则、演示内容（data/）与票根原图存储
 │  ├─ assets/                 # 随应用发布的图片（WebP）、数字字体，以及它们的清单 index.js
 │  ├─ domain/                 # 页面与后端共用的纯规则：目录查询、到访键、日期校验、可领的章
@@ -100,7 +101,7 @@ passport-v2/
 
 ## 测试
 
-单元测试覆盖同次到访合并、旧记录迁移、独立记忆、已清空记录保持、无章到访和日期校验，后端接口的每个方法（领取、票根识别与入册、取消、发布、公开设置和首次使用演示），榜单的排名规则，以及页面主体表（`tests/unit/subjects.test.js`：各种页面怎样读写地址、记下哪个场馆或章）。`tests/unit/wiring.test.js` 核对靠名字连接的部分：页面里每个 `data-action`、`data-input`、`data-change` 都有对应的动作或字段，页面表与弹窗表提到的页面函数都存在，跳转、弹窗与页面主体用到的名字都在表里；反过来，没有按钮的动作和没有被画出的页面函数也会报出来。
+单元测试覆盖同次到访合并、旧记录迁移、独立记忆、已清空记录保持、无章到访和日期校验，后端接口的每个方法（领取、票根识别与入册、取消、发布、公开设置和首次使用演示），榜单的排名规则，以及页面主体表（`tests/unit/subjects.test.js`：各种页面怎样读写地址、记下哪个场馆或章）。`tests/unit/wiring.test.js` 核对靠名字连接的部分：页面里每个 `data-action`、`data-input`、`data-change` 都有对应的动作或字段，页面表与弹窗表提到的页面函数都存在，跳转、弹窗与页面主体用到的名字都在表里；反过来，没有按钮的动作和没有被画出的页面函数也会报出来。`tests/unit/escaping.test.js` 核对转义：给目录、其他收藏家与持有人的文字都加上标签和引号，把每个页面与弹窗画一遍，检查没有一处原样写进 HTML。
 
 浏览器测试按功能分文件（`tests/e2e/` 下的 `discovery`、`navigation`、`book`、`stamps`、`visits`、`claim`、`passport`、`square`、`collectors`、`map`、`mobile`、`medal`），覆盖原图恢复、独立移除、无章到访、分享遮挡与下载、首次使用状态切换，以及单文件离线运行。
 
@@ -135,7 +136,7 @@ npm run test:e2e
 
 - 增加或修改场馆、纪念章：`src/api/local/data/catalog.js`。
 - 调整页面布局：`src/views/` 与 `src/styles/` 中对应功能的文件。
-- 增加页面：在 `src/app/screens.js` 的页面表里加一行，并在 `src/views/` 写出它的渲染函数；返回去向、数据缺失时的替代页面、页头与页面操作区的按钮都写在这一行里。
+- 增加页面：在 `src/app/screens.js` 的页面表里加一行，并在 `src/views/` 写出它的渲染函数；返回去向、数据缺失时的替代页面、页头与页面操作区的按钮都写在这一行里。页面里的文字一律经 `safe()` 写入，并在 `tests/unit/escaping.test.js` 的场景表里加上这个页面。
 - 增加弹窗：在 `src/controllers/dialogs.js` 的弹窗表里加一行，并在 `src/views/` 写出返回标题与内容的函数。
 - 修改示意地图与场馆在图上的位置：`src/views/map.js` 与 `src/api/local/data/catalog.js` 的 `at` 字段。
 - 增加按钮动作或输入框的响应：`src/actions/` 中对应功能的动作表、字段表。
@@ -143,7 +144,7 @@ npm run test:e2e
 - 修改领取与票根入册的交互流程：`src/controllers/claims.js`。
 - 修改领取规则、编号与票根识别（演示中由本机后端决定）：`src/api/local/index.js` 与 `src/domain/claims.js`。
 - 修改到访归档、编号、数据迁移：`src/api/local/passport.js`。
-- 接入账号与服务端存储：按 [架构说明](docs/architecture.md) 的「后端接口」另写一个实现，在 `src/app/create-app.js` 换上。
+- 接入账号与服务端存储：按 [架构说明](docs/architecture.md) 的「后端接口」与 `src/api/contract.d.ts` 的类型另写一个实现，在 `src/app/create-app.js` 换上。
 - 修改分享卡：`src/controllers/share-card.js` 与 `src/lib/ticket-editor.js`。
 - 修改榜单规则、公开范围与演示收藏家：`src/state/community.js`、`src/views/collectors.js` 与 `src/api/local/data/collectors.js`。
 - 修改广场的信息流、发布与留言簿：`src/views/square.js`，以及 `src/state/community.js` 中的 `posts`。
@@ -154,7 +155,7 @@ npm run test:e2e
 
 场馆、开放信息和章面均为概念内容。其他收藏家、榜单、名次与广场上的动态同样是本机的演示数据，没有账号；公开设置只影响本机上的预览，发布到广场的内容也只保存在本机。票根识别使用明确标示的示例结果，未连接真实 OCR、票号核验、NFC 读写、账号和场馆服务。图片重复检测只演示完全相同文件的本地去重。
 
-纪念章的收藏编号由本机按章与领取日期模拟生成，不是真实的发行序号，也不保证跨设备唯一。展览纪念章的发行量与发行进度同样是演示数据，发行量在 `src/data/catalog.js` 的 `limit` 字段中设置。接入服务后，编号与发行进度应由服务端在领取时签发并随记录返回。
+纪念章的收藏编号由本机按章与领取日期模拟生成，不是真实的发行序号，也不保证跨设备唯一。展览纪念章的发行量与发行进度同样是演示数据，发行量在 `src/api/local/data/catalog.js` 的 `limit` 字段中设置。接入服务后，编号与发行进度应由服务端在领取时签发并随记录返回。
 
 `src/config.js` 中的演示日期固定为 **2026-11-10**，用于重现历史票根匹配与日期校验；代码一律通过 `clock.today()` 读取。接入真实服务时，需要一并替换演示日期、数据目录与验证逻辑。
 

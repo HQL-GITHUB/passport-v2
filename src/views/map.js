@@ -1,4 +1,4 @@
-import { icon, art } from '../lib/format.js';
+import { safe, icon, art } from '../lib/format.js';
 
 /** Page rendering. Dependencies are provided by createApp(). */
 export function createMapViews(appContext) {
@@ -90,7 +90,7 @@ export function createMapViews(appContext) {
       data-action="map-pin"
       data-id="${v.id}"
       aria-pressed="${selected}"
-      aria-label="${v.name}，${owned ? '馆章已收藏' : wanted ? '想去' : '馆章待收藏'}"
+      aria-label="${safe(v.name)}，${owned ? '馆章已收藏' : wanted ? '想去' : '馆章待收藏'}"
       ${shown ? '' : 'inert'}
     >
       <span class="pin-seal"
@@ -101,7 +101,7 @@ export function createMapViews(appContext) {
               ? `<i class="pin-mark want">${icon('heart')}</i>`
               : ''
         }</span
-      ><span class="pin-name">${v.name}</span>
+      ><span class="pin-name">${safe(v.name)}</span>
     </button>`;
   }
   // Over the top of the map: how much of it is lit and what the marks mean, or, once a mark is
@@ -115,11 +115,11 @@ export function createMapViews(appContext) {
         s = appContext.catalog.stampOf(v),
         owned = appContext.selectors.owned(v);
       return /* HTML */ `<button class="map-card" data-action="venue" data-id="${v.id}">
-        <span class="map-thumb">${photo ? `<img src="${photo}" alt="" />` : art(s)}</span
+        <span class="map-thumb">${photo ? `<img src="${safe(photo)}" alt="" />` : art(s)}</span
         ><span class="map-copy"
-          ><strong>${v.name}</strong><small>${v.city} · ${v.exhibit}</small
+          ><strong>${safe(v.name)}</strong><small>${safe(v.city)} · ${safe(v.exhibit)}</small
           ><small class="map-state ${owned ? 'owned' : ''}"
-            >${owned ? '馆章已收藏' : `${appContext.data.wanted.includes(v.id) ? '想去 · ' : ''}到馆可领取「${s.title}」`}</small
+            >${owned ? '馆章已收藏' : `${appContext.data.wanted.includes(v.id) ? '想去 · ' : ''}到馆可领取「${safe(s.title)}」`}</small
           ></span
         >${icon('chevron')}
       </button>`;

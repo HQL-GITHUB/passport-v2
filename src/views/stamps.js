@@ -29,24 +29,24 @@ export function createStampViews(appContext) {
             ${visit.note ? /* HTML */ `<p class="memory-note">${safe(visit.note)}</p>` : !visit.photo ? '<p class="memory-empty">一张照片，一句话。<br>把当时的心情，也一起收藏。</p>' : ''}${visit.photo ? `<img class="memory-photo" src="${safe(visit.photo)}" alt="这次参观的个人照片">` : ''}
             <p class="privacy">${appContext.views.memoryPrivacy('仅自己可见，分享时可自行选择')}</p>
           </section>`
-      : `<div class="stamp-unowned">${v.period ? '展览已经结束，可以用当时的票根补领纪念。' : `前往${venue.name}，把这枚纪念收入护照。`}</div>`;
+      : `<div class="stamp-unowned">${v.period ? '展览已经结束，可以用当时的票根补领纪念。' : `前往${safe(venue.name)}，把这枚纪念收入护照。`}</div>`;
     return /* HTML */ `<section class="page stamp-page ${r ? '' : 'unowned'} screen-enter">
       <div class="stamp-intro">
-        <span class="stamp-category">${icon('book')}${v.kind}</span
+        <span class="stamp-category">${icon('book')}${safe(v.kind)}</span
         >${r ? '' : `<span class="stamp-category pending">${icon('lock')}尚未收藏</span>`}
-        <h1 class="stamp-title">${v.title}</h1>
-        <p class="stamp-subtitle">${venue.name} · ${venue.city}</p>
+        <h1 class="stamp-title">${safe(v.title)}</h1>
+        <p class="stamp-subtitle">${safe(venue.name)} · ${safe(venue.city)}</p>
       </div>
       <div class="stamp-showcase">
         <button
           class="stamp-zoom medal-${v.art} ${v.edition ? 'medal-edition' : ''}"
           data-action="zoom"
-          aria-label="放大欣赏${v.title}纪念章"
+          aria-label="放大欣赏${safe(v.title)}纪念章"
         >
           <span class="stamp-ground" aria-hidden="true"></span>${renderMedal(v, r)}</button
         ><span class="zoom-hint">${icon('search')}${r ? '点击翻看章面' : '点击预览章面'}</span>
       </div>
-      <p class="stamp-description">${v.description}</p>
+      <p class="stamp-description">${safe(v.description)}</p>
       ${renderEdition(v)}
       ${r ? `<div id="page-actions"></div>${memory}` : `${memory}<div id="page-actions"></div>`}
       ${appContext.views.renderHolders(v)}
@@ -94,15 +94,15 @@ export function createStampViews(appContext) {
           r
             ? /* HTML */ `<div class="medal-face medal-back">
                 <small>旅行护照</small>
-                <strong>${v.title}</strong>
-                <span>${venue.name} · ${venue.city}</span>
+                <strong>${safe(v.title)}</strong>
+                <span>${safe(venue.name)} · ${safe(venue.city)}</span>
                 <b>${date(appContext.selectors.selectedVisit(r))}</b>
                 <em>${issue(r, v)}</em>
                 <svg class="medal-rim" viewBox="0 0 200 200" aria-hidden="true">
                   <defs><path id="medal-rim-arc" d="M7 100A93 93 0 0 0 193 100" /></defs>
                   <text>
                     <textPath href="#medal-rim-arc" startOffset="50%" text-anchor="middle">
-                      ${v.serial} · ${v.kind}
+                      ${safe(v.serial)} · ${safe(v.kind)}
                     </textPath>
                   </text>
                 </svg>
@@ -131,7 +131,9 @@ export function createStampViews(appContext) {
       body: /* HTML */ `<div class="zoom-medal">
           ${renderMedal(stamp, record)}${record ? renderMedalFlip() : ''}
         </div>
-        <p class="modal-sub">${appContext.catalog.venueOf(stamp).name} · ${stamp.kind}</p>
+        <p class="modal-sub">
+          ${safe(appContext.catalog.venueOf(stamp).name)} · ${safe(stamp.kind)}
+        </p>
         <p class="medal-hint">
           ${record ? (animate ? '拖动章面，翻看背面的到访印记。' : '背面刻着这次到访的日期与编号。') : animate ? '拖动可以倾斜章面，收藏后可翻看背面。' : '收藏后，可以翻看背面的到访印记。'}
         </p>`,
@@ -146,7 +148,9 @@ export function createStampViews(appContext) {
         <div class="visit-ticket-body">
           <div>
             <p class="visit-date">${date(day)}</p>
-            <p class="visit-city">${icon('pin')}${appContext.catalog.venueOf(v).city} · 参观日期</p>
+            <p class="visit-city">
+              ${icon('pin')}${safe(appContext.catalog.venueOf(v).city)} · 参观日期
+            </p>
           </div>
           <div class="visit-ticket-number">
             <div class="visit-number-bars" aria-hidden="true"></div>
@@ -156,7 +160,7 @@ export function createStampViews(appContext) {
         <dl class="visit-provenance">
           <div>
             <dt>纪念章型号</dt>
-            <dd>${v.serial}</dd>
+            <dd>${safe(v.serial)}</dd>
           </div>
           <div>
             <dt>领取方式</dt>
